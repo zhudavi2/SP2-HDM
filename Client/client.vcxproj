@@ -325,7 +325,6 @@
     <ClCompile Include="Source\sp2_military_event_handler.cpp" />
     <ClCompile Include="Source\sp2_military_window.cpp" />
     <ClCompile Include="Source\sp2_mini_map.cpp" />
-    <ClCompile Include="Source\sp2_movie_player.cpp" />
     <ClCompile Include="Source\sp2_objectives_window.cpp" />
     <ClCompile Include="Source\sp2_overlay_city.cpp" />
     <ClCompile Include="Source\sp2_party_selection_window.cpp" />

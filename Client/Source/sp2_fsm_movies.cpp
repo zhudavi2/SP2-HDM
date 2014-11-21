@@ -53,22 +53,15 @@ UINT32 FSM::GLogoDC::OnEvent(UINT32 in_iEventID)
 
 void FSM::GLogoDC::OnEnter()
 {
-    g_ClientDCL.m_MoviePlayer.PlayFile(c_sMovieLogoDC);
 }
 
 UINT32 FSM::GLogoDC::OnIterate()
 {
-   if(g_ClientDCL.m_MoviePlayer.Iterate() )
-   {
-      return FSM::EMoviesState::LogoGolem;
-   }
-
    return __super::OnIterate();
 }
 
 void FSM::GLogoDC::OnLeave()
 {
-   g_ClientDCL.m_MoviePlayer.Stop();
 }
 
 UINT32 FSM::GLogoGolem::OnEvent(UINT32 in_iEventID)
@@ -85,22 +78,15 @@ UINT32 FSM::GLogoGolem::OnEvent(UINT32 in_iEventID)
 
 void FSM::GLogoGolem::OnEnter()
 {
-   g_ClientDCL.m_MoviePlayer.PlayFile(c_sMovieLogoGolem);
 }
 
 UINT32 FSM::GLogoGolem::OnIterate()
 {
-   if(g_ClientDCL.m_MoviePlayer.Iterate() )
-   {
-      return FSM::EMoviesState::Intro;
-   }
-
    return __super::OnIterate();
 }
 
 void FSM::GLogoGolem::OnLeave()
 {
-   g_ClientDCL.m_MoviePlayer.Stop();
 }
 
 UINT32 FSM::GIntro::OnEvent(UINT32 in_iEventID)
@@ -115,21 +101,14 @@ UINT32 FSM::GIntro::OnEvent(UINT32 in_iEventID)
 
 void FSM::GIntro::OnEnter()
 {
-   g_ClientDCL.m_MoviePlayer.PlayFile(c_sMovieIntro);
 }
 
 UINT32 FSM::GIntro::OnIterate()
 {
-   if(g_ClientDCL.m_MoviePlayer.Iterate() )
-   {
-      return GStateMachine::c_iTerminate;
-   }
-
    return __super::OnIterate();
 }
 
 void FSM::GIntro::OnLeave()
 {
-   g_ClientDCL.m_MoviePlayer.Stop();
 }
 

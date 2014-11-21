@@ -8,5 +8,6 @@ build/
 includes/RGAPI/
 
 *.sdf
+*.opensdf
 *.suo
 *.user

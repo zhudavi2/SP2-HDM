@@ -405,8 +405,6 @@ namespace SP2
       // Used at server connection to set current objectives
       vector<GGameObjective> m_vGameObjectives;
 
-      GMoviePlayer                     m_MoviePlayer;
-
       bool ServerIsReseted() const;
 
       bool m_bServerIsReset;

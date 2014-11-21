@@ -217,21 +217,13 @@ UINT32 FSM::GCredits::OnEvent(UINT32 in_iEventID)
 
 void FSM::GCredits::OnEnter()
 {
-   g_ClientDCL.m_MoviePlayer.PlayFile(*(c_sMovieCredits[g_SP2Client->CurrentScenarioSphere() ]) );
 }
 
 UINT32 FSM::GCredits::OnIterate()
 {
-   if(g_ClientDCL.m_MoviePlayer.Iterate() )
-   {
-      g_SP2Client->ContinueCurrentGame();
-      return FSM::EPlayingStates::InGame;
-   }
-
    return __super::OnIterate();
 }
 
 void FSM::GCredits::OnLeave()
 {
-   g_ClientDCL.m_MoviePlayer.Stop();
 }
