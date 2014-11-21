@@ -1,0 +1,70 @@
+<BEHAVIOR>
+	<FREQUENCY>1</FREQUENCY>
+
+	<DATA_MODIFIERS>
+		<pop_15_65_unemployed>
+			<goal>1.0</goal>
+			<gdp_growth>-1</gdp_growth>
+			<inflation_level>-3</inflation_level>
+			<minimum_wage>5</minimum_wage>
+			<human_development>-2</human_development>
+		</pop_15_65_unemployed>
+
+		<growth_rate>
+			<goal>1.0</goal>
+		</growth_rate>
+
+		<human_development>
+			<goal>1.1</goal>
+		</human_development>
+
+		<gvt_stability>
+			<goal>0.95</goal>
+		</gvt_stability>
+
+		<emigration_level>
+			<goal>1.05</goal>
+		</emigration_level>
+
+		<immigration_level>
+			<goal>1.05</goal>
+		</immigration_level>
+
+		<nat_security_level>
+			<goal>1.15</goal>
+		</nat_security_level>
+
+		<corruption_level>
+			<goal>1.1</goal>
+		</corruption_level>
+
+		<pop_in_poverty>
+			<goal>1.0</goal>
+		</pop_in_poverty>
+
+		<inflation_growth>		
+			<goal>1.0</goal>
+		</inflation_growth>		
+
+		<gdp_growth>
+			<goal>1.1</goal>
+		</gdp_growth>
+
+		<electricity_consump>
+			<goal>1.2</goal>
+		</electricity_consump>
+
+		<electricity_prod>
+			<goal>1.2</goal>
+		</electricity_prod>
+
+		<electricity_upkeep>
+			<goal>1.1</goal>
+		</electricity_upkeep>
+
+		<budget_revenue_activity>
+			<goal>1.1</goal>
+		</budget_revenue_activity>
+		
+	</DATA_MODIFIERS>
+</BEHAVIOR>

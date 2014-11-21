@@ -1,0 +1,500 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug_In_Release|Win32">
+      <Configuration>Debug_In_Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_No_Assert|Win32">
+      <Configuration>Debug_No_Assert</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Template|Win32">
+      <Configuration>Template</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>SP2 Server</ProjectName>
+    <ProjectGuid>{25FCDE54-1374-4C4E-8CBE-3E66EAE48227}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</IgnoreImportLibrary>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</IgnoreImportLibrary>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">$(Configuration)\</IntDir>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">true</IgnoreImportLibrary>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">$(Configuration)\</IntDir>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">true</IgnoreImportLibrary>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">true</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\includes\RGAPI\public;$(SolutionDir)..\includes\RGAPI\external\zlib;$(SolutionDir)..\includes\RGAPI\core;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/vmg %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\SDK\include;..\common_lib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SERVER_EXPORTS;INCLUDE_DATABASE;SP2_SERVER;GOLEM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>golem_pch.hpp</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)Server.dll</OutputFile>
+      <Version>
+      </Version>
+      <AdditionalLibraryDirectories>..\..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libc.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)Server.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)Server.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName>
+      </ResourceOutputFileName>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/vmg %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>..\includes\SDK\;..\includes\common_lib\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SERVER_EXPORTS;INCLUDE_DATABASE;SP2_SERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>golem_pch.hpp</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DisableSpecificWarnings>4189;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Ginger_SDK.lib;unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)Server.dll</OutputFile>
+      <Version>
+      </Version>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ImportLibrary>$(OutDir)Server.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName>
+      </ResourceOutputFileName>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/vmg %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>..\..\..\SDK\include;..\common_lib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SERVER_EXPORTS;INCLUDE_DATABASE;SP2_SERVER;GOLEM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>golem_pch.hpp</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)Server.dll</OutputFile>
+      <Version>
+      </Version>
+      <AdditionalLibraryDirectories>..\..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ImportLibrary>$(OutDir)Server.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName>
+      </ResourceOutputFileName>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/vmg %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>..\..\..\SDK\include;..\common_lib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SERVER_EXPORTS;INCLUDE_DATABASE;SP2_SERVER;GOLEM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>golem_pch.hpp</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)Server.dll</OutputFile>
+      <Version>
+      </Version>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>..\..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)Server.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName>
+      </ResourceOutputFileName>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\sp2_advisor.cpp" />
+    <ClCompile Include="Source\sp2_advisor_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_ai.cpp" />
+    <ClCompile Include="Source\sp2_ai_general_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_combat_arena.cpp" />
+    <ClCompile Include="Source\sp2_combat_planner.cpp" />
+    <ClCompile Include="Source\sp2_country_data_holder.cpp" />
+    <ClCompile Include="Source\sp2_data_access_layer.cpp" />
+    <ClCompile Include="Source\sp2_data_control_layer.cpp" />
+    <ClCompile Include="Source\sp2_economic_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_ehe_plan.cpp" />
+    <ClCompile Include="Source\sp2_game_objective_evaluator.cpp" />
+    <ClCompile Include="Source\sp2_general_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_military_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_military_plan.cpp" />
+    <ClCompile Include="Source\sp2_politic_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_server.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Source\sp2_server_dll_export.cpp" />
+    <ClCompile Include="Source\sp2_treaty_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_unit_group_ex.cpp" />
+    <ClCompile Include="Source\sp2_unit_mover.cpp" />
+    <ClCompile Include="Source\sp2_unit_production_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_unit_productor.cpp" />
+    <ClCompile Include="Source\sp2_world_behavior.cpp" />
+    <ClCompile Include="Source\sp2_economy_high_enough.cpp" />
+    <ClCompile Include="Source\sp2_economy_not_too_high.cpp" />
+    <ClCompile Include="Source\sp2_enemies_low_stability.cpp" />
+    <ClCompile Include="Source\sp2_enemies_no_military.cpp" />
+    <ClCompile Include="Source\sp2_enemies_no_money.cpp" />
+    <ClCompile Include="Source\sp2_government_stability.cpp" />
+    <ClCompile Include="Source\sp2_have_amds.cpp" />
+    <ClCompile Include="Source\sp2_have_good_research_level.cpp" />
+    <ClCompile Include="Source\sp2_have_high_economic_health.cpp" />
+    <ClCompile Include="Source\sp2_have_military_access.cpp" />
+    <ClCompile Include="Source\sp2_have_military_allies.cpp" />
+    <ClCompile Include="Source\sp2_have_money.cpp" />
+    <ClCompile Include="Source\sp2_have_no_debt.cpp" />
+    <ClCompile Include="Source\sp2_have_space.cpp" />
+    <ClCompile Include="Source\sp2_high_human_development.cpp" />
+    <ClCompile Include="Source\sp2_high_infrastructure.cpp" />
+    <ClCompile Include="Source\sp2_high_national_security_rating.cpp" />
+    <ClCompile Include="Source\sp2_high_self_relations.cpp" />
+    <ClCompile Include="Source\sp2_high_telecom_level.cpp" />
+    <ClCompile Include="Source\sp2_industrial_strength.cpp" />
+    <ClCompile Include="Source\sp2_low_corruption_level.cpp" />
+    <ClCompile Include="Source\sp2_population_support.cpp" />
+    <ClCompile Include="Source\sp2_strong_air_forces.cpp" />
+    <ClCompile Include="Source\sp2_strong_ground_forces.cpp" />
+    <ClCompile Include="Source\sp2_strong_infantry_forces.cpp" />
+    <ClCompile Include="Source\sp2_strong_naval_forces.cpp" />
+    <ClCompile Include="Source\sp2_strong_nuclear_forces.cpp" />
+    <ClCompile Include="Source\sp2_air_forces.cpp" />
+    <ClCompile Include="Source\sp2_alliance.cpp" />
+    <ClCompile Include="Source\sp2_annexation.cpp" />
+    <ClCompile Include="Source\sp2_assume_foreign_debt.cpp" />
+    <ClCompile Include="Source\sp2_change_communism.cpp" />
+    <ClCompile Include="Source\sp2_change_democracy.cpp" />
+    <ClCompile Include="Source\sp2_change_dictatorship.cpp" />
+    <ClCompile Include="Source\sp2_change_monarchy.cpp" />
+    <ClCompile Include="Source\sp2_change_theocracy.cpp" />
+    <ClCompile Include="Source\sp2_common_market.cpp" />
+    <ClCompile Include="Source\sp2_control_resource.cpp" />
+    <ClCompile Include="Source\sp2_covert_actions_ehe.cpp" />
+    <ClCompile Include="Source\sp2_cultural_exchanges.cpp" />
+    <ClCompile Include="Source\sp2_declare_martial_law.cpp" />
+    <ClCompile Include="Source\sp2_declare_war.cpp" />
+    <ClCompile Include="Source\sp2_decrease_status_rel_lang.cpp" />
+    <ClCompile Include="Source\sp2_disband_nuke.cpp" />
+    <ClCompile Include="Source\sp2_economic_aid.cpp" />
+    <ClCompile Include="Source\sp2_economic_embargo.cpp" />
+    <ClCompile Include="Source\sp2_economic_partnership.cpp" />
+    <ClCompile Include="Source\sp2_emigration_immigration.cpp" />
+    <ClCompile Include="Source\sp2_enroll_men.cpp" />
+    <ClCompile Include="Source\sp2_free_region.cpp" />
+    <ClCompile Include="Source\sp2_ground_forces.cpp" />
+    <ClCompile Include="Source\sp2_human_development.cpp" />
+    <ClCompile Include="Source\sp2_illegal_abortion.cpp" />
+    <ClCompile Include="Source\sp2_illegal_contraception.cpp" />
+    <ClCompile Include="Source\sp2_illegal_freedom_demonstration.cpp" />
+    <ClCompile Include="Source\sp2_illegal_freedom_speech.cpp" />
+    <ClCompile Include="Source\sp2_illimited_nb_children.cpp" />
+    <ClCompile Include="Source\sp2_improve_status_rel_lang.cpp" />
+    <ClCompile Include="Source\sp2_increase_production.cpp" />
+    <ClCompile Include="Source\sp2_interest_rate.cpp" />
+    <ClCompile Include="Source\sp2_launch_nuke.cpp" />
+    <ClCompile Include="Source\sp2_legal_abortion.cpp" />
+    <ClCompile Include="Source\sp2_legal_contraception.cpp" />
+    <ClCompile Include="Source\sp2_legal_freedom_demonstration.cpp" />
+    <ClCompile Include="Source\sp2_legal_freedom_speech.cpp" />
+    <ClCompile Include="Source\sp2_limited_nb_children.cpp" />
+    <ClCompile Include="Source\sp2_lower_resource_taxes.cpp" />
+    <ClCompile Include="Source\sp2_lower_taxes.cpp" />
+    <ClCompile Include="Source\sp2_military_trespassing_rights.cpp" />
+    <ClCompile Include="Source\sp2_naval_forces.cpp" />
+    <ClCompile Include="Source\sp2_noble_cause.cpp" />
+    <ClCompile Include="Source\sp2_nuclearize_country.cpp" />
+    <ClCompile Include="Source\sp2_raise_resource_taxes.cpp" />
+    <ClCompile Include="Source\sp2_raise_taxes.cpp" />
+    <ClCompile Include="Source\sp2_research_amds.cpp" />
+    <ClCompile Include="Source\sp2_research_partnership.cpp" />
+    <ClCompile Include="Source\sp2_trade_ins.cpp" />
+    <ClCompile Include="Source\sp2_train_specops.cpp" />
+    <ClCompile Include="Source\sp2_weapon_trade.cpp" />
+    <ClCompile Include="golem_pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Include\sp2_advisor.h" />
+    <ClInclude Include="Include\sp2_advisor_event_handler.h" />
+    <ClInclude Include="Include\sp2_ai.h" />
+    <ClInclude Include="Include\sp2_ai_general_event_handler.h" />
+    <ClInclude Include="Include\sp2_combat_arena.h" />
+    <ClInclude Include="Include\sp2_combat_planner.h" />
+    <ClInclude Include="Include\sp2_country_data_holder.h" />
+    <ClInclude Include="Include\sp2_data_access_layer.h" />
+    <ClInclude Include="Include\sp2_data_control_layer.h" />
+    <ClInclude Include="Include\sp2_economic_event_handler.h" />
+    <ClInclude Include="Include\sp2_ehe_constants.h" />
+    <ClInclude Include="Include\sp2_ehe_plan.h" />
+    <ClInclude Include="Include\sp2_game_objective_evaluator.h" />
+    <ClInclude Include="Include\sp2_general_event_handler.h" />
+    <ClInclude Include="Include\sp2_military_event_handler.h" />
+    <ClInclude Include="Include\sp2_military_plan.h" />
+    <ClInclude Include="Include\sp2_politic_event_handler.h" />
+    <ClInclude Include="Include\sp2_server.h" />
+    <ClInclude Include="Include\sp2_server_dll_export.h" />
+    <ClInclude Include="Include\sp2_treaty_event_handler.h" />
+    <ClInclude Include="Include\sp2_unit_group_ex.h" />
+    <ClInclude Include="Include\sp2_unit_mover.h" />
+    <ClInclude Include="Include\sp2_unit_production_event_handler.h" />
+    <ClInclude Include="Include\sp2_unit_productor.h" />
+    <ClInclude Include="Include\sp2_world_behavior.h" />
+    <ClInclude Include="Include\sp2_economy_high_enough.h" />
+    <ClInclude Include="Include\sp2_economy_not_too_high.h" />
+    <ClInclude Include="Include\sp2_ehe_objectives.h" />
+    <ClInclude Include="Include\sp2_enemies_low_stability.h" />
+    <ClInclude Include="Include\sp2_enemies_no_military.h" />
+    <ClInclude Include="Include\sp2_enemies_no_money.h" />
+    <ClInclude Include="Include\sp2_government_stability.h" />
+    <ClInclude Include="Include\sp2_have_amds.h" />
+    <ClInclude Include="Include\sp2_have_good_research_level.h" />
+    <ClInclude Include="Include\sp2_have_high_economic_health.h" />
+    <ClInclude Include="Include\sp2_have_military_access.h" />
+    <ClInclude Include="Include\sp2_have_military_allies.h" />
+    <ClInclude Include="Include\sp2_have_money.h" />
+    <ClInclude Include="Include\sp2_have_no_debt.h" />
+    <ClInclude Include="Include\sp2_have_space.h" />
+    <ClInclude Include="Include\sp2_have_specops.h" />
+    <ClInclude Include="Include\sp2_have_units.h" />
+    <ClInclude Include="Include\sp2_high_friends_military.h" />
+    <ClInclude Include="Include\sp2_high_friends_relations.h" />
+    <ClInclude Include="Include\sp2_high_human_development.h" />
+    <ClInclude Include="Include\sp2_high_infrastructure.h" />
+    <ClInclude Include="Include\sp2_high_national_security_rating.h" />
+    <ClInclude Include="Include\sp2_high_self_relations.h" />
+    <ClInclude Include="Include\sp2_high_telecom_level.h" />
+    <ClInclude Include="Include\sp2_industrial_strength.h" />
+    <ClInclude Include="Include\sp2_low_corruption_level.h" />
+    <ClInclude Include="Include\sp2_low_enemies_military.h" />
+    <ClInclude Include="Include\sp2_low_enemies_relations.h" />
+    <ClInclude Include="Include\sp2_population_support.h" />
+    <ClInclude Include="Include\sp2_strong_air_forces.h" />
+    <ClInclude Include="Include\sp2_strong_ground_forces.h" />
+    <ClInclude Include="Include\sp2_strong_infantry_forces.h" />
+    <ClInclude Include="Include\sp2_strong_naval_forces.h" />
+    <ClInclude Include="Include\sp2_strong_nuclear_forces.h" />
+    <ClInclude Include="Include\sp2_air_forces.h" />
+    <ClInclude Include="Include\sp2_alliance.h" />
+    <ClInclude Include="Include\sp2_annexation.h" />
+    <ClInclude Include="Include\sp2_assume_foreign_debt.h" />
+    <ClInclude Include="Include\sp2_change_communism.h" />
+    <ClInclude Include="Include\sp2_change_democracy.h" />
+    <ClInclude Include="Include\sp2_change_dictatorship.h" />
+    <ClInclude Include="Include\sp2_change_monarchy.h" />
+    <ClInclude Include="Include\sp2_change_theocracy.h" />
+    <ClInclude Include="Include\sp2_common_market.h" />
+    <ClInclude Include="Include\sp2_control_resource.h" />
+    <ClInclude Include="Include\sp2_covert_actions_ehe.h" />
+    <ClInclude Include="Include\sp2_cultural_exchanges.h" />
+    <ClInclude Include="Include\sp2_declare_martial_law.h" />
+    <ClInclude Include="Include\sp2_declare_war.h" />
+    <ClInclude Include="Include\sp2_decrease_status_rel_lang.h" />
+    <ClInclude Include="Include\sp2_disband_nuke.h" />
+    <ClInclude Include="Include\sp2_economic_aid.h" />
+    <ClInclude Include="Include\sp2_economic_embargo.h" />
+    <ClInclude Include="Include\sp2_economic_partnership.h" />
+    <ClInclude Include="Include\sp2_ehe_actions.h" />
+    <ClInclude Include="Include\sp2_emigration_immigration.h" />
+    <ClInclude Include="Include\sp2_enroll_men.h" />
+    <ClInclude Include="Include\sp2_free_region.h" />
+    <ClInclude Include="Include\sp2_ground_forces.h" />
+    <ClInclude Include="Include\sp2_human_development.h" />
+    <ClInclude Include="Include\sp2_illegal_abortion.h" />
+    <ClInclude Include="Include\sp2_illegal_contraception.h" />
+    <ClInclude Include="Include\sp2_illegal_freedom_demonstration.h" />
+    <ClInclude Include="Include\sp2_illegal_freedom_speech.h" />
+    <ClInclude Include="Include\sp2_illimited_nb_children.h" />
+    <ClInclude Include="Include\sp2_improve_status_rel_lang.h" />
+    <ClInclude Include="Include\sp2_increase_production.h" />
+    <ClInclude Include="Include\sp2_interest_rate.h" />
+    <ClInclude Include="Include\sp2_launch_nuke.h" />
+    <ClInclude Include="Include\sp2_legal_abortion.h" />
+    <ClInclude Include="Include\sp2_legal_contraception.h" />
+    <ClInclude Include="Include\sp2_legal_freedom_demonstration.h" />
+    <ClInclude Include="Include\sp2_legal_freedom_speech.h" />
+    <ClInclude Include="Include\sp2_limited_nb_children.h" />
+    <ClInclude Include="Include\sp2_lower_resource_taxes.h" />
+    <ClInclude Include="Include\sp2_lower_taxes.h" />
+    <ClInclude Include="Include\sp2_military_trespassing_rights.h" />
+    <ClInclude Include="Include\sp2_naval_forces.h" />
+    <ClInclude Include="Include\sp2_noble_cause.h" />
+    <ClInclude Include="Include\sp2_nuclearize_country.h" />
+    <ClInclude Include="Include\sp2_raise_resource_taxes.h" />
+    <ClInclude Include="Include\sp2_raise_taxes.h" />
+    <ClInclude Include="Include\sp2_research_amds.h" />
+    <ClInclude Include="Include\sp2_research_partnership.h" />
+    <ClInclude Include="Include\sp2_trade_ins.h" />
+    <ClInclude Include="Include\sp2_train_specops.h" />
+    <ClInclude Include="Include\sp2_weapon_trade.h" />
+    <ClInclude Include="golem_pch.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Behavior.xml" />
+    <None Include="ehe_entities.xml" />
+    <None Include="sp2_cfg_server.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SP2 Server.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties DevPartner_IsInstrumented="0" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

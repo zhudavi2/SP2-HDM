@@ -1,0 +1,45 @@
+<SERVER_CONFIG>
+        <Optimizations>
+            <Load_Map_Engine>1</Load_Map_Engine>
+	    <Save_Country_Data>0</Save_Country_Data>
+        </Optimizations>
+	<MAP>
+		<Map_Data_Path>map</Map_Data_Path>
+                <Admin_Config>config/admin_area_config.xml</Admin_Config>
+                <Elevation_Config>config/elevation_map_config.xml</Elevation_Config>
+                <Water_Config>config/inland_water_config.xml</Water_Config>
+                <Coastlines_Config>config/coastlines_config.xml</Coastlines_Config>
+                <Rivers_Config>config/rivers_config.xml</Rivers_Config>
+                <Roads_Config>config/roads_config.xml</Roads_Config>
+                <Land_Cover_Config>config/land_cover_config.xml</Land_Cover_Config>
+                <Region_Graph>data/map/region.graph</Region_Graph>
+        </MAP>
+	<AI>
+		<ITERATION_PERIOD>2</ITERATION_PERIOD>
+		<COMBAT_ITERATION_PERIOD>0.1</COMBAT_ITERATION_PERIOD>
+		<ENTITIES_FILE>ehe_entities.xml</ENTITIES_FILE>
+	</AI>
+        <Military>
+                <UnitTypes>/data/military/unit_types.xml</UnitTypes>
+        </Military>
+        <Gameplay>
+                <!-- Success chances are in percent -->
+                <AMDSLongRangeSuccessChances>60</AMDSLongRangeSuccessChances>
+                <AMDSShortRangeSuccessChances>50</AMDSShortRangeSuccessChances>
+                <!-- Time for a nuke to reach the other end of the planet, in gameplay days -->
+                <!-- 
+                    Until the time is slowed down when we launch the nukes, make the nuke launch to be a lot slower
+                     <NukeSpeed>0.04167</NukeSpeed>
+                -->                
+                <NukeSpeed>3</NukeSpeed>
+                <!-- Gameplay time in nuke mode, time elapsed in days for each real time seconds -->
+                <GamePlaySpeedInNukeMode>0.000694</GamePlaySpeedInNukeMode> 
+                <!-- Maximum amount of money that can be put to produce 1 unit in 1 day, the higher, the faster the units will be built -->
+                <MaxProductionMoneyPerDay>2000000</MaxProductionMoneyPerDay>
+                <!-- Starting date & hour of the game (2001/01/01 at 0h00 by default)-->
+				<Starting_Year>2001</Starting_Year>
+				<Starting_Month>1</Starting_Month>
+				<Starting_Day>1</Starting_Day>
+				<Starting_Hour>0</Starting_Hour>                
+        </Gameplay>
+</SERVER_CONFIG>

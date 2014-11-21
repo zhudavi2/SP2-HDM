@@ -1,0 +1,12 @@
+[Dd]ebug/
+[Rr]elease/
+x86/
+build/
+[Bb]in/
+[Oo]bj/
+
+includes/RGAPI/
+
+*.sdf
+*.suo
+*.user
