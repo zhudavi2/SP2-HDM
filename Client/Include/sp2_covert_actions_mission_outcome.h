@@ -25,7 +25,7 @@ namespace SP2
 
       EEventStatus::Enum OnMouseClick(const GEventData & in_EventData, GBaseObject* in_pCaller);
 
-      void Update(UINT32 in_iCellID, bool in_bSuccess, bool in_bCaptured);
+      void Update(UINT32 in_iCellID, bool in_bSuccess, bool in_bCaptured, bool in_bFoundOut);
 
       static const GString TypeName;
 

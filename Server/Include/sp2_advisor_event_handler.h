@@ -19,12 +19,13 @@
 namespace SP2
 {
 
+class SP2::Event::GSendPlan;
+
 /*!
  * Handles the advisor events sent by the client
  **/
 class GAdvisorEventHandler 
 {
-	class SP2::Event::GSendPlan;
 public:
    GAdvisorEventHandler( );
    ~GAdvisorEventHandler();

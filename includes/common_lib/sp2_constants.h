@@ -895,11 +895,11 @@ namespace SP2
       0.4f,     //anarchy
       0.f,     //conquered
       0.f,     //protectorat
-      0.75f,   //theocracy 
-      0.4f,    //military dictatorship
-      0.75f,    //monarchy
-      0.5f,    //communism
-      0.8f,    //singlepartydemocracy
+      1.f,     //theocracy 
+      1.f,     //military dictatorship
+      1.f,     //monarchy
+      1.f,     //communism
+      1.f,     //singlepartydemocracy
       1.f,     //multipartydemocracy
    };		
 	//Corruption modifier

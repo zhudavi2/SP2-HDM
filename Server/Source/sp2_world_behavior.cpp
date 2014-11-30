@@ -807,12 +807,64 @@ bool GWorldBehavior::Iterate_Tourism(GRegion* in_pRegion)
 	//Tourism income can change from +/- 20% per year
 	l_fResults = (l_fResults * 0.4f) + 0.8f;	
 
-	//If the country is at war, drop its tourism income by half
-	//! \todo A better way to calculate this. Maybe if combats are only outside of the country, it affects tourism less
-	set<ENTITY_ID> l_vListOfCountries;
-	g_ServerDAL.IsAtWarWith(m_CountryData->CountryID(),l_vListOfCountries);	
-	if(l_vListOfCountries.size())
-		l_fResults *= 0.5f;
+	// If battles are occurring in the country, then reduce tourism income
+	REAL32 l_fBattleMultiplier = 1.f;
+
+    // Militarily occupied by someone else - 0.5
+    if(in_pRegion->OwnerMilitaryId() != in_pRegion->OwnerId())
+    {
+        l_fBattleMultiplier = 0.5f;
+    }
+
+    // Battles in our region - 0.25
+    const vector<SDK::Combat::GArena*> l_vArenas = g_CombatManager.Arenas();
+    for(UINT32 i = 0 ; i < l_vArenas.size() ; i++)
+    {
+         SP2::GArena*     l_pArena      = (SP2::GArena*)l_vArenas[i];
+         SP2::GArenaInfo* l_pArenaInfo = (SP2::GArenaInfo*)l_pArena->Info();
+         if (l_pArenaInfo->m_iRegionID == in_pRegion->Id())
+         {
+             //g_Joshua.Log("Region is under attack");
+             l_fBattleMultiplier = 0.25f;
+             break;
+         }
+    }
+
+    // Bombardment?
+    if(l_fBattleMultiplier > 0.25f)
+    {
+        bool bombarded = false;
+        for (UINT32 i=1; i<=(UINT32)g_ServerDAL.NbCountry(); i++)
+	    {
+		    if(!g_ServerDAL.CountryIsValid(i))
+            {
+			    continue;
+            }
+
+            const set<UINT32>& l_UnitGroup = g_Joshua.UnitManager().CountryUnitGroups(i);
+            set<UINT32>::const_iterator l_UnitGroupIterator = l_UnitGroup.begin();
+   
+            while(l_UnitGroupIterator != l_UnitGroup.end())
+            {
+                SP2::GUnitGroup* l_pUnitGroup = (SP2::GUnitGroup*)g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIterator);
+                if ( l_pUnitGroup->RegionToBombard() == in_pRegion->OwnerId() )
+                {
+                    bombarded = true;
+                    break;
+                }
+
+                ++l_UnitGroupIterator;
+            }
+
+            if (bombarded)
+            {
+                l_fBattleMultiplier = 0.25f;
+                break;
+            }
+        }
+    }
+
+	l_fResults *= l_fBattleMultiplier;
 
 	REAL64 l_fNewTourism = in_pRegion->TourismIncome();
 
@@ -1361,7 +1413,12 @@ void GWorldBehavior::Iterate_Emigration_Level_Expected()
 		l_fResults = 0.f;
 
 
-	l_fExpected = LowestEmigration + (l_fResults * (HighestEmigration - LowestEmigration));
+	// Higher l_fResults means lower emigration
+	l_fExpected = LowestEmigration + ((1.f - l_fResults) * (HighestEmigration - LowestEmigration));
+
+    // Clamp between 0.f and 1.f once more, or else GCountryDataItf::EmigrationLevelExpected() may hit an assertion
+    l_fExpected = max(0.f, min(l_fExpected, 1.f));
+
 	m_CountryData->EmigrationLevelExpected(l_fExpected);
 
 }
@@ -1683,7 +1740,7 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 	{
 		Iterate_Production(g_ServerDAL.GetGRegion(*l_RegionItr));
 	}
-	
+	LimitExportsToProduction(in_iCountryID);
 
 	m_CountryData->SynchronizeWithRegions();	
 
@@ -1763,6 +1820,17 @@ bool GWorldBehavior::VerifyEconomicFailure(INT16 in_iCountryID)
    REAL64 l_fRevenues = g_ServerDCL.GetRevenuesForEconomicFailure(in_iCountryID);
    if(l_fDebtExpenses > l_fRevenues)
    {
+      // If we don't check for non-zero revenues, then countries will eventually flood the logs when they collapse quickly due to
+      // having no GDP
+      if(l_fRevenues >= 1)
+      {
+        g_Joshua.Log(L"The economy of country ID " + GString(in_iCountryID) + L", " +
+            g_ServerDAL.GetString(l_pData->NameID()) + L", " +
+            L"has failed with optimal revenues " +
+            GString::FormatNumber(l_fRevenues, L",", L".", L"$", L"", 3) + L" " +
+            L"and debt " +
+            GString::FormatNumber(l_pData->BudgetExpenseDebt()*10, L",", L".", L"", L"", 3));
+      }
       return true;
    }
    else
@@ -2043,7 +2111,7 @@ void GWorldBehavior::IterateNuclearResearchLevel(REAL64 in_fGameTime)
 
 void GWorldBehavior::IterateEmigrationImmigration()
 {
-	const REAL32 MaxImmigrationLevel = 0.01f;
+	const REAL32 MaxImmigrationLevel = 0.02f;
 
 	//Countries with bad political rank will emigrate first 
 	//AND
@@ -3213,6 +3281,8 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 				j != l_EconomicRanks.end(); j++)
 			{		
 				l_pExporter = j->second;					
+
+                LimitExportsToProduction(l_pExporter->CountryID());
 
 				if(l_pExporter->CountryID() == l_pImporter->CountryID())
 					continue;								
@@ -4441,6 +4511,33 @@ void GWorldBehavior::EconomicFriends(UINT32 in_iCountryID, set<UINT32>& out_Frie
 				l_Treaty.MembersSideA(true).end());
 		}
 		out_Friends.erase(in_iCountryID);
+	}
+}
+
+void GWorldBehavior::LimitExportsToProduction(INT16 in_iCountryID)
+{
+    // A country can't net export more than it produces
+
+    GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
+    
+    for(UINT32 i=0; i<EResources::ItemCount; i++)
+    {
+        EResources::Enum l_iResource = static_cast< EResources::Enum >( i );
+
+        REAL64 l_fNewExport = min(l_pCountryData->ResourceProduction(l_iResource), l_pCountryData->ResourceExport(l_iResource));
+        if(l_fNewExport < l_pCountryData->ResourceExport(l_iResource))
+        {
+            g_Joshua.Log(L"Country ID " + GString(in_iCountryID) + L", " +
+                g_ServerDAL.GetString(l_pCountryData->NameID()) + L", " +
+                L"is producing " +
+                GString::FormatNumber(l_fNewExport/1000000, L",", L".", L"$", L"M", 3, 3) + L" " +
+                L"of the " + g_ServerDAL.GetString(g_ServerDAL.StringIdResource(l_iResource)) + L" resource " +
+                L"but is exporting " +
+                GString::FormatNumber(l_pCountryData->ResourceExport(l_iResource)/1000000, L",", L".", L"$", L"M", 3, 3) + L"; " +
+                L"limiting exports to production");
+        }
+
+        l_pCountryData->ResourceExport(l_iResource, l_fNewExport);
 	}
 }
 

@@ -1641,6 +1641,9 @@ UINT32 GAI::BuildOrBuyUnits(UINT32 in_iCountry, REAL32 in_fStrength, EUnitCatego
 	const UINT32 c_iNbPlanesByStrength = 5;
 	const UINT32 c_iNbGroundsByStrength = 10;
 
+    // Have countries with higher revenue, build or buy more
+    in_fStrength *= logf(max(1.f, static_cast<REAL32>(g_ServerDAL.CountryData(in_iCountry)->BudgetRevenues())));
+
 	if(in_Category == EUnitCategory::Air)
 		return BuildAirUnits(in_iCountry, max(1,(UINT32)(in_fStrength*c_iNbPlanesByStrength)));
 	else if(in_Category == EUnitCategory::Naval)

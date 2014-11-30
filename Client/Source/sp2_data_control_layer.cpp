@@ -1401,8 +1401,10 @@ void GDataControlLayer::ShowMissionResult(void* in_pResultStruct)
             g_ClientDDL.CovertActionsMissionOutcomeWindowSpawn();
          
          g_ClientDDL.CovertActionsMissionOutcomeWindow()->Show();
+
+         bool l_bFoundOut = l_It->second.m_bSuccessful && (l_It->second.m_iFramedCountry == l_It->second.m_iCellSourceCountry);
          g_ClientDDL.CovertActionsMissionOutcomeWindow()->Update(l_It->second.m_iCellID, l_It->second.m_bSuccessful, 
-                                                                 l_It->second.m_bCaptured );
+                                                                 l_It->second.m_bCaptured, l_bFoundOut );
       }
       else
       {

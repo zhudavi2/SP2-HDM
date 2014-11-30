@@ -17,6 +17,8 @@
 #include "../include/sp2_main_bar.h"
 #include "../include/sp2_mini_map.h"
 
+#include <sstream>
+
 const GString GCovertActionsNewCellWindow::TypeName(L"Covert_Actions_Cell_Creation");
 
 GUI::GBaseObject* GCovertActionsNewCellWindow::New()
@@ -80,7 +82,10 @@ void GCovertActionsNewCellWindow::OnShow()
 
    m_pObjNameEdt->Text(L"");
    m_pObjCountryCbo->Selected_Content( g_ClientDAL.Country(g_ClientDAL.ControlledCountryID()).Name() );
-   m_pObjTraining->Selected_Content(g_ClientDAL.GetString(EStrId::TrainingRecruit));
+
+   // Have Elite selected by default, instead of Recruit.
+   m_pObjTraining->Selected_Content(g_ClientDAL.GetString(EStrId::TrainingElite));
+
    m_pObjConfirmBtn->Enabled(false);
 
    CalculateCost();
@@ -112,18 +117,43 @@ GUI::EEventStatus::Enum GCovertActionsNewCellWindow::OnMouseClick(const GEventDa
             }
             else
             {
-               SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GEventCellCreation);
-               SP2::Event::GEventCellCreation* l_pEvent = (SP2::Event::GEventCellCreation*)l_Event.get();
+               INT32 l_iStartingCellName = -1;
+               if(m_pObjNameEdt->Text().find('-') == 0)
+               {
+                   // If the name contains a dash at the front, then create 10 cells at a time.
+				   wstringstream l_Conversion(m_pObjNameEdt->Text().substr(1));
+				   l_Conversion >> l_iStartingCellName;
+               }
 
-               l_pEvent->m_iAssignedCountryID = g_ClientDAL.Country( m_pObjCountryCbo->Selected_Content() ).Id();
-               l_pEvent->m_sName = m_pObjNameEdt->Text();
-               l_pEvent->m_eTraining = g_ClientDAL.ConvertCellTrainingToEnum( m_pObjTraining->Selected_Content() );
+               for(INT32 i=l_iStartingCellName; i<l_iStartingCellName+10; i++)
+               {
+                SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GEventCellCreation);
+                SP2::Event::GEventCellCreation* l_pEvent = (SP2::Event::GEventCellCreation*)l_Event.get();
 
-               l_pEvent->m_iSource = g_SP2Client->Id();
-               l_pEvent->m_iTarget = SDK::Event::ESpecialTargets::Server;
+                l_pEvent->m_iAssignedCountryID = g_ClientDAL.Country( m_pObjCountryCbo->Selected_Content() ).Id();
+
+                if(l_iStartingCellName == -1)
+                {
+                    l_pEvent->m_sName = m_pObjNameEdt->Text();
+                }
+                else
+                {
+                    l_pEvent->m_sName = GSString(i);
+                }
+
+                l_pEvent->m_eTraining = g_ClientDAL.ConvertCellTrainingToEnum( m_pObjTraining->Selected_Content() );
+
+                l_pEvent->m_iSource = g_SP2Client->Id();
+                l_pEvent->m_iTarget = SDK::Event::ESpecialTargets::Server;
 
 
-               g_ClientDCL.ClientAdvisor().RaiseEvent(l_Event);
+                g_ClientDCL.ClientAdvisor().RaiseEvent(l_Event);
+
+                if(l_iStartingCellName == -1)
+                {
+                    break;
+                }
+               }
 
                Hide();
             }

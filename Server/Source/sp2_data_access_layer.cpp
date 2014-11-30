@@ -2329,19 +2329,19 @@ void GDataAccessLayerServer::SendHistory()
    }
 }
 
-UINT32 GDataAccessLayerServer::PopulationLevel(UINT32 in_iCountryID) const
+REAL32 GDataAccessLayerServer::PopulationLevel(UINT32 in_iCountryID) const
 {
-	INT64 l_iTempPopulation = 4000000;
-	INT64 l_iPopulation= m_pCountryData[in_iCountryID].Population();
+    REAL32 l_fTempPopulation = 4000000.f;
+	REAL32 l_fPopulation= static_cast<REAL32>(m_pCountryData[in_iCountryID].Population());
 	
-	for(UINT32 i = 1; i<12; i++)
-	{
-		if(l_iPopulation < l_iTempPopulation)
-			return i;
-		l_iTempPopulation *= 2;
-	}
-
-	return 12;
+	if(l_fPopulation < l_fTempPopulation)
+    {
+        return 1.f + l_fPopulation/l_fTempPopulation;
+    }
+    else
+    {
+        return (logf(l_fPopulation/l_fTempPopulation)/logf(2.f)) + 2.f;
+    }
 }
 
 list<UINT16>& GDataAccessLayerServer::BuildingCountryList(void)

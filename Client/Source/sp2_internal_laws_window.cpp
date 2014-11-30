@@ -749,7 +749,7 @@ void GInternalLawsWindow::Update(bool in_bForce)
    }
    m_pObjLstParties->Update();
 
-   ((GLabel*)m_pObjMigration->Child(L"txtEmigrationValue"))->Text(GString::FormatNumber(m_pData[0].m_fEmigration * 100.f,L"",L".",L"",L" %",0,1));
+   ((GLabel*)m_pObjMigration->Child(L"txtEmigrationValue"))->Text(GString::FormatNumber(m_pData[0].m_fEmigration * 100.f,3));
    if(g_ClientDAL.ControlledCountryID() == g_ClientDCL.SelectedCountryID() && !((GComboBox*)m_pObjMigration->Child(L"cboEmigrationStatus"))->NbItems())
    {
       ((GComboBox*)m_pObjMigration->Child(L"cboEmigrationStatus"))->Add_Item(g_ClientDAL.GetString(100123));
@@ -760,7 +760,7 @@ void GInternalLawsWindow::Update(bool in_bForce)
    else
       ((GComboBox*)m_pObjMigration->Child(L"cboEmigrationStatus"))->Selected_Content(g_ClientDAL.GetString(100124));
 
-   ((GLabel*)m_pObjMigration->Child(L"txtImmigrationValue"))->Text(GString::FormatNumber(m_pData[0].m_fImmigration * 100.f,L"",L".",L"",L" %",0,1));
+   ((GLabel*)m_pObjMigration->Child(L"txtImmigrationValue"))->Text(GString::FormatNumber(m_pData[0].m_fImmigration * 100.f,3));
    if(g_ClientDAL.ControlledCountryID() == g_ClientDCL.SelectedCountryID() && !((GComboBox*)m_pObjMigration->Child(L"cboImmigrationStatus"))->NbItems())
    {
       ((GComboBox*)m_pObjMigration->Child(L"cboImmigrationStatus"))->Add_Item(g_ClientDAL.GetString(100123));

@@ -64,7 +64,7 @@ void GGameObjectiveEvaluator::EvaluateSteamAchievementsForPlayer(SDK::GPlayer* i
       {
          SP2::GCountryData* l_pCountry = g_ServerDAL.CountryData(i+1);
          if(l_pCountry)
-            lPopulation += (REAL64)l_pCountry->Population();
+            lPopulation += l_pCountry->Population();
       }
 
       if(lPopulation < 3000000000)  // about half

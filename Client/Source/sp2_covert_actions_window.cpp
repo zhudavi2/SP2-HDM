@@ -653,7 +653,7 @@ void GCovertActionsWindow::OnSubjectChange(Hector::DesignPattern::GSubject&  in_
 
 void GCovertActionsWindow::UpdateNationalSecurity()
 {
-   m_pObjProtectionLbl->Text( GString::FormatNumber(g_ClientDAL.m_PlayerCountryData.NationalSecurity() * 100.f, L"", L".", L"", L" %", 0, 1) );
+   m_pObjProtectionLbl->Text( GString::FormatNumber(g_ClientDAL.m_PlayerCountryData.NationalSecurity() * 100.f, L"", L".", L"", L"", 0, 1) );
 }
 
 bool GCovertActionsWindow::Update()

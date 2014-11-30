@@ -63,7 +63,7 @@ void GCountryData::ReadjustDesiredExportsImports(REAL64 l_fChangeRatio)
 	}
 }
 
-void GCountryData::SynchronizeWithRegions()
+void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
 {
 	const set<UINT32>& l_vRegionsPolitical = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
 		
@@ -171,6 +171,19 @@ void GCountryData::SynchronizeWithRegions()
 		}		
 	}
 
+    m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
+
+    // The first time this method is called, right as the game starts, log out some country data.
+    if(in_bFirstTime)
+    {
+        g_Joshua.Log(
+            L"Country ID " + GString(m_iCountryID) + L", " +
+            g_ServerDAL.GetString(m_iNameID) + L": " +
+            L"GDP " + GString::FormatNumber(m_fGDPValueBase, L",", L".", L"$", L"", 3) + "; " +
+            L"GDP per capita " + GString::FormatNumber(m_fGDPValueBase/m_iPopulation, L",", L".", L"$", L"", 3) + L"; " +
+            L"HDI " + GString::FormatNumber(m_fHumanDevelopment, 3));
+    }
+
 	m_fGDPValue = max(0.f,m_fGDPValueBase + (0.5*m_fEconomicActivity));
 
 	IterateDemand();
@@ -193,8 +206,6 @@ void GCountryData::SynchronizeWithRegions()
 			}			
 		}
 	}
-
-	m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
 
 	if(m_fAreaLandTotal != 0.0f)
 	{
@@ -517,8 +528,8 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 	m_fResourceProductionModifier = g_ServerDAL.ResourceProductionModifier(in_iCountryID,(EGovernmentType::Enum)m_iGvtType);
 	m_fResourceDemandModifier = SP2::c_pGvtTypeDemandModifier[m_iGvtType];	
 
-	//Fill information that comes from the regions	
-	SynchronizeWithRegions();
+	//Fill information that comes from the regions; this will be the first time it's called.	
+	SynchronizeWithRegions(true);
 
 	m_fBudgetRevenues = m_fBudgetRevenueTax + m_fBudgetRevenueTrade + m_fBudgetRevenueIMF +
 								m_fBudgetRevenueTourism;
@@ -647,6 +658,49 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 				m_pResourceMeetDomesticConsumption[i] = false;
 			m_pResourceTaxes[i]			= *((REAL32*)l_TableResources.Row(0)->Cell((i*9)+8)->Data()) / 100.f;
 			m_pResourceGDP[i]	= *((REAL32*)l_TableResources.Row(0)->Cell((i*9)+9)->Data()) / 100.f;			
+
+            // Set some countries' tax information differently from the database.
+            vector<ENTITY_ID> l_vCountriesToReference;
+            EResources::Enum l_eResource = static_cast<EResources::Enum>(i);
+            bool l_bChangePreviousCountry = false;
+            switch(m_iCountryID)
+            {
+            case 104:
+            case 123:   // LUX, NLD from BEL
+                l_vCountriesToReference.push_back(17);
+                break;
+
+            case 154:   // SGP to MYS
+                l_vCountriesToReference.push_back(107);
+                l_bChangePreviousCountry = true;
+                break;
+
+            case 167:   // CHE to LIE, MCO
+                l_vCountriesToReference.push_back(102);
+                l_vCountriesToReference.push_back(116);
+                l_bChangePreviousCountry = true;
+                break;
+
+            default:
+                break;
+            }
+
+            for(vector<ENTITY_ID>::iterator l_CountryIDIt=l_vCountriesToReference.begin();
+                    l_CountryIDIt<l_vCountriesToReference.end(); ++l_CountryIDIt)
+            {
+                GCountryData* l_pCountryData = g_ServerDAL.CountryData(*l_CountryIDIt);
+
+                if(!l_bChangePreviousCountry)
+                {
+                    m_pResourceGvtControl[i] = l_pCountryData->ResourceGvtCtrl(l_eResource);
+                    m_pResourceTaxes[i]      = l_pCountryData->ResourceTaxes(l_eResource);
+                }
+                else
+                {
+                    l_pCountryData->ResourceGvtCtrl(l_eResource, m_pResourceGvtControl[i]);
+                    l_pCountryData->ResourceTaxes(l_eResource, m_pResourceTaxes[i]);
+                }
+            }
 	}
 	
    //Fetch the list of nuclear missiles

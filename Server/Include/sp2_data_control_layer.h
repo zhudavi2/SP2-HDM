@@ -71,7 +71,7 @@ namespace SP2
 		//! Find national security level of a country
 		REAL32 FindNationalSecurity(
 			UINT32 in_iNbCellsInDefense,
-			UINT32 in_iPopulationLevel,
+			REAL32 in_fPopulationLevel,
 			REAL32 in_fAverageTrainingCell) const;
 
 		void ExecuteInternalLawWomenSuffrage(UINT32 in_iCountryID,bool in_bStatus);

@@ -329,10 +329,19 @@ bool GCountryInformationWindow::Update()
    m_pObjClimateLbl->Height( m_pObjClimateLbl->Text2D()->Height() );
    m_pObjClimateScr->Initialize(this, 0, max(m_pObjClimateLbl->Height() - m_pObjClimateFrm->Height(), 0), 1, 45, 0 );
 
-   m_pObjCountryLbl->Text( g_ClientDAL.Country(g_ClientDCL.SelectedCountryID()).Name() );
+   // Report country's HDI
+   m_pObjCountryLbl->Text( g_ClientDAL.Country(g_ClientDCL.SelectedCountryID()).Name() +
+       L" (" + GString::FormatNumber(m_pData->m_fHumanDev, 3) + L")");
+
    ((GUI::GLabel*)m_pObjFrameTitle->Child(L"lblTitle"))->Text(g_ClientDAL.Country(g_ClientDCL.SelectedCountryID()).Name().ToUpper() );
    m_pObjCountryPic->Width( (INT32)( m_pData->m_fHumanDev * (REAL64)m_pObjCountryLbl->Width() ) );
    m_pObjWorldPic->Width( (INT32)( m_pData->m_fHumanDevAverage * (REAL64)m_pObjCountryLbl->Width() ) );
+
+   // Report world average HDI
+   GUI::GLabel* l_pWorldAverageLabel = static_cast<GUI::GLabel*>(
+       m_pObjInnerFrm->Child(L"frmHumanDevelopment")->Child(L"frmInner")->Child(L"lblWorld"));
+   l_pWorldAverageLabel->Text(L"World average (" + GString::FormatNumber(m_pData->m_fHumanDevAverage, 3) + L")");
+   l_pWorldAverageLabel->Width( m_pObjCountryLbl->Width() );
 
    // Update country content
    {

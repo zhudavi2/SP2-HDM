@@ -77,8 +77,8 @@ namespace SP2
 		//!Saves	the data	for that	country,	into the	DB
 		bool CommitCountryData(IndexedData::GWriter& in_StringTable, vector<GSString>& in_vQueries, UINT32& in_iLanguageStatusIterator, UINT32& in_iReligionStatusIterator, UINT32& in_iCovertOpsIterator);
 
-		//! Will	calculate the data for a given country	based	on	the information of its provinces.
-		void SynchronizeWithRegions();
+		//! Will	calculate the data for a given country	based	on	the information of its provinces. in_bFirstTime is true if it's the first time this is called in the game.
+		void SynchronizeWithRegions(bool in_bFirstTime = false);
 
 		//! Will readjust the expenses based on that ratio. A ratio of 1 won't change any expenses. A ratio of 2 doubles all expenses. A ratio of 0 put all expenses to 0
 		void ReadjustDesiredExportsImports(REAL64 l_fChangeRatio);

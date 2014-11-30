@@ -6340,6 +6340,47 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 																	l_iCountryTarget,
 																	l_iSpecificSector);		
 
+        // More covert cells in the country should result in a better success rate.
+        // Each extra elite cell adds 0.8% to the success rate
+        {
+            GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_iCellOwnerID);
+            const vector<GCovertActionCell> l_vCells = l_pCountryData->CovertActionCells();
+            REAL32 l_fNumberOfCellsModifier = 0.f;
+            for (vector<GCovertActionCell>::const_iterator l_CellIt=l_vCells.cbegin(); l_CellIt<l_vCells.cend(); ++l_CellIt)
+            {
+                if ((l_CellIt->AssignedCountry() == l_iCountryTarget) &&
+                    (l_CellIt->ActualState() == ECovertActionsCellState::Active))
+                {
+                    gassert(l_CellIt->ID() != in_Cell.ID(),
+                        "GDataControlLayer::ExecuteMission(): Ready-to-execute cell has wrong state");
+
+                    switch(l_CellIt->ExperienceLevelType())
+                    {
+                    case ECovertActionCellTraining::Recruit:
+                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsRecruitSuccessRate; break;
+                    case ECovertActionCellTraining::Regular:
+                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsRegularSuccessRate; break;
+                    case ECovertActionCellTraining::Veteran:
+                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsVeteranSuccessRate; break;
+                    case ECovertActionCellTraining::Elite:
+                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsEliteSuccessRate; break;
+                    default:
+                        gassert(false,"GDataControlLayer::ExecuteMission(): Invalid training level for multiple cells");
+                        return 0.f;
+                    }
+                }
+            }
+
+            REAL32 l_fsuccessRateBonus = l_fNumberOfCellsModifier * 0.4f / 100.f;
+            /*
+            g_Joshua.Log( "l_fSuccessRate: " +
+                GString::FormatNumber( l_fSuccessRate / ( 1 - FindNationalSecurity( l_iCountryTarget ) ), 3 ) +
+                " * ( 1 - security ); " +
+                " successRateBonus: " + GString::FormatNumber( successRateBonus, 3 ) );
+                */
+            l_fSuccessRate = min( l_fSuccessRate + l_fsuccessRateBonus, SP2::c_fMaximumSuccessRateAllowed );
+        }
+
 		//Success?
 		Random::GQuick l_Rand;
 		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)(l_fSuccessRate*100.f)) );
@@ -6834,7 +6875,7 @@ void GDataControlLayer::IterateBudgetExpenseSecurity(UINT32 in_iCountryID)
 
 REAL32 GDataControlLayer::FindNationalSecurity(UINT32 in_iCountryID) const
 {
-	UINT32 l_iPopulationLevel = g_ServerDAL.PopulationLevel(in_iCountryID);
+	REAL32 l_fPopulationLevel = g_ServerDAL.PopulationLevel(in_iCountryID);
 	UINT32 l_iNbCellsInDefense = 0;
 	REAL32 l_fAverageCell = 0.f;
 	
@@ -6865,16 +6906,16 @@ REAL32 GDataControlLayer::FindNationalSecurity(UINT32 in_iCountryID) const
 
 	if(l_iNbCellsInDefense > 0)
 		l_fAverageCell /= (REAL32)l_iNbCellsInDefense;
-	return FindNationalSecurity(l_iNbCellsInDefense,l_iPopulationLevel,l_fAverageCell);
+	return FindNationalSecurity(l_iNbCellsInDefense,l_fPopulationLevel,l_fAverageCell);
 }
 
 REAL32 GDataControlLayer::FindNationalSecurity(UINT32 in_iNbCellsInDefense,			
-																UINT32 in_iPopulationLevel,
+																REAL32 in_fPopulationLevel,
 																REAL32 in_fAverageTrainingCell) const
 {
 	if(in_iNbCellsInDefense == 1)
 	{
-		return (SP2::c_fMaximumProtectionCovertActions * in_fAverageTrainingCell) / (REAL32)(in_iPopulationLevel + 1);
+		return (SP2::c_fMaximumProtectionCovertActions * in_fAverageTrainingCell) / (in_fPopulationLevel + 1.f);
 	}
 	else if(in_iNbCellsInDefense == 0)
 	{
@@ -6883,11 +6924,11 @@ REAL32 GDataControlLayer::FindNationalSecurity(UINT32 in_iNbCellsInDefense,
 	else
 	{
 		REAL32 l_fPreceedingTotal = FindNationalSecurity(in_iNbCellsInDefense-1,
-																		 in_iPopulationLevel,
+																		 in_fPopulationLevel,
 																		 in_fAverageTrainingCell);
 		return l_fPreceedingTotal + 
 			((in_fAverageTrainingCell * (SP2::c_fMaximumProtectionCovertActions - l_fPreceedingTotal)) 
-			/ (REAL32)(in_iPopulationLevel + 1));
+			/ (in_fPopulationLevel + 1.f));
 	}
 }
 

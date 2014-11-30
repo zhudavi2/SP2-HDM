@@ -11,3 +11,4 @@ includes/RGAPI/
 *.opensdf
 *.suo
 *.user
+*.bak

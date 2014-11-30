@@ -266,8 +266,8 @@ namespace SP2
       //! Sends all remembered actions since begin of iteration
       void SendHistory();
 
-		//! Find the population level, between 1 and 12, for a country
-		UINT32 PopulationLevel(UINT32 in_iCountryID) const;
+		//! Find the population level, starting from 1, for a country
+		REAL32 PopulationLevel(UINT32 in_iCountryID) const;
 
 		//! Return the total value (in $) of missiles for a specific country
 		REAL32 TotalMissileValue(UINT32 in_iCountryID) const;

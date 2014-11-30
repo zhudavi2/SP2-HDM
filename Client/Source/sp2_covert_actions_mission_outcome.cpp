@@ -83,7 +83,7 @@ GUI::EEventStatus::Enum GCovertActionsMissionOutcomeWindow::OnMouseClick(const G
    return GUI::EEventStatus::Handled;
 }
 
-void GCovertActionsMissionOutcomeWindow::Update(UINT32 in_iCellID, bool in_bSuccess, bool in_bCaptured)
+void GCovertActionsMissionOutcomeWindow::Update(UINT32 in_iCellID, bool in_bSuccess, bool in_bCaptured, bool in_bFoundOut)
 {
    vector<GCovertActionCell> l_vCells = g_ClientDAL.m_PlayerCountryData.CovertActionCells();
    for(UINT32 i=0; i<l_vCells.size(); i++)
@@ -132,6 +132,11 @@ void GCovertActionsMissionOutcomeWindow::Update(UINT32 in_iCellID, bool in_bSucc
    {
       m_pObjResultLbl->Text( g_ClientDAL.GetString(EStrId::Success) );
       m_pObjDetailedResultsLbl->Text("");
+
+      if(in_bFoundOut)
+      {
+          m_pObjDetailedResultsLbl->Text("Success, but target found out that you did it");
+      }
    }
    else
    {
