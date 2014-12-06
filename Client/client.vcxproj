@@ -471,7 +471,6 @@
     <ClInclude Include="Include\sp2_military_event_handler.h" />
     <ClInclude Include="Include\sp2_military_window.h" />
     <ClInclude Include="Include\sp2_mini_map.h" />
-    <ClInclude Include="Include\sp2_movie_player.h" />
     <ClInclude Include="Include\sp2_objectives_window.h" />
     <ClInclude Include="Include\sp2_overlay_city.h" />
     <ClInclude Include="Include\sp2_party_selection_window.h" />

@@ -16,7 +16,6 @@
 #define _GOLEM_FSM_MAIN_H_
 
 #include "sp2_state_machine.h"
-#include "sp2_movie_player.h"
 
 namespace SP2
 {

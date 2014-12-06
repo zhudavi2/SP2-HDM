@@ -17,7 +17,6 @@
 #define _GOLEM_SP2_GDCL_H_
 
 #include "../include/sp2_tutorials.h"
-#include "../include/sp2_movie_player.h"
 
 namespace SP2
 {
