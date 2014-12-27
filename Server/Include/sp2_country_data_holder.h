@@ -27,6 +27,13 @@ namespace SP2
       UINT32               m_iNextID;
    };
 
+   struct GCountryDataOverwriteInfo
+   {
+       REAL32 m_fHumanDevelopment;
+       REAL64 m_fOldGdpPerCapita;
+       REAL64 m_fNewGdpPerCapita;
+   };
+
 	/*!
 	*	Research	Information, contains all the	information	relative	to	the research budget,
 	*	the progression of the research etc, for a given country
@@ -146,6 +153,9 @@ namespace SP2
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;
       static const UINT8 c_iResourceMeetsComsuption = 4;
+
+      //Array for easier initialization.
+      static const GCountryDataOverwriteInfo c_countryDataOverwriteInfo[];
 
 	};	//	End GCountryData class
 

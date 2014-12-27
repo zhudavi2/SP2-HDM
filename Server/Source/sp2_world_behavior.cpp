@@ -1242,6 +1242,10 @@ bool GWorldBehavior::Iterate_Human_Development()
 	else
 		l_fNewHDLevel += (((l_fNewHDLevel * l_fResults) - l_fNewHDLevel) * m_fFrequency);
 
+    // Apply GDP per capita
+    l_fNewHDLevel *= l_fNewHDLevel * l_fNewHDLevel * FindGDPPopulationFactor(m_CountryData->CountryID());
+    l_fNewHDLevel = powf(l_fNewHDLevel, 1.f/3.f);
+
 	if (l_fNewHDLevel > 1.f)
 		l_fNewHDLevel = 1.f;
 	else if (l_fNewHDLevel < 0.f)
@@ -3904,9 +3908,9 @@ REAL32 GWorldBehavior::AdjustMod(REAL64 in_fMod)
 }
 
 /*! Gets modifier for human development
-*	Over 0.94:				   1
-*	Between 0.75 and 0.94: [0.5 , 1]
-*	Between 0.3 and 0.75:  [0, 0.5]
+*	Over 0.9:				   1
+*	Between 0.7 and 0.9: [0.5 , 1]
+*	Between 0.3 and 0.7:  [0, 0.5]
 *	Below 0.3:              0
 **/
 REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
@@ -3917,12 +3921,12 @@ REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
 
 	REAL32 l_fHumanDevelopment = 0.f;	
 
-	if(l_CountryData->HumanDevelopment() > 0.94f)
+	if(l_CountryData->HumanDevelopment() > 0.9f)
 		l_fHumanDevelopment = 1.f;
-	else if (l_CountryData->HumanDevelopment() > 0.75f)
-		l_fHumanDevelopment = ((l_CountryData->HumanDevelopment()-0.75f)/(0.94f-0.75f) * 0.5f) + 0.5f;	
+	else if (l_CountryData->HumanDevelopment() > 0.7f)
+		l_fHumanDevelopment = ((l_CountryData->HumanDevelopment()-0.7f)/(0.9f-0.7f) * 0.5f) + 0.5f;	
 	else if (l_CountryData->HumanDevelopment() > 0.3f)
-		l_fHumanDevelopment = ((l_CountryData->HumanDevelopment()-0.3f)/(0.75f-0.3f) * 0.5f);
+		l_fHumanDevelopment = ((l_CountryData->HumanDevelopment()-0.3f)/(0.7f-0.3f) * 0.5f);
 	else
 		l_fHumanDevelopment = 0.0f;
 
@@ -3930,10 +3934,7 @@ REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
 }
 
 /*! Gets modifier for GDP / Population
-*	Over 35,000/Pop :		       1
-*	Between 10,000 and 30,000: [0.5 , 1]
-*	Between 1,000 and 10,000:  [0, 0.5]
-*	Below 1,000:                0
+*	log( x/100 ) / log( 60,000/100 ), must > 0
 **/
 REAL32 GWorldBehavior::FindGDPPopulationFactor(ENTITY_ID in_iCountryID)
 {
@@ -3946,14 +3947,8 @@ REAL32 GWorldBehavior::FindGDPPopulationFactor(ENTITY_ID in_iCountryID)
 	if (l_CountryData->PopulationPoliticalControl() != 0)
 		l_fGdpPopRatio = (REAL32)(l_CountryData->GDPValue() / (REAL64)l_CountryData->PopulationPoliticalControl());
 
-	if(l_fGdpPopRatio > 35000.f)
-		l_fGdpPop = 1.f;
-	else if (l_fGdpPopRatio > 10000.f)
-		l_fGdpPop = ((l_fGdpPopRatio-10000.f)/(35000.f-10000.f) * 0.5f) + 0.5f;	
-	else if (l_fGdpPopRatio > 1000.f)
-		l_fGdpPop = ((l_fGdpPopRatio-1000.f)/(10000.f-1000.f) * 0.5f);
-	else
-		l_fGdpPop = 0.0f;
+	l_fGdpPop = logf(l_fGdpPopRatio/100.f) / logf(60000.f/100.f);
+    l_fGdpPop = max(0.f, min(l_fGdpPop, 1.f));
 
 	return l_fGdpPop;
 }
@@ -4522,7 +4517,7 @@ void GWorldBehavior::LimitExportsToProduction(INT16 in_iCountryID)
     
     for(UINT32 i=0; i<EResources::ItemCount; i++)
     {
-        EResources::Enum l_iResource = static_cast< EResources::Enum >( i );
+        EResources::Enum l_iResource = static_cast<EResources::Enum>(i);
 
         REAL64 l_fNewExport = min(l_pCountryData->ResourceProduction(l_iResource), l_pCountryData->ResourceExport(l_iResource));
         if(l_fNewExport < l_pCountryData->ResourceExport(l_iResource))
@@ -4535,9 +4530,9 @@ void GWorldBehavior::LimitExportsToProduction(INT16 in_iCountryID)
                 L"but is exporting " +
                 GString::FormatNumber(l_pCountryData->ResourceExport(l_iResource)/1000000, L",", L".", L"$", L"M", 3, 3) + L"; " +
                 L"limiting exports to production");
-        }
 
-        l_pCountryData->ResourceExport(l_iResource, l_fNewExport);
+            l_pCountryData->ResourceExport(l_iResource, l_pCountryData->ResourceProduction(l_iResource));
+        }        
 	}
 }
 
