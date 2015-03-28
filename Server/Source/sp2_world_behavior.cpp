@@ -1213,6 +1213,8 @@ bool GWorldBehavior::Iterate_Human_Development()
 	*	Demographic financing, gvt stability, and primary & tertiary resources
 	**/	
 	//! \todo Do the secondary factor method
+
+    // Now find out how much HI and EI are rising or falling.
 	const REAL32 PourcDemographic			= 0.4f;
 	const REAL32 PourcResources			= 0.35f;
 	const REAL32 PourcStability			= 0.25f;
@@ -1224,34 +1226,50 @@ bool GWorldBehavior::Iterate_Human_Development()
 	REAL32 l_fResults = (PourcDemographic * l_fDemographic) + (PourcResources * l_fResources)
 		+ (PourcStability * l_fStability);
 
-	//Human development can change from +/- 25% per year
-	l_fResults = (l_fResults / 2.f) + 0.75f;	
+	//LE, MYS, and EYS can change from +/- 0.5 per year
+	l_fResults -= 0.5;	
 
 	if(m_CountryData->InternalLaw(EInternalLaws::ChildLabor))
-		l_fResults -= 0.05f;
+		l_fResults -= 0.01f / 5.f;
 
 	//Bonus from treaties
 	l_fResults += g_ServerDAL.HumanDevelopmentBonus(m_CountryData->CountryID());
 
-	REAL32 l_fNewHDLevel = m_CountryData->HumanDevelopment();
-	if(l_fNewHDLevel == 0.f)
-	{
-		if(l_fResults > 1.f)
-			l_fNewHDLevel = l_fResults * m_fFrequency / 10.f;
-	}
-	else
-		l_fNewHDLevel += (((l_fNewHDLevel * l_fResults) - l_fNewHDLevel) * m_fFrequency);
+    //Apply frequency
+    l_fResults *= m_fFrequency;
 
-    // Apply GDP per capita
-    l_fNewHDLevel *= l_fNewHDLevel * l_fNewHDLevel * FindGDPPopulationFactor(m_CountryData->CountryID());
-    l_fNewHDLevel = powf(l_fNewHDLevel, 1.f/3.f);
+    //Apply!
+    REAL32 l_fLifeExpectancy = m_CountryData->LifeExpectancy();
+    REAL32 l_fMeanYearsSchooling = m_CountryData->MeanYearsSchooling();
+    REAL32 l_fExpectedYearsSchooling = m_CountryData->ExpectedYearsSchooling();
 
-	if (l_fNewHDLevel > 1.f)
-		l_fNewHDLevel = 1.f;
-	else if (l_fNewHDLevel < 0.f)
-		l_fNewHDLevel = 0.f;
+	l_fLifeExpectancy += l_fResults;
+    l_fMeanYearsSchooling += l_fResults;
+    l_fExpectedYearsSchooling += l_fResults;
 
-	m_CountryData->HumanDevelopment(l_fNewHDLevel);	
+    REAL32 l_fHealthIndex = m_CountryData->FindHealthIndex();
+    REAL32 l_fEducationIndex = m_CountryData->FindEducationIndex();
+    REAL32 l_fIncomeIndex = m_CountryData->FindIncomeIndex();
+    REAL32 l_fNewHDLevel = powf(l_fHealthIndex * l_fEducationIndex * l_fIncomeIndex, 1.f/3.f);
+
+    m_CountryData->LifeExpectancy(l_fLifeExpectancy);
+    m_CountryData->MeanYearsSchooling(l_fMeanYearsSchooling);
+    m_CountryData->ExpectedYearsSchooling(l_fExpectedYearsSchooling);
+	m_CountryData->HumanDevelopment(l_fNewHDLevel); 
+
+    /*
+    if (static_cast<INT32>(g_Joshua.GameTime()) % 90 == 0)
+    {
+         g_Joshua.Log(
+            L"Country ID " + GString(m_CountryData->CountryID()) + L", " +
+            g_ServerDAL.GetString(m_CountryData->NameID()) + L": " +
+            L"LE " + GString::FormatNumber(g_ServerDCL.FindLifeExpectancyOfCountry(m_CountryData->CountryID()), 1) + "; " +
+            L"MYS " + GString::FormatNumber(g_ServerDCL.FindMeanYearsSchoolingOfCountry(m_CountryData->CountryID()), 1) + "; " +
+            L"EYS " + GString::FormatNumber(g_ServerDCL.FindExpectedYearsSchoolingOfCountry(m_CountryData->CountryID()), 1) + "; " +
+            L"GDP per capita " + GString::FormatNumber(m_CountryData->GDPPerCapita(), L",", L".", L"$", L"", 3) + L"; " +
+            L"HDI " + GString::FormatNumber(g_ServerDCL.FindHumanDevelopmentOfCountry(m_CountryData->CountryID()), 3));
+    }	
+    */
 
 	return true;
 }
@@ -1833,7 +1851,7 @@ bool GWorldBehavior::VerifyEconomicFailure(INT16 in_iCountryID)
             L"has failed with optimal revenues " +
             GString::FormatNumber(l_fRevenues, L",", L".", L"$", L"", 3) + L" " +
             L"and debt " +
-            GString::FormatNumber(l_pData->BudgetExpenseDebt()*10, L",", L".", L"", L"", 3));
+            GString::FormatNumber(l_pData->BudgetExpenseDebt()*10, L",", L".", L"$", L"", 3));
       }
       return true;
    }
@@ -3286,8 +3304,6 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 			{		
 				l_pExporter = j->second;					
 
-                LimitExportsToProduction(l_pExporter->CountryID());
-
 				if(l_pExporter->CountryID() == l_pImporter->CountryID())
 					continue;								
 
@@ -3297,6 +3313,8 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 					continue;
 
 				l_fImportersImport = l_pImporter->ResourceImport(l_iResource) * (1.f + l_pImporter->ResourceTaxes(l_iResource) + l_pImporter->GlobalTaxMod());
+
+                LimitExportsToProduction(l_pExporter->CountryID());
 				l_fExporterExport = l_pExporter->ResourceExport(l_iResource);
 
 				l_fNeededImport = l_pImporter->ResourceImportDesired(l_iResource) - l_fImportersImport;
@@ -3919,18 +3937,19 @@ REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
 	if(!l_CountryData)
 		return 0.f;
 
-	REAL32 l_fHumanDevelopment = 0.f;	
+    REAL32 l_fHDI = l_CountryData->HumanDevelopment();
+	REAL32 l_fHumanDevelopmentFactor = 0.f;	
 
-	if(l_CountryData->HumanDevelopment() > 0.9f)
-		l_fHumanDevelopment = 1.f;
-	else if (l_CountryData->HumanDevelopment() > 0.7f)
-		l_fHumanDevelopment = ((l_CountryData->HumanDevelopment()-0.7f)/(0.9f-0.7f) * 0.5f) + 0.5f;	
-	else if (l_CountryData->HumanDevelopment() > 0.3f)
-		l_fHumanDevelopment = ((l_CountryData->HumanDevelopment()-0.3f)/(0.7f-0.3f) * 0.5f);
+	if(l_fHDI > 0.9f)
+		l_fHumanDevelopmentFactor = 1.f;
+	else if (l_fHDI > 0.7f)
+		l_fHumanDevelopmentFactor = ((l_fHDI-0.7f)/(0.9f-0.7f) * 0.5f) + 0.5f;	
+	else if (l_fHDI > 0.3f)
+		l_fHumanDevelopmentFactor = (l_fHDI-0.3f)/(0.7f-0.3f) * 0.5f;
 	else
-		l_fHumanDevelopment = 0.0f;
+		l_fHumanDevelopmentFactor = 0.f;
 
-	return l_fHumanDevelopment;
+	return l_fHumanDevelopmentFactor;
 }
 
 /*! Gets modifier for GDP / Population
@@ -3938,19 +3957,7 @@ REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
 **/
 REAL32 GWorldBehavior::FindGDPPopulationFactor(ENTITY_ID in_iCountryID)
 {
-	GCountryData* l_CountryData = g_ServerDAL.CountryData(in_iCountryID);
-	if(!l_CountryData)
-		return 0.f;
-
-	REAL32 l_fGdpPopRatio = 0.0f;
-	REAL32 l_fGdpPop = 0.0f;
-	if (l_CountryData->PopulationPoliticalControl() != 0)
-		l_fGdpPopRatio = (REAL32)(l_CountryData->GDPValue() / (REAL64)l_CountryData->PopulationPoliticalControl());
-
-	l_fGdpPop = logf(l_fGdpPopRatio/100.f) / logf(60000.f/100.f);
-    l_fGdpPop = max(0.f, min(l_fGdpPop, 1.f));
-
-	return l_fGdpPop;
+	return static_cast<REAL32>(g_ServerDAL.CountryData(in_iCountryID)->FindIncomeIndex());
 }
 
 /*!
@@ -4531,7 +4538,7 @@ void GWorldBehavior::LimitExportsToProduction(INT16 in_iCountryID)
                 GString::FormatNumber(l_pCountryData->ResourceExport(l_iResource)/1000000, L",", L".", L"$", L"M", 3, 3) + L"; " +
                 L"limiting exports to production");
 
-            l_pCountryData->ResourceExport(l_iResource, l_pCountryData->ResourceProduction(l_iResource));
+            l_pCountryData->ResourceExport(l_iResource, l_fNewExport);
         }        
 	}
 }

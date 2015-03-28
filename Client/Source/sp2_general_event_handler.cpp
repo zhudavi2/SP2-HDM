@@ -1134,8 +1134,7 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
    g_ClientDAL.m_DataCountryInformationWindow.m_fWaterArea           = l_pUpdate->m_fWaterArea;
    g_ClientDAL.m_DataCountryInformationWindow.m_fTotalArea           = l_pUpdate->m_fTotalArea;
 
-   g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDev            = l_pUpdate->m_fHumanDev;
-   g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDevAverage     = l_pUpdate->m_fHumanDevAverage;
+   GHumanDevelopmentUtilities::GetHumanDevelopmentFromEventCountryInfo(*l_pUpdate, g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDev, g_ClientDAL.m_DataCountryInformationWindow.m_fLifeExpectancy, g_ClientDAL.m_DataCountryInformationWindow.m_fMeanYearsSchooling, g_ClientDAL.m_DataCountryInformationWindow.m_fExpectedYearsSchooling, g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDevAverage);
 
    g_ClientDAL.m_DataCountryInformationWindow.m_iClimateStid         = l_pUpdate->m_iClimateStid;
 

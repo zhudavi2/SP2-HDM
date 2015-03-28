@@ -174,6 +174,8 @@ namespace SP2
 
 		static bool ShouldCountryContinueOffensiveWar(const GWar& in_War, UINT32 in_iCountryID);
 		static bool ShouldCountryContinueDefensiveWar(const GWar& in_War, UINT32 in_iCountryID);
+
+        //! Returns 1 if it should join the attackers, 2 if it should join the defenders, otherwise will not join
 		static UINT32 ShouldCountryJoinWar(const GWar& in_War, UINT32 in_iCountryID);
 
 		static void FillConditions(UINT32 in_iCountryID, UINT32* in_pConditions, UINT32 l_iNbCountriesPossible);		

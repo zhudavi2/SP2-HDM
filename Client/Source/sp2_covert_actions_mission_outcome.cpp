@@ -135,7 +135,7 @@ void GCovertActionsMissionOutcomeWindow::Update(UINT32 in_iCellID, bool in_bSucc
 
       if(in_bFoundOut)
       {
-          m_pObjDetailedResultsLbl->Text("Success, but target found out that you did it");
+          m_pObjDetailedResultsLbl->Text("Success, but target found out that you did it.");
       }
    }
    else

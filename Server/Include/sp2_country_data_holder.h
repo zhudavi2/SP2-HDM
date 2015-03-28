@@ -27,13 +27,6 @@ namespace SP2
       UINT32               m_iNextID;
    };
 
-   struct GCountryDataOverwriteInfo
-   {
-       REAL32 m_fHumanDevelopment;
-       REAL64 m_fOldGdpPerCapita;
-       REAL64 m_fNewGdpPerCapita;
-   };
-
 	/*!
 	*	Research	Information, contains all the	information	relative	to	the research budget,
 	*	the progression of the research etc, for a given country
@@ -60,6 +53,20 @@ namespace SP2
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
       virtual bool OnNew(GDatabase* in_pDatabase);
+   };
+
+   /*!
+    * Struct to contain human development indicators
+    * Used to overwrite the game's starting stats
+    **/
+   struct GCountryDataOverwriteInfo
+   {
+       REAL64   m_fHumanDevelopment;    // If 0, calculate it from the other stats
+       REAL64   m_fLifeExpectancy;
+       REAL64   m_fMeanYearsSchooling;
+       REAL64   m_fExpectedYearsSchooling;
+       REAL64   m_fOldGDPPerCapita;
+       REAL64   m_fNewGDPPerCapita; // If 0, calculate it from the other stats
    };
 
 
@@ -128,6 +135,19 @@ namespace SP2
 		REAL32		   HierarchicalDistance() const;
       void           IterateCovertActionCells();
 
+      REAL32    LifeExpectancy() const;
+      void      LifeExpectancy(REAL32 in_fLifeExpectancy);
+
+      REAL32    MeanYearsSchooling() const;
+      void      MeanYearsSchooling(REAL32 in_fMeanYearsSchooling);
+
+      REAL32    ExpectedYearsSchooling() const;
+      void      ExpectedYearsSchooling(REAL32 in_fExpectedYearsSchooling);
+
+      REAL32    FindHealthIndex() const;
+      REAL32    FindEducationIndex() const;
+      REAL32    FindIncomeIndex() const;
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
@@ -149,6 +169,10 @@ namespace SP2
 		REAL32			m_fAIHierarchicalDistance;
 		REAL32			m_fAIMaleFemale;
 		REAL32			m_fAIIndividualism;
+
+        REAL32          m_fLifeExpectancy;
+        REAL32          m_fMeanYearsSchooling;
+        REAL32          m_fExpectedYearsSchooling;
 
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;
