@@ -12,3 +12,4 @@ includes/RGAPI/
 *.suo
 *.user
 *.bak
+*.res
