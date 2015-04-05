@@ -33,9 +33,9 @@ using namespace SDK;
 #include "../includes/common_lib/sp2_constants.h"
 #include "../includes/common_lib/sp2_data_access_layer.h"
 
-// Need to #include in the component-specific .hpp because it doesn't #include
-// the general .hpp.
-#include "../includes/SP2-C/sp2_human_development_utilities.h"
+//Need to #include in the component-specific .hpp because the Client project
+//doesn't #include the general .hpp.
+#include "../includes/SP2-HDM/sp2_human_development_utilities.h"
 
 using namespace GUI;
 

@@ -110,6 +110,8 @@ bool GWorldBehavior::Reset()
 	m_fLastBudgetIteration = 0.f;
 	m_QuickRandom.Seed(GetTickCount() );
 
+    m_iHumanDevLogStartingCountryID = 0;
+
 	return true;
 }
 
@@ -919,7 +921,7 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
 			( m_CountryData->ResourceProduction((EResources::Enum)i) < m_CountryData->ResourceDemand((EResources::Enum)i) || l_pMarketProduction[i] < l_pMarketDemand[i] ))
 		{
 			REAL64 l_fTaxLevel = (REAL64)(m_CountryData->ResourceTaxes((EResources::Enum)i) + m_CountryData->GlobalTaxMod());
-			REAL64 l_fTaxMod = (l_fTaxLevel * l_fTaxLevel) - (2.f*l_fTaxLevel) + 0.75f; //MultiMOD 1.5f;
+			REAL64 l_fTaxMod = 0.15 * pow(l_fTaxLevel - 2.25, 2) + 0.75;
 			REAL64 l_fProductionGrowth = SP2::c_pResourcesYearlyGain[i] * (m_CountryData->EconomicHealth() * 2.f) * l_fTaxMod * l_fBudgetModifier;
 
 			gassert(!_isnan(l_fProductionGrowth),"Production growth is NAN");
@@ -1226,49 +1228,60 @@ bool GWorldBehavior::Iterate_Human_Development()
 	REAL32 l_fResults = (PourcDemographic * l_fDemographic) + (PourcResources * l_fResources)
 		+ (PourcStability * l_fStability);
 
-	//LE, MYS, and EYS can change from +/- 0.5 per year
-	l_fResults -= 0.5;	
-
 	if(m_CountryData->InternalLaw(EInternalLaws::ChildLabor))
-		l_fResults -= 0.01f / 5.f;
+		l_fResults -= 0.05f;
 
 	//Bonus from treaties
 	l_fResults += g_ServerDAL.HumanDevelopmentBonus(m_CountryData->CountryID());
-
-    //Apply frequency
-    l_fResults *= m_fFrequency;
 
     //Apply!
     REAL32 l_fLifeExpectancy = m_CountryData->LifeExpectancy();
     REAL32 l_fMeanYearsSchooling = m_CountryData->MeanYearsSchooling();
     REAL32 l_fExpectedYearsSchooling = m_CountryData->ExpectedYearsSchooling();
 
-	l_fLifeExpectancy += l_fResults;
-    l_fMeanYearsSchooling += l_fResults;
-    l_fExpectedYearsSchooling += l_fResults;
+    {
+        REAL32 l_fLEGain = -0.6f * powf(min(l_fResults, 13.f/12.f) - 13.f/12.f, 2) + 97.f/240.f;
+        l_fLEGain += 0.1f * (1.f - FindHumanDevelopmentFactor(m_CountryData->CountryID()));
+        l_fLifeExpectancy += l_fLEGain * m_fFrequency;
+    }
 
-    REAL32 l_fHealthIndex = m_CountryData->FindHealthIndex();
-    REAL32 l_fEducationIndex = m_CountryData->FindEducationIndex();
-    REAL32 l_fIncomeIndex = m_CountryData->FindIncomeIndex();
-    REAL32 l_fNewHDLevel = powf(l_fHealthIndex * l_fEducationIndex * l_fIncomeIndex, 1.f/3.f);
+    l_fMeanYearsSchooling += (l_fResults - 0.5f) * 0.4f * m_fFrequency;
+
+    {
+        REAL32 l_fEYSGain = (l_fResults - 0.5f) * 0.6f;
+        l_fEYSGain += 0.1f * (1.f - FindHumanDevelopmentFactor(m_CountryData->CountryID()));
+        l_fExpectedYearsSchooling += l_fEYSGain * m_fFrequency;
+    }
+
+    l_fLifeExpectancy = max(0.f, l_fLifeExpectancy);
+    l_fMeanYearsSchooling = max(0.f, l_fMeanYearsSchooling);
+    l_fExpectedYearsSchooling = max(0.f, l_fExpectedYearsSchooling);
 
     m_CountryData->LifeExpectancy(l_fLifeExpectancy);
     m_CountryData->MeanYearsSchooling(l_fMeanYearsSchooling);
     m_CountryData->ExpectedYearsSchooling(l_fExpectedYearsSchooling);
-	m_CountryData->HumanDevelopment(l_fNewHDLevel); 
+
+    REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, l_fMeanYearsSchooling, l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita());
+	m_CountryData->HumanDevelopment(l_fNewHDLevel);
 
     /*
-    if (static_cast<INT32>(g_Joshua.GameTime()) % 90 == 0)
+    if((static_cast<INT32>(g_Joshua.GameTime()) % 90 == 0) && (m_iHumanDevLogStartingCountryID == 0))
+        m_iHumanDevLogStartingCountryID = m_CountryData->CountryID();
+
+    if(m_iHumanDevLogStartingCountryID != 0)
     {
-         g_Joshua.Log(
+        g_Joshua.Log(
             L"Country ID " + GString(m_CountryData->CountryID()) + L", " +
             g_ServerDAL.GetString(m_CountryData->NameID()) + L": " +
-            L"LE " + GString::FormatNumber(g_ServerDCL.FindLifeExpectancyOfCountry(m_CountryData->CountryID()), 1) + "; " +
-            L"MYS " + GString::FormatNumber(g_ServerDCL.FindMeanYearsSchoolingOfCountry(m_CountryData->CountryID()), 1) + "; " +
-            L"EYS " + GString::FormatNumber(g_ServerDCL.FindExpectedYearsSchoolingOfCountry(m_CountryData->CountryID()), 1) + "; " +
+            L"LE " + GString::FormatNumber(m_CountryData->LifeExpectancy(), 1) + L"; " +
+            L"MYS " + GString::FormatNumber(m_CountryData->MeanYearsSchooling(), 1) + L"; " +
+            L"EYS " + GString::FormatNumber(m_CountryData->ExpectedYearsSchooling(), 1) + L"; " +
             L"GDP per capita " + GString::FormatNumber(m_CountryData->GDPPerCapita(), L",", L".", L"$", L"", 3) + L"; " +
-            L"HDI " + GString::FormatNumber(g_ServerDCL.FindHumanDevelopmentOfCountry(m_CountryData->CountryID()), 3));
-    }	
+            L"HDI " + GString::FormatNumber(m_CountryData->HumanDevelopment(), 3));
+
+        if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHumanDevLogStartingCountryID) //We're finished loggging
+            m_iHumanDevLogStartingCountryID = 0;
+    }
     */
 
 	return true;
@@ -3314,7 +3327,7 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 
 				l_fImportersImport = l_pImporter->ResourceImport(l_iResource) * (1.f + l_pImporter->ResourceTaxes(l_iResource) + l_pImporter->GlobalTaxMod());
 
-                LimitExportsToProduction(l_pExporter->CountryID());
+                //LimitExportsToProduction(l_pExporter->CountryID());
 				l_fExporterExport = l_pExporter->ResourceExport(l_iResource);
 
 				l_fNeededImport = l_pImporter->ResourceImportDesired(l_iResource) - l_fImportersImport;
@@ -3953,11 +3966,11 @@ REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
 }
 
 /*! Gets modifier for GDP / Population
-*	log( x/100 ) / log( 60,000/100 ), must > 0
+*	Same as income index, log( x/100 ) / log( 60,000/100 ), must > 0
 **/
 REAL32 GWorldBehavior::FindGDPPopulationFactor(ENTITY_ID in_iCountryID)
 {
-	return static_cast<REAL32>(g_ServerDAL.CountryData(in_iCountryID)->FindIncomeIndex());
+    return GHumanDevelopmentUtilities::FindIncomeIndex(g_ServerDAL.CountryData(in_iCountryID)->GDPPerCapita());
 }
 
 /*!

@@ -261,7 +261,12 @@ void GEconomicHealthWindow::Update(bool in_bForceUpdate)
    }
 
    GString l_sGdpValue        = GString::FormatNumber(l_fGdpValue,L" ",L"",L"$ ",L"",3,0);
-   GString l_sPop             = GString::FormatNumber(l_fGdpValue / l_iPop,L" ",L"",L"$ ",L"",3,0);
+
+   REAL64 l_fGdpPerCapita     = l_fGdpValue / l_iPop;
+   GString l_sPop             = GString::FormatNumber(l_fGdpPerCapita,L" ",L"",L"$ ",L"",3,0);
+   //Append the income index to the GDP per capita.
+   l_sPop                    += L" (" + GString::FormatNumber(GHumanDevelopmentUtilities::FindIncomeIndex(l_fGdpPerCapita), 3) + L")";
+
    GString l_sPopUnemployed   = GString::FormatNumber(l_fPopUnemployed * 100,L"",L".",L"",L" %",0,1);
    GString l_sPopPoverty      = GString::FormatNumber(l_fPopPoverty * 100,L"",L".",L"",L" %",0,1);
    GString l_sInflationLevel  = GString::FormatNumber(l_fInflationLevel * 100,L"",L".",L"",L" %",0,1);

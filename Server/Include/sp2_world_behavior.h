@@ -50,6 +50,8 @@ private:
    INT16 m_iInternalCounter;  //!< used inthe Iterate; << HAS TO BE SAVED
 	bool m_bInit;		
 
+    INT16 m_iHumanDevLogStartingCountryID; //!< Helper to log every country's HDI every specified time period; 0 means not currently logging
+
 	//! Fills the set with economic friends of a country
 	void EconomicFriends(UINT32 in_iCountryID, set<UINT32>& out_Friends) const;
 

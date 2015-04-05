@@ -726,7 +726,7 @@ namespace SP2
 	const REAL64 c_fCorruptionStrength = 0.1f;
 
 	//Personal Income Tax Constant
-	const REAL64 c_fPersonalIncomeTaxConstant = 4.f;
+	const REAL64 c_fPersonalIncomeTaxConstant = 2.5f;
 
    //Superpower 2 Economic constants
 	const REAL64 DEBT_INTEREST_RATE		= 0.1f;

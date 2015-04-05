@@ -7539,18 +7539,41 @@ GUnit* GDataControlLayer::SplitUnit(GUnit* in_pUnitToSplit, INT32 in_iQuantityTo
 
 REAL32 GDataControlLayer::AverageHumanDevelopment() const
 {
-	REAL32 l_fAverage = 0.f;
-	REAL32 l_fNbCountries = 0.f;
 	UINT32 l_iNbCountries = (UINT32)g_ServerDAL.NbCountry();
+    REAL32 l_fTotalLE = 0.f;
+    REAL32 l_fTotalMYS = 0.f;
+    REAL32 l_fTotalEYS = 0.f;
+    REAL64 l_fWorldGDP = 0;
+    INT64 l_iWorldBabyPopulation = 0;
+    INT64 l_iWorldUnder15Population = 0;
+    INT64 l_iWorldOver15Population = 0;
+    INT64 l_iWorldPopulation = 0;
+
 	for(UINT32 i=1; i <= l_iNbCountries; i++)
 	{
 		if(!g_ServerDAL.CountryIsValid(i))
 			continue;
-		l_fAverage += g_ServerDAL.CountryData(i)->HumanDevelopment();
-		l_fNbCountries += 1.f;
+
+        GCountryData* l_pData = g_ServerDAL.CountryData(i);
+        l_fTotalLE += l_pData->Population() * l_pData->BirthRate() * l_pData->LifeExpectancy();
+
+        //Approximate MYS with population over 15, and EYS with population under 15 (should be 25 and 5 respectively)
+        l_fTotalMYS += (l_pData->Pop1565() + l_pData->Pop65()) * l_pData->MeanYearsSchooling();
+        l_fTotalEYS += l_pData->Pop15() * l_pData->ExpectedYearsSchooling();
+
+        l_fWorldGDP += l_pData->GDPValue();
+
+        l_iWorldBabyPopulation += static_cast<INT64>(l_pData->Population() * l_pData->BirthRate());
+        l_iWorldUnder15Population += l_pData->Pop1565() + l_pData->Pop65();
+        l_iWorldOver15Population += l_pData->Pop15();
+        l_iWorldPopulation += l_pData->Population();
 	}
-	l_fAverage /= l_fNbCountries;
-	return l_fAverage;
+    REAL32 l_fWorldLE = l_fTotalLE / l_iWorldBabyPopulation;
+    REAL32 l_fWorldMYS = l_fTotalMYS / l_iWorldUnder15Population;
+    REAL32 l_fWorldEYS = l_fTotalEYS / l_iWorldOver15Population;
+    REAL64 l_fWorldGDPPerCapita = l_fWorldGDP / l_iWorldPopulation;
+        
+    return GCountryData::FindHumanDevelopment(l_fWorldLE, l_fWorldMYS, l_fWorldEYS, l_fWorldGDPPerCapita);
 }
 
 void GDataControlLayer::SendRelationHistory(UINT32 in_iPlayerID,UINT32 in_iCountry1,UINT32 in_iCountry2)

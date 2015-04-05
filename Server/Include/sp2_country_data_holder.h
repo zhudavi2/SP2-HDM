@@ -144,9 +144,7 @@ namespace SP2
       REAL32    ExpectedYearsSchooling() const;
       void      ExpectedYearsSchooling(REAL32 in_fExpectedYearsSchooling);
 
-      REAL32    FindHealthIndex() const;
-      REAL32    FindEducationIndex() const;
-      REAL32    FindIncomeIndex() const;
+      static REAL32 FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita);
 
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);

@@ -338,7 +338,7 @@ void GAI::AskForWar(UINT32 in_iCountryLookingToDeclareWar, UINT32 in_iTarget, bo
 		return;
 	
 	//Ai hasn't found any war declaration treaties it likes. It will create one, with its target on side B
-	// and with its strongest allies on side A
+	// and with its allies on side A
 	set<UINT32> l_vSideA;
 	set<UINT32> l_vSideB;
 	set<UINT32> l_vPressure;
@@ -358,7 +358,7 @@ void GAI::AskForWar(UINT32 in_iCountryLookingToDeclareWar, UINT32 in_iTarget, bo
 	}
 
 	for(multimap<REAL32,UINT32>::const_iterator l_Itr = l_mPossibilities.begin();
-		 ( (l_Itr != l_mPossibilities.end()) && (l_fTotalValueA < l_fTotalValueB) );
+		 l_Itr != l_mPossibilities.end();
 		 l_Itr++)
 	{
 		l_vSideA.insert(l_Itr->second);
@@ -534,7 +534,7 @@ UINT32 GAI::ShouldCountryJoinWar(const GWar& in_War, UINT32 in_iCountryID)
 	}
 	
 	REAL32 l_fDifferenceValue = l_fRelationsAttackers - l_fRelationsDefenders;
-	if(l_fTotalValuesEnemies > (l_fTotalValuesAttackers * (0.3f + (1.f - g_SP2Server->AIAggressiveness()) * 0.65f) ) && 
+	if(l_fTotalValuesEnemies > l_fTotalValuesAttackers * 0.2f && 
 		l_fDifferenceValue <= -80.f)   
 	{
 		//The country has bad enough relations to have a war.. but does it really want to ?
@@ -590,7 +590,7 @@ UINT32 GAI::ShouldCountryJoinWar(const GWar& in_War, UINT32 in_iCountryID)
 		if(l_iNbOfPointsInFavour > 3)
 			return 2;
 	}
-	else if(l_fTotalValuesEnemies < (l_fTotalValuesAttackers + g_ServerDAL.TotalUnitsValue(in_iCountryID)) &&
+	else if(l_fTotalValuesEnemies < (l_fTotalValuesAttackers + g_ServerDAL.TotalUnitsValue(in_iCountryID)) * (0.3f + (1.f - g_SP2Server->AIAggressiveness()) * 0.65f) &&
 			  l_fRelationsAttackers > SP2::c_fRelationsBad &&
 			  l_fRelationsDefenders < SP2::c_fRelationsHate)
 	{

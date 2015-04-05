@@ -244,7 +244,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\SP2-C\sp2_human_development_utilities.cpp" />
+    <ClCompile Include="..\SP2-HDM\sp2_human_development_utilities.cpp" />
     <ClCompile Include="Source\sp2_adaptive_music_player.cpp" />
     <ClCompile Include="Source\sp2_add_remove_window.cpp" />
     <ClCompile Include="Source\sp2_advisor_advise_window.cpp" />
@@ -389,7 +389,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\includes\SP2-C\sp2_human_development_utilities.h" />
+    <ClInclude Include="..\includes\SP2-HDM\sp2_human_development_utilities.h" />
     <ClInclude Include="Include\sp2_RGAPI_login.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Include\sp2_adaptive_music_player.h" />

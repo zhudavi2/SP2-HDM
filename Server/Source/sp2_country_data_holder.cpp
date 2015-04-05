@@ -321,7 +321,13 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
         {
             if(l_fNewGDPPerCapita == 0)
             {
-                REAL32 l_fIncomeIndex = powf(m_fHumanDevelopment, 3) / FindHealthIndex() / FindEducationIndex();
+                REAL32 l_fHI = max(0, min((m_fLifeExpectancy - 20) / 65, 1));
+
+                REAL32 l_fMeanYearsIndex = max(0, min(m_fMeanYearsSchooling / 15, 1));
+                REAL32 l_fExpectedYearsIndex = max(0, min(m_fExpectedYearsSchooling / 18, 1));
+                REAL32 l_fEI = (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
+
+                REAL32 l_fIncomeIndex = powf(m_fHumanDevelopment, 3) / l_fHI / l_fEI;
                 l_fNewGDPPerCapita = 100.f * expf(l_fIncomeIndex * logf(600));
             }
         }
@@ -329,11 +335,11 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
         {
             if(l_fNewGDPPerCapita != 0)
             {
-                m_fHumanDevelopment = powf(FindHealthIndex() * FindEducationIndex() * GHumanDevelopmentUtilities::FindIncomeIndex(l_fNewGDPPerCapita), 1.f/3.f);
+                m_fHumanDevelopment = GCountryData::FindHumanDevelopment(m_fLifeExpectancy, m_fMeanYearsSchooling, m_fExpectedYearsSchooling, l_fNewGDPPerCapita);
             }
             else
             {
-                m_fHumanDevelopment = powf(FindHealthIndex() * FindEducationIndex() * GHumanDevelopmentUtilities::FindIncomeIndex(c_countryDataOverwriteInfo[m_iCountryID].m_fOldGDPPerCapita), 1.f/3.f);
+                m_fHumanDevelopment = GCountryData::FindHumanDevelopment(m_fLifeExpectancy, m_fMeanYearsSchooling, m_fExpectedYearsSchooling, c_countryDataOverwriteInfo[m_iCountryID].m_fOldGDPPerCapita);
             }
         }
     }
@@ -2146,50 +2152,15 @@ void GCountryData::ExpectedYearsSchooling(REAL32 in_fExpectedYearsSchooling)
     m_fExpectedYearsSchooling = in_fExpectedYearsSchooling;
 }
 
-REAL32 GCountryData::FindHealthIndex() const
+REAL32 GCountryData::FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita)
 {
-    if(m_fLifeExpectancy <= 20)
-    {
-        return 0;
-    }
-    else if(m_fLifeExpectancy <= 85)
-    {
-        return (m_fLifeExpectancy - 20) / 65;
-    }
-    else
-    {
-        return 1;
-    }
-}
+    REAL32 l_fHI = max(0, min((in_fLifeExpectancy - 20) / 65, 1));
 
-REAL32 GCountryData::FindEducationIndex() const
-{
-    REAL32 l_fMeanYearsIndex = 0;
-    if(m_fMeanYearsSchooling <= 15)
-    {
-        l_fMeanYearsIndex = m_fMeanYearsSchooling / 15;
-    }
-    else
-    {
-        l_fMeanYearsIndex = 1;
-    }
+    REAL32 l_fMeanYearsIndex = max(0, min(in_fMeanYearsSchooling / 15, 1));
+    REAL32 l_fExpectedYearsIndex = max(0, min(in_fExpectedYearsSchooling / 18, 1));
+    REAL32 l_fEI = (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
 
-    REAL32 l_fExpectedYearsIndex = 0;
-    if(m_fExpectedYearsSchooling <= 18)
-    {
-        l_fExpectedYearsIndex = m_fExpectedYearsSchooling / 18;
-    }
-    else
-    {
-        l_fExpectedYearsIndex = 1;
-    }
-
-    return (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
-}
-
-REAL32 GCountryData::FindIncomeIndex() const
-{
-    return GHumanDevelopmentUtilities::FindIncomeIndex(GDPPerCapita());
+    return powf(l_fHI * l_fEI * GHumanDevelopmentUtilities::FindIncomeIndex(in_fGDPPerCapita), 1.f/3.f);
 }
 
 bool GCountryData::OnSave(GIBuffer& io_Buffer)

@@ -132,28 +132,6 @@ GUI::EEventStatus::Enum GResourcesWindow::OnMouseClick(const GEventData & in_Eve
                      m_pObjTrade->Selected_Content(g_ClientDAL.GetString(100388));
                      m_pObjDesired->Value(m_pData->m_fDesired[m_iSelectedId] / 1000000, false, false);
                   }
-
-                  // Shortcut: When domestic consumption is turned off, export all resources.
-                  if(m_iSelectedId == EResources::Drugs)
-                  {
-                      for(INT32 i=0; i<EResources::ItemCount; i++)
-                      {
-                          if(m_pData->m_bManagement[i])
-                          {
-                              m_pData->m_bMeetConsumption[i] = false;
-
-                              if(m_pData->m_fProduction[i] > m_pData->m_fDesired[i])
-                              {
-                                  m_pData->m_fDesired[i] = m_pData->m_fProduction[i];
-                                  m_pData->m_bDirty[i] = true;
-                              }
-                          }
-                      }
-
-                      // Optional, but we can actually see the result on the window sooner.
-                      m_pObjTrade->Selected_Content(g_ClientDAL.GetString(100388));
-                      m_pObjDesired->Value(m_pData->m_fProduction[m_iSelectedId] / 1000000, false, false);
-                  }
                }
 
                m_pData->m_bDirty[m_iSelectedId] = true;
@@ -270,30 +248,6 @@ GUI::EEventStatus::Enum GResourcesWindow::OnCustomEvent(UINT32 in_EventID, const
                {
                   m_pData->m_bManagement[m_iSelectedId] = false;
                   m_pData->m_bDirty[m_iSelectedId] = true;
-
-                  // Shortcut: Automatically change tax to 25% for primary,
-                  // and 30% for secondary and tertiary, for all resources, if drug
-                  // gov't control is being modified.
-                  if(m_iSelectedId == EResources::Drugs)
-                  {
-                      for(INT32 i=0; i<EResources::ItemCount; i++)
-                      {
-                          if(m_pData->m_bStatus[i])
-                          {
-                              m_pData->m_bManagement[i] = false;
-
-                              if(i <= EResources::Precious_Stones)
-                              {
-                                  m_pData->m_fSectorTax[i] = 0.25f;
-                              }
-                              else
-                              {
-                                  m_pData->m_fSectorTax[i] = 0.3f;
-                              }
-                              m_pData->m_bDirty[i] = true;
-                          }
-                      }
-                  }
                   
                   Dirty(true);
 

@@ -534,7 +534,7 @@ namespace SP2
       //! Execute the covert action mission for the cell (all values are contained in it). Return true if the cell must be destroyed
       bool ExecuteMission(GCovertActionCell& in_Cell);
 
-		//! Gives the average human development in the world
+		//! Gives the average human development in the world, as if the whole world were one country
 		REAL32 AverageHumanDevelopment() const;
 
 
