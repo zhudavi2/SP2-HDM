@@ -921,7 +921,7 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
 			( m_CountryData->ResourceProduction((EResources::Enum)i) < m_CountryData->ResourceDemand((EResources::Enum)i) || l_pMarketProduction[i] < l_pMarketDemand[i] ))
 		{
 			REAL64 l_fTaxLevel = (REAL64)(m_CountryData->ResourceTaxes((EResources::Enum)i) + m_CountryData->GlobalTaxMod());
-			REAL64 l_fTaxMod = 0.15 * pow(l_fTaxLevel - 2.25, 2) + 0.75;
+			REAL64 l_fTaxMod = 0.15 * pow(l_fTaxLevel - 2.25, 2) - 0.009375;
 			REAL64 l_fProductionGrowth = SP2::c_pResourcesYearlyGain[i] * (m_CountryData->EconomicHealth() * 2.f) * l_fTaxMod * l_fBudgetModifier;
 
 			gassert(!_isnan(l_fProductionGrowth),"Production growth is NAN");
@@ -1170,9 +1170,9 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
 	const REAL32 c_fMaxBirthRate = 0.05f;
 	const REAL32 c_fMinBirthRate = 0.002f;
 
-	const REAL32 PourcGvtStability		= 0.3f;
-	const REAL32 PourcHumanDevelopment	= 0.4f;
-	const REAL32 PourcGdpPop				= 0.3f;
+	const REAL32 PourcGvtStability		= 1.f/12.f;
+	const REAL32 PourcHumanDevelopment	= 11.f/21.f;
+	const REAL32 PourcGdpPop				= 11.f/28.f;
 
 	REAL32 l_fGvtStability = m_CountryData->GvtStability();
 	REAL32 l_fHumanDevelopment = 1.f - FindHumanDevelopmentFactor(m_CountryData->CountryID());
@@ -1189,7 +1189,7 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
 void GWorldBehavior::Iterate_Death_Rate_Expected()
 {
 	const REAL32 c_fMaxDeathRate = 0.035f;
-	const REAL32 c_fMinDeathRate = 0.002f;
+	const REAL32 c_fMinDeathRate = 0.0015f;
 
 	const REAL32 PourcHealthCare			= 0.4f;
 	const REAL32 PourcHumanDevelopment	= 0.3f;
@@ -1775,7 +1775,6 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 	{
 		Iterate_Production(g_ServerDAL.GetGRegion(*l_RegionItr));
 	}
-	LimitExportsToProduction(in_iCountryID);
 
 	m_CountryData->SynchronizeWithRegions();	
 
@@ -1861,9 +1860,7 @@ bool GWorldBehavior::VerifyEconomicFailure(INT16 in_iCountryID)
       {
         g_Joshua.Log(L"The economy of country ID " + GString(in_iCountryID) + L", " +
             g_ServerDAL.GetString(l_pData->NameID()) + L", " +
-            L"has failed with optimal revenues " +
-            GString::FormatNumber(l_fRevenues, L",", L".", L"$", L"", 3) + L" " +
-            L"and debt " +
+            L"has failed with debt " +
             GString::FormatNumber(l_pData->BudgetExpenseDebt()*10, L",", L".", L"$", L"", 3));
       }
       return true;
@@ -3327,7 +3324,6 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 
 				l_fImportersImport = l_pImporter->ResourceImport(l_iResource) * (1.f + l_pImporter->ResourceTaxes(l_iResource) + l_pImporter->GlobalTaxMod());
 
-                //LimitExportsToProduction(l_pExporter->CountryID());
 				l_fExporterExport = l_pExporter->ResourceExport(l_iResource);
 
 				l_fNeededImport = l_pImporter->ResourceImportDesired(l_iResource) - l_fImportersImport;
@@ -3337,7 +3333,7 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 
 				if(l_fNeededImport > 0.f)
 				{
-					l_fRealImport = min(l_fNeededImport, l_pExporter->ResourceExportDesired(l_iResource)- l_fExporterExport);
+					l_fRealImport = min(l_fNeededImport, min(l_pExporter->ResourceExportDesired(l_iResource), l_pExporter->ResourceProduction(l_iResource))- l_fExporterExport);
 					//if(!l_pImporter->ResourceGvtCtrl(l_iResource) && l_pImporter->ResourceLegal(l_iResource))
 					//	l_fRealImport = min(l_fRealImport,l_fMaxEADifference - abs(out_vTotalEconomicActivity[l_pImporter->CountryID()]));
 					//if(!l_pExporter->ResourceGvtCtrl(l_iResource) && l_pExporter->ResourceLegal(l_iResource))
@@ -4526,33 +4522,6 @@ void GWorldBehavior::EconomicFriends(UINT32 in_iCountryID, set<UINT32>& out_Frie
 				l_Treaty.MembersSideA(true).end());
 		}
 		out_Friends.erase(in_iCountryID);
-	}
-}
-
-void GWorldBehavior::LimitExportsToProduction(INT16 in_iCountryID)
-{
-    // A country can't net export more than it produces
-
-    GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
-    
-    for(UINT32 i=0; i<EResources::ItemCount; i++)
-    {
-        EResources::Enum l_iResource = static_cast<EResources::Enum>(i);
-
-        REAL64 l_fNewExport = min(l_pCountryData->ResourceProduction(l_iResource), l_pCountryData->ResourceExport(l_iResource));
-        if(l_fNewExport < l_pCountryData->ResourceExport(l_iResource))
-        {
-            g_Joshua.Log(L"Country ID " + GString(in_iCountryID) + L", " +
-                g_ServerDAL.GetString(l_pCountryData->NameID()) + L", " +
-                L"is producing " +
-                GString::FormatNumber(l_fNewExport/1000000, L",", L".", L"$", L"M", 3, 3) + L" " +
-                L"of the " + g_ServerDAL.GetString(g_ServerDAL.StringIdResource(l_iResource)) + L" resource " +
-                L"but is exporting " +
-                GString::FormatNumber(l_pCountryData->ResourceExport(l_iResource)/1000000, L",", L".", L"$", L"M", 3, 3) + L"; " +
-                L"limiting exports to production");
-
-            l_pCountryData->ResourceExport(l_iResource, l_fNewExport);
-        }        
 	}
 }
 

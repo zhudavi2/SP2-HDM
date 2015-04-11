@@ -153,9 +153,6 @@ private:
 	//! Returns number between 0 and 1
 	static REAL32 AdjustMod(REAL64 in_fMod);
 
-    //! Helper method to force a country to export at most all that it produces.
-    void LimitExportsToProduction(INT16 in_iCountryID);
-
 public:
    GWorldBehavior();
    ~GWorldBehavior();

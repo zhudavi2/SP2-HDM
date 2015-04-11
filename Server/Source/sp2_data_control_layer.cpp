@@ -8482,7 +8482,15 @@ REAL64 GDataControlLayer::GetRevenuesForEconomicFailure(UINT32 in_iCountryID) co
 	if(l_fOptimalGDP < l_pCountryData->GDPValue())
 		l_fOptimalGDP = l_pCountryData->GDPValue();
 
-	l_fRevenues += l_fOptimalGDP * (REAL64)l_pCountryData->HumanDevelopment()
+    REAL32 l_fHI = max(0, min((l_pCountryData->LifeExpectancy() - 20) / 65, 1));
+    REAL32 l_fMeanYearsIndex = max(0, min(l_pCountryData->MeanYearsSchooling() / 15, 1));
+    REAL32 l_fExpectedYearsIndex = max(0, min(l_pCountryData->ExpectedYearsSchooling() / 18, 1));
+    REAL32 l_fEI = (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
+
+    REAL32 l_fHumanDevelopmentForTest = powf(l_fHI * l_fEI, 0.5f);
+    l_fHumanDevelopmentForTest = max(l_fHumanDevelopmentForTest, l_pCountryData->HumanDevelopment());
+
+	l_fRevenues += l_fOptimalGDP * l_fHumanDevelopmentForTest
       * l_pCountryData->PersonalIncomeTax() / SP2::c_fPersonalIncomeTaxConstant;
 
 	return l_fRevenues;
