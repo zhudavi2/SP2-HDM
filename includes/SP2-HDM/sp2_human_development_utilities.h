@@ -30,9 +30,8 @@ namespace SP2
             struct GHumanDevelopmentPackedInternal
             {
                 UINT32   m_iHumanDev           : 10;
-                UINT32   m_iLifeExpectancy     : 10;
-                UINT32   m_iMeanYearsSchooling : 8;
-                UINT32   m_iReserved           : 4;
+                UINT32   m_iLifeExpectancy     : 12;
+                UINT32   m_iMeanYearsSchooling : 10;
             } m_components;
 
             REAL32   m_fAll;
@@ -43,8 +42,8 @@ namespace SP2
             struct GHumanDevelopmentAveragePackedInternal
             {
                 UINT32   m_iHumanDevAverage        : 10;
-                UINT32   m_iExpectedYearsSchooling : 8;
-                UINT32   m_iReserved               : 14;
+                UINT32   m_iExpectedYearsSchooling : 10;
+                UINT32   m_iReserved               : 12;
             } m_components;
 
             REAL32   m_fAll;
