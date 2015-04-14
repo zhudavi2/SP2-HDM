@@ -305,7 +305,7 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
 
     REAL64 l_fNewGDPPerCapita;
 
-    if(in_bFirstTime)
+    if(in_bFirstTime && m_iCountryID<=194)
     {
         // LE, MYS, and EYS are always nonzero
         m_fLifeExpectancy = static_cast<REAL32>(c_countryDataOverwriteInfo[m_iCountryID].m_fLifeExpectancy);
@@ -426,6 +426,17 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
     m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
 
 	m_fGDPValue = max(0.f,m_fGDPValueBase + (0.5*m_fEconomicActivity));
+
+    //Temporary: For countries without defined LE, MYS, and EYS, guess based on their HDI and II.
+    if(in_bFirstTime && m_iCountryID>194)
+    {
+        REAL32 l_fHIEIMean = powf(m_fHumanDevelopment, 3);
+        l_fHIEIMean /= GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) > 0 ? GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) : 1;
+        l_fHIEIMean = sqrt(l_fHIEIMean);
+        m_fLifeExpectancy = (l_fHIEIMean * 65) + 20;
+        m_fMeanYearsSchooling = l_fHIEIMean * 15;
+        m_fExpectedYearsSchooling = l_fHIEIMean * 18;
+    }
 
     // The first time this method is called, right as the game starts, log out some country data.
     if(in_bFirstTime)
