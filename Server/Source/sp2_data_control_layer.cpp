@@ -313,21 +313,29 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
 		IF_RETURN(l_CurrentControl.m_iMilitary != in_iNewControl, false);
 	}
 
-	g_ServerDAL.AddCountryToSynchronize(l_CurrentControl.m_iPolitical);
-	g_ServerDAL.AddCountryToSynchronize(l_CurrentControl.m_iMilitary);
-
    // Check if we need to change capital after political control has been taken.
    //  This is a one case scenario with Palestine capital being in Israel military
    //  controlled territory
    ChangeCountryCapital(in_iRegionID);
+
+   GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iNewControl);
+   assert(l_pCountryData);
+
+   //Save the stats of the country with new control, because we'll need them to calculate the new country's LE, MYS, and EYS.
+   REAL32 l_fCurrentCountryBirthRate = l_pCountryData->BirthRate();
+   REAL32 l_fCurrentCountryDeathRate = l_pCountryData->DeathRate();
+   INT64 l_iCurrentCountryPop15 = l_pCountryData->Pop15();
+   INT64 l_iCurrentCountryPopOver15 = l_pCountryData->Population() - l_pCountryData->Pop15();
    
    IF_RETURN(!ConfirmChangePoliticalControl(in_iRegionID, in_iNewControl), false);
 
+   g_ServerDAL.CountryData(l_CurrentControl.m_iPolitical)->SynchronizeWithRegions();
+   l_pCountryData->SynchronizeWithRegions();
+
+   //Now l_pCountryData has been updated with the new population.
+
 	GRegion* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
    assert(l_pRegion);
-
-	GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iNewControl);
-   assert(l_pCountryData);
 
    if(l_pCountryData->Population() > 0)
    {
@@ -335,6 +343,48 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
 	   REAL32 l_fRatioForGainingCountry = (REAL32)l_pRegion->Population() / (REAL32) l_pCountryData->Population();
 
 	   l_pCountryData->ReadjustDesiredExportsImports((REAL64)(1.f+l_fRatioForGainingCountry));
+
+       //Update HDI and other stats
+       {
+           const GCountryData* l_pFormerCountryData = g_ServerDAL.CountryData(l_CurrentControl.m_iPolitical);
+           assert(l_pFormerCountryData);
+
+           //g_Joshua.Log(L"Old populations: " + GString(l_pRegion->Population15()) + ", " + GString(l_pRegion->Population() - l_pRegion->Population15()) + " and " + GString(l_iCurrentCountryPop15) + ", " + GString(l_iCurrentCountryPopOver15));
+
+           REAL32 l_fFormerBirths = l_pFormerCountryData->BirthRate() * l_pRegion->Population();
+           REAL32 l_fCurrentBirths = l_fCurrentCountryBirthRate * (l_iCurrentCountryPop15 + l_iCurrentCountryPopOver15);
+           REAL32 l_fNewBirthRate = (l_fFormerBirths + l_fCurrentBirths) / l_pCountryData->Population();
+           //g_Joshua.Log(L"Former and current births: " + GString(l_fFormerBirths) + ", " + GString(l_fCurrentBirths) + "; " + GString(l_pCountryData->Population()));
+           l_pCountryData->BirthRate(l_fNewBirthRate);
+
+           REAL32 l_fNewDeathRate = ((l_pFormerCountryData->DeathRate() * l_pRegion->Population()) + (l_fCurrentCountryDeathRate * (l_iCurrentCountryPop15 + l_iCurrentCountryPopOver15))) / l_pCountryData->Population();
+           l_pCountryData->DeathRate(l_fNewDeathRate);
+
+           REAL32 l_fNewLifeExpectancy =
+               ((l_pFormerCountryData->LifeExpectancy() * l_fFormerBirths) +
+                (l_pCountryData->LifeExpectancy() * l_fCurrentBirths)) / 
+               (l_pCountryData->BirthRate() * l_pCountryData->Population());
+           //g_Joshua.Log(L"BRs: " + GString::FormatNumber(l_pFormerCountryData->BirthRate(), 3) + ", " + GString::FormatNumber(l_fCurrentCountryBirthRate, 3) + ", " + GString::FormatNumber(l_pCountryData->BirthRate(), 3));
+           //g_Joshua.Log(L"Old LEs: " + GString::FormatNumber(l_pFormerCountryData->LifeExpectancy(), 1) + " and " + GString::FormatNumber(l_pCountryData->LifeExpectancy(), 1) + "; new LE: " + GString::FormatNumber(l_fNewLifeExpectancy, 1));
+           l_pCountryData->LifeExpectancy(l_fNewLifeExpectancy);
+
+           REAL32 l_fNewMeanYearsSchooling =
+               ((l_pFormerCountryData->MeanYearsSchooling() * l_pRegion->Population15()) +
+                (l_pCountryData->MeanYearsSchooling() * l_iCurrentCountryPop15)) / l_pCountryData->Pop15();
+           //g_Joshua.Log(L"Old MYSs: " + GString::FormatNumber(l_pFormerCountryData->MeanYearsSchooling(), 1) + " and " + GString::FormatNumber(l_pCountryData->MeanYearsSchooling(), 1) + "; new MYS: " + GString::FormatNumber(l_fNewMeanYearsSchooling, 1));
+           l_pCountryData->MeanYearsSchooling(l_fNewMeanYearsSchooling);
+
+           REAL32 l_fNewExpectedYearsSchooling =
+               ((l_pFormerCountryData->ExpectedYearsSchooling() * (l_pRegion->Population() - l_pRegion->Population15())) +
+                (l_pCountryData->ExpectedYearsSchooling() * l_iCurrentCountryPopOver15)) / 
+               (l_pCountryData->Population() - l_pCountryData->Pop15());
+           //g_Joshua.Log(L"Old EYSs: " + GString::FormatNumber(l_pFormerCountryData->ExpectedYearsSchooling(), 1) + " and " + GString::FormatNumber(l_pCountryData->ExpectedYearsSchooling(), 1) + "; new EYS: " + GString::FormatNumber(l_fNewExpectedYearsSchooling, 1));
+           l_pCountryData->ExpectedYearsSchooling(l_fNewExpectedYearsSchooling);
+
+           REAL32 l_fNewHumanDevelopment = GCountryData::FindHumanDevelopment(l_fNewLifeExpectancy, l_fNewMeanYearsSchooling, l_fNewExpectedYearsSchooling, l_pCountryData->GDPPerCapita());
+           l_pCountryData->HumanDevelopment(l_fNewHumanDevelopment);
+           //g_Joshua.Log(L"New HDI: " + GString::FormatNumber(l_fNewHumanDevelopment, 3));
+       }
    }
 
    // Test if region owner change has destroyed a country
@@ -6456,8 +6506,9 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		
 		if(l_iCountryBeingFramed > 0)
 		{
-			if(l_iCountryTarget == l_iCellOwnerID)
+			if(l_iCountryTarget == l_iCellOwnerID && l_iCountryTarget == l_iCountryBeingFramed)
 			{
+                //Successfully targeted self, but also framed self
 				g_ServerDAL.CountryData(l_iCountryTarget)->GvtApproval(
 					max(0.f,g_ServerDAL.CountryData(l_iCountryTarget)->GvtApproval() - 0.5f));
 			}

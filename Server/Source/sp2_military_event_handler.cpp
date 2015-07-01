@@ -265,6 +265,51 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
       return;
 
    UINT32 l_iCurPlayerID = g_Joshua.ActivePlayer(l_pEvent->m_iSource)->ModID();
+
+   static const GString c_sChangeNamePrefix("NAME ");
+   if(l_pEvent->m_sName.find(c_sChangeNamePrefix) == 0)
+   {
+       gassert(l_iCurPlayerID >= 1,"Invalid player ID, name change won't work");
+
+       const GString& l_sNewCountryName = l_pEvent->m_sName.substr(c_sChangeNamePrefix.length());
+
+       //See if the new country's name is taken already. If yes, then cancel the name change.
+       for(vector<GCountry>::const_iterator l_CountryIt = g_SP2Server->Countries().cbegin();
+           l_CountryIt != g_SP2Server->Countries().cend();
+           ++l_CountryIt)
+       {
+           if(l_CountryIt->Name() == l_sNewCountryName)
+            return;
+       }
+
+       //Change the country's name
+       //g_SP2Server->Countries() is 0-based
+       GCountry& l_Country = g_SP2Server->Countries().at(l_iCurPlayerID - 1);
+
+       const GString  l_sOldCountryName = l_Country.Name();
+
+       g_ServerDAL.CountryData(l_iCurPlayerID)->Name(l_sNewCountryName);
+       l_Country.Name(l_sNewCountryName);
+
+       g_Joshua.Log(L"Player country ID " + GString(l_iCurPlayerID) + ", " +
+           l_sOldCountryName + L", has changed its name to " + l_sNewCountryName);
+
+       const SDK::GPlayers& l_HumanPlayers = g_Joshua.HumanPlayers();
+       for(SDK::GPlayers::const_iterator l_PlayerIt = l_HumanPlayers.cbegin();
+           l_PlayerIt != l_HumanPlayers.cend(); 
+           ++l_PlayerIt)
+	   {
+        if(l_PlayerIt->second->PlayerStatus() == SDK::PLAYER_STATUS_ACTIVE)
+        {
+            SDK::GGameEventSPtr l_RequestEvent = CREATE_GAME_EVENT(Event::GRequestCountryList);
+            l_RequestEvent->m_iSource = l_PlayerIt->second->Id();
+            l_RequestEvent->m_iTarget = SDK::Event::ESpecialTargets::Server;
+            g_Joshua.RaiseEvent(l_RequestEvent);
+        }
+       }
+
+       return;
+   }
    
    GCountryData* l_pData = g_ServerDAL.CountryData(l_iCurPlayerID);
    

@@ -2956,7 +2956,15 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
 	   for(UINT32 i = 1;i <= l_iCount;i ++)
 	   {
 		   IF_RETURN(!m_pCountryData[i].OnLoad(io_Buffer), false);
+
+           // Load country names; any custom names will propagate to the clients
+           if(m_pCountryData[i].Activated())
+           {
+               // GServer::Countries() is 0-based
+               g_SP2Server->Countries().at(i - 1).Name(m_pCountryData[i].Name());
+           }
 	   }
+
    }
 
    // Load capitals

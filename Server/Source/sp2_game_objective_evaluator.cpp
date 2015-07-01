@@ -154,6 +154,19 @@ void GGameObjectiveEvaluator::EvaluateSteamAchievementsForPlayer(SDK::GPlayer* i
             {
                for(int y = 0; y < EUnitDesignCharacteristics::ItemCount; y++)
                {
+                   //For ground, don't check stealth or countermeasures
+                   if(x == EUnitCategory::Ground && y == EUnitDesignCharacteristics::Stealth)
+                       break;
+
+                   //For strategic, don't check anything except missile range, precision, and damage
+                   if(x == EUnitCategory::Nuclear)
+                   {
+                       if(y < EUnitDesignCharacteristics::MissileRange)
+                           continue;
+                       else if(y > EUnitDesignCharacteristics::MissileDamage)
+                           break;
+                   }
+
                   if(lResearch->m_fMaxValues[x][y] >= 0.0f && lResearch->m_fMaxValues[x][y] < 10.0f)
                   {
                      lCheck13 = false;

@@ -310,7 +310,7 @@ bool GCountryInformationWindow::Update()
    m_pObjWorldPic->Width( (INT32)( m_pData->m_fHumanDevAverage * (REAL64)m_pObjCountryLbl->Width() ) );
 
    // Report world average HDI
-   GUI::GLabel* l_pWorldAverageLabel = static_cast<GUI::GLabel*>(
+   GUI::GLabel* l_pWorldAverageLabel = dynamic_cast<GUI::GLabel*>(
        m_pObjInnerFrm->Child(L"frmHumanDevelopment")->Child(L"frmInner")->Child(L"lblWorld"));
    l_pWorldAverageLabel->Text(L"World average (" + GString::FormatNumber(m_pData->m_fHumanDevAverage, 3) + L")");
    l_pWorldAverageLabel->Width( m_pObjCountryLbl->Width() );

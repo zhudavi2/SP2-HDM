@@ -55,20 +55,6 @@ namespace SP2
       virtual bool OnNew(GDatabase* in_pDatabase);
    };
 
-   /*!
-    * Struct to contain human development indicators
-    * Used to overwrite the game's starting stats
-    **/
-   struct GCountryDataOverwriteInfo
-   {
-       REAL64   m_fHumanDevelopment;    // If 0, calculate it from the other stats
-       REAL64   m_fLifeExpectancy;
-       REAL64   m_fMeanYearsSchooling;
-       REAL64   m_fExpectedYearsSchooling;
-       REAL64   m_fOldGDPPerCapita;
-       REAL64   m_fNewGDPPerCapita; // If 0, calculate it from the other stats
-   };
-
 
 	/*!
     * Class	to	represent a	country and	its data	in	Superpower 2.
@@ -91,8 +77,8 @@ namespace SP2
 		//!Saves	the data	for that	country,	into the	DB
 		bool CommitCountryData(IndexedData::GWriter& in_StringTable, vector<GSString>& in_vQueries, UINT32& in_iLanguageStatusIterator, UINT32& in_iReligionStatusIterator, UINT32& in_iCovertOpsIterator);
 
-		//! Will	calculate the data for a given country	based	on	the information of its provinces. in_bFirstTime is true if it's the first time this is called in the game.
-		void SynchronizeWithRegions(bool in_bFirstTime = false);
+		//! Will	calculate the data for a given country	based	on	the information of its provinces.
+		void SynchronizeWithRegions();
 
 		//! Will readjust the expenses based on that ratio. A ratio of 1 won't change any expenses. A ratio of 2 doubles all expenses. A ratio of 0 put all expenses to 0
 		void ReadjustDesiredExportsImports(REAL64 l_fChangeRatio);
@@ -146,6 +132,9 @@ namespace SP2
 
       static REAL32 FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita);
 
+      GString   Name() const;
+      void      Name(const GString& in_sName);
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
@@ -172,12 +161,11 @@ namespace SP2
         REAL32          m_fMeanYearsSchooling;
         REAL32          m_fExpectedYearsSchooling;
 
+        GString         m_sName;
+
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;
       static const UINT8 c_iResourceMeetsComsuption = 4;
-
-      //Array for easier initialization.
-      static const GCountryDataOverwriteInfo c_countryDataOverwriteInfo[];
 
 	};	//	End GCountryData class
 

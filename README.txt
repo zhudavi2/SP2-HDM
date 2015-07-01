@@ -1,4 +1,11 @@
-SuperPower 2 Human Development Modification (SP2-HDM)
+SuperPower 2 Human Development Modification (SP2-HDM) V1
+
+V1 changes:
+- Experimental feature: You can change your country's name. Just create a new covert cell with the name, "NAME", followed by a space, followed by your desired new name; a new covert cell won't actually be created when doing this. For example, if you type "NAME New Name" in the covert cell name blank and click "Confirm", then instead of creating a new covert cell, your country's name will be changed to "New Name". However, the new name will not automatically update in the any in-game windows you have open, unless you close and reopen those windows.
+- Full compatibility for database-only mods; for each country, the game now makes estimates of LE, MYS, and EYS based on the country's HDI as specified in database.
+- The Psilon achievement is now obtainable.
+- When a country succeeds a covert mission while framing itself, its government approval will decrease.
+- If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
 
 Human development changes:
 - Human development, or human development index (HDI), is now dependent on 4 stats: Life expectancy (in years; LE), mean years of schooling (MYS), expected years of schooling (EYS), and GNI per capita. This is to match the United Nations Development Programme's method of calculating human development (but with a $60,000 maximum for GNI per capita for the mod's purposes).
@@ -29,7 +36,7 @@ AI changes:
 UI changes:
 - If your covert mission succeeds but you're found out as the perpetrator, then you will be informed as such in the mission outcome window.
 - When creating a new covert cell, the default rank setting is Elite instead of Recruit.
-- Experiental feature: It's possible to create 10 covert cells at a time. In the cell name field, type a dash ('-') followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "-21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
+- Experimental feature: It's possible to create 10 covert cells at a time. In the cell name field, type a dash ('-') followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "-21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
 - In the economic health window, your "income index" (between 0.000 and 1.000) will be shown next to your GDP per capita; this is one component used in calculating your HDI. Higher is better.
 
 Fixes to existing SP2 issues:
@@ -43,14 +50,11 @@ Other changes:
 
 Known issues:
 - When starting the mod, instead of the opening movies playing, you'll get a black screen. This is expected; keep pressing Esc until you reach the SP2 loading screen.
-- With this mod, for the time being it is recommended that you use the database.gdb that comes with an unmodified SP2 installation. The mod will still be playable using database files, but various countries' starting stats might be off compared to what you might expect using the custom database.
 - The country information window cannot display LE values greater than 409.5, or MYS and EYS values greater than 102.3; the game knows what the values actually are, it just can't display them. It shouldn't be a problem in most cases, as those kinds of stats aren't achievable until after a few hundred years of game time.
 
 Future changes and "thoughts" in no particular order of priority:
-- Have the mod work better with any database.gdb, provided that the database file would also work with an otherwise unmodified SP2.
 - Have LE, MYS, and EYS affect more than just the HDI. For example, all 3 could have some effect on birth and death rates, and MYS and EYS could affect resource growth.
 - In the covert cells window, display how many Elite cells you would need to reach 94.9% security.
-- If a country takes over another country, and the two countries have different LE, MYS, and/or EYS values, then that should affect the resulting country's LE, MYS, and/or EYS. For example, if a country with low LE takes over a country with high LE, then the resulting country should have an LE somewhere in the middle.
 - Have resource sector taxes apply to all domestic production of resources, not just imports and exports.
 - Have immigration and emigration rates depend on more than just political factors.
 - Have interest rate have a larger effect on inflation rate.

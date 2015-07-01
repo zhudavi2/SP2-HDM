@@ -14,208 +14,6 @@
 ***************************************************************/
 #include "golem_pch.hpp"
 
-// Overwrite countries' HDI and GDP (per capita) with the following values.
-// A negative HDI means that it's my own estimate.
-// GDP per capita is from IMF data, or calculated from the UN HDR data if the former wasn't available.
-const GCountryDataOverwriteInfo GCountryData::c_countryDataOverwriteInfo[] =
-{
-    { 0, 0, 0, 0, 0, 0 },  // Country ID 0, nothing
-    { 0.341076060070391, 54.9, 2.1, 5.6, 979, 0 }, // AFG
-    { 0.655163029347468, 74.2, 8.5, 10.1, 3760.16, 0 },
-    { 0.634120315991670, 69, 5.9, 10.7, 5577.25, 0 },
-    { 0, 78.9, 7.5, 10.8, 19223.09, 24936.8 },
-    { 0.376751289588293, 45.2, 4.4, 5.5, 1283.03, 0 },
-    { 0, 73.5, 8.5, 13.5, 10064.05, 16393.021 },
-    { 0.752559530795707, 73.8, 9.1, 14.7, 12117.21, 0 },
-    { 0.647993289529204, 71.5, 10.8, 11.1, 3357.21, 0 },
-    { 0.897795516723716, 79.6, 11.9, 20.3, 24068.07, 0 },
-    { 0.835238961279748, 78.1, 9.1, 15.4, 26991.09, 0 },
-    { 0.639397815499488, 66.9, 10.6, 10.3, 3126.97, 0 },
-    { 0.766010089175149, 72.4, 10.9, 10.9, 16786.8, 0 },
-    { 0.783740159062844, 74.5, 8.3, 13.6, 15650.15, 0 },
-    { 0.452880277610736, 65.3, 3.7, 7.5, 1546.43, 0 },
-    { 0.745286384641156, 73.1, 8.7, 14.2, 14527.96, 0 },
-    { 0, 67.4, 8.5, 13.6, 7613.38, 5793.871 },
-    { 0.872575468479091, 77.8, 10, 18.2, 25266.2, 0 },
-    { 0.674554668331130, 70.4, 8.8, 11.1, 3085.16, 0 },
-    { 0.390780597532629, 55.3, 2.6, 6.6, 1001.39, 0 },
-    { 0, 60.3, 2, 7.6, 1122.27, 2681.079 },
-    { 0.614679020533713, 63, 7.4, 13.4, 2517.93, 0 },
-    { 0, 74.9, 8.5, 13.1, 1657.23, 5166.336 },
-    { 0.560094253406139, 48.7, 7.5, 11.7, 6556.87, 0 },
-    { 0.682218681703104, 70.3, 5.6, 14.3, 6476.81, 0 },
-    { 0.822398443607420, 75.9, 8.2, 13.4, 17168.48, 60303.545 },
-    { 0.713545783846393, 71.4, 9.5, 12.9, 6227.7, 0 },
-    { 0, 50.6, 1, 3.5, 977.81, 844.669 },
-    { 0.421050585267533, 62.1, 3, 7.5, 1516.85, 0 },
-    { 0.290189404819681, 48.3, 1.8, 4.5, 706.95, 0 },
-    { 0.465884068010361, 62, 5.7, 7.6, 1288.87, 0 },
-    { 0.433133470916023, 52, 4.8, 7.1, 1645.23, 0 },
-    { 0.866793287655569, 79.1, 11.1, 15.8, 27686.68, 0 },
-    { 0.572500346874027, 69.8, 3.5, 11.7, 1653.65, 0 },
-    { 0.314472901455615, 43.7, 2.8, 5.5, 1705.39, 0 },
-    { 0.300647773693564, 46.7, 1.5, 4.9, 930.27, 0 },
-    { 0.752522388818443, 76.9, 8.8, 12.9, 9987.95, 0 },
-    { 0.591315869092801, 72.1, 6.6, 9.3, 3534.64, 0 },
-    { 0.654780694344594, 71, 6.5, 11.5, 6195.88, 0 },
-    { 0, 57.9, 2.5, 9.4, 702.78, 1217.014 },
-    { 0.500995235286677, 52.3, 5.5, 8.1, 10710.58, 0 },
-    { 0.705108357457983, 77.7, 8, 11.4, 6625.92, 0 },
-    { 0.393334200112954, 46.4, 3.2, 7, 1598.220, 0 },
-    { 0.747912148215589, 74.8, 9.4, 12.3, 5745.08, 0 },
-    { 0.741792079603834, 76.7, 9.6, 12.2, 1716.73, 0 },
-    { 0.799634951629631, 78, 10, 12.4, 10384.96, 0 },
-    { 0.805691784652884, 74.7, 11.9, 13.9, 12899.18, 0 },
-    { 0.273536056435179, 46.4, 2.9, 7.2, 57.8, 0 },
-    { 0.858688278072892, 76.6, 10.5, 16.3, 25444.54, 0 },
-    { 0, 57, 2.5, 2.9, 1245.93, 1914.683 },
-    { 0.690585739012260, 76.5, 7.7, 13, 4096.85, 0 },
-    { 0.644855707678663, 70.6, 6.4, 11.7, 5628.4, 0 },
-    { 0.658438715572770, 73.4, 7, 11.4, 2821.6, 0 },
-    { 0.621158783585841, 68.6, 4.7, 11.9, 3552.08, 0 },
-    { 0.606577711966971, 69.7, 5.2, 10.7, 3847.59, 0 },
-    { 0.475758349064548, 47.7, 5.4, 8.5, 1975.07, 0 },
-    { 0, 56.1, 2.5, 4.1, 38.86, 1146.329/4 }, // ERI
-    { 0.775693891151207, 70.3, 11.7, 15, 10327.99, 0 },
-    { 0.283528693235471, 52.2, 1.5, 4.3, 594.91, 0 },
-    { 0, 67.3, 8.8, 11, 2097.67, 2216.68 },
-    { 0.674311323688662, 67.6, 9.1, 13.2, 6987.78, 0 },
-    { 0.840573924300780, 77.7, 8.2, 17.7, 24208.9, 0 },
-    { 0, 73.2, 8, 11.6, 4398.37, 7326.378 },
-    { 0.847623836275406, 78.9, 9.8, 15.6, 24315.2, 0 },
-    { 0.631699572040181, 59.7, 6.1, 12.3, 6305.39, 0 },
-    { 0.383334084188972, 55.1, 2, 6.8, 1062.92, 0 },
-    { 0, 70.9, 7, 11.5, 312.15, 4262.4 },
-    { 0, 71.8, 11.5, 11.7, 3166.78, 2581.348 },
-    { 0.853654656290974, 77.9, 10.5, 15.8, 23317, 0 },
-    { 0.487161953134314, 57, 6.3, 8, 1879.96, 0 },
-    { 0.798072109037326, 78.5, 8.6, 14.2, 17121.87, 0 },
-    { 0, 70.3, 8, 14.3, 4415.7, 7649.96 },
-    { 0.551382557216051, 67.8, 3.7, 8.7, 3560.86, 0 },
-    { 0, 51.3, 1.5, 5.2, 1313.39, 950.254 },
-    { 0, 51.5, 2, 7, 835.97, 1053.918 },
-    { 0.569960063931419, 63.3, 7.7, 10.7, 4876.81, 0 },
-    { 0.432659130596548, 57.5, 3.9, 7.3, 1823.52, 0 },
-    { 0, 80, 9, 15, 82327.11, 0 }, // VAT
-    { 0.557600766699894, 70.5, 4.3, 10, 2653.74, 0 },
-    { 0.773507721265335, 71.8, 10.7, 14.3, 11270.51, 0 },
-    { 0.858403256076893, 79.7, 9.3, 17.1, 24648.53, 0 },
-    { 0.483446934570369, 62.1, 3.6, 8.5, 2135.94, 0 },
-    { 0.609174465545593, 67.3, 6.7, 10.7, 2862.92, 0 },
-    { 0.652451957146366, 69.6, 6, 11.8, 6245.37, 0 },
-    { 0.605598452959948, 70.8, 4.8, 8.7, 2442.99, 0 },
-    { 0.862430569252094, 76.7, 11.2, 16.7, 21323.46, 0 },
-    { 0.848990128731311, 79, 12, 15.1, 18558.14, 0 },
-    { 0.824844903603012, 79.5, 8.4, 15, 22070.1, 0 },
-    { 0.671177184365706, 70.5, 8.6, 10.9, 3638.9, 0 },
-    { 0.857817297453788, 81.2, 10.8, 14.6, 24059, 0 },
-    { 0.705430028952353, 71.7, 9.5, 12.7, 3357.02, 0 },
-    { 0.679128894293555, 63.5, 9.9, 12.7, 5116.15, 0 },
-    { 0.455363098449495, 52.9, 5.9, 8.4, 1482.15, 0 },
-    { 0, 64.6, 7.5, 10.6, 807.23, 1266.592 },
-    { 0.804388391413925, 73.1, 6.2, 15.5, 14348.94, 51239.94 },
-    { 0.586466262933159, 66.2, 9.2, 11.8, 2650.95, 0 },
-    { 0.473130433557818, 61.7, 3.9, 8, 1596.88, 0 },
-    { 0.728714817439000, 69.7, 9.4, 14.2, 7252.96, 0 },
-    { 0, 74.4, 7.5, 15, 5016.85, 10157.322 },
-    { 0.443001973233136, 47.3, 4.9, 10.3, 2342.6, 0 },
-    { 0.338585041911907, 52.4, 3.2, 8.5, 1038.48, 0 },
-    { 0.744505470073592, 71.9, 5.6, 15.8, 8663.12, 0 },
-    { 0, 78.2, 9.5, 14.5, 22442.89, 75336 },
-    { 0.757484532214748, 71, 10.9, 14.5, 7311.93, 0 },
-    { 0.866194580648238, 77.7, 10.8, 13.4, 35893.91, 63617.582 },
-    { 0.453051567915230, 58.5, 5.2, 8.1, 769.58, 0 },
-    { 0.341102886639806, 46, 3, 10.3, 891.14, 0 },
-    { 0.716552963108083, 72.8, 8.2, 11.9, 10063.41, 0 },
-    { 0.598659433438897, 69.3, 4.2, 12.4, 1911.4, 0 },
-    { 0.309115957196437, 49.1, 1.2, 4.9, 826.63, 0 },
-    { 0.770239211656832, 77.4, 8.1, 12.5, 14192.19, 0 },
-    { 0, 67.5, 7.5, 11.5, 1348.86, 2026.015 },
-    { 0.433014110529114, 59.7, 2.9, 6.6, 1965.55, 0 },
-    { 0.685992259464057, 71.2, 7.1, 12.2, 10337.65, 0 },
-    { 0.698827713454160, 74.4, 6.7, 11.6, 8981.22, 0 },
-    { 0.597587303562932, 67, 9, 11.4, 2549.88, 0 },
-    { 0, 79.8, 10, 15.5, 27322.4, 0 }, // MCO
-    { 0.580491828578926, 62.9, 8.1, 9.4, 1770.24, 0 },
-    { 0.525869334862630, 68.2, 3.4, 8.4, 3426.29, 0 },
-    { 0.285301734361920, 47.5, 1.8, 5.8, 986, 0 },
-    { 0.556396801339569, 55.2, 5.6, 11.6, 4227.67, 0 },
-    { 0, 78.2, 5, 8.8, 4536.01, 0 }, // NRU
-    { 0.449256213581215, 62.1, 2.4, 9.3, 1332.83, 0 },
-    { 0.874178580711362, 78.2, 10.8, 16.7, 34718.77, 0 },
-    { 0.873175774541770, 78.2, 12, 17.4, 17494.23, 0 },
-    { 0.554402852587027, 69.7, 4.7, 9.7, 2663.47, 0 },
-    { 0.262124887078322, 50.7, 1.1, 2.9, 965.7, 0 },
-    { 0, 46.6, 5, 8, 923.91, 1827.384 },
-    { 0, 65.3, 6.5, 9.5, 1001.44, 0 }, // PRK
-    { 0.910240619499561, 78.7, 11.5, 17.5, 27556.71, 0 },
-    { 0, 72.1, 6, 10.9, 7474.64, 31150.29 },
-    { 0.453513095989671, 63.9, 3.3, 5.5, 1949.98, 0 },
-    { 0.741418648220425, 67.6, 11.4, 13.7, 5533.15, 0 },
-    { 0.708782522276761, 75.1, 8.5, 12.2, 5833.46, 0 },
-    { 0.422655871141125, 58.7, 3.2, 6.4, 2416.29, 0 },
-    { 0.624671492999283, 70.1, 5.9, 11.8, 4569.12, 0 },
-    { 0.681539139062871, 70.5, 8, 13.6, 4475.35, 0 },
-    { 0.619059993734238, 66.8, 8, 11.4, 3742.08, 0 },
-    { 0.784009906585434, 73.7, 11.1, 14.8, 8477, 0 },
-    { 0.780025739570981, 76.6, 6.6, 15.7, 15795.35, 0 },
-    { 0.811293440650847, 76.7, 7.9, 12.6, 19631.98, 89092.808 },
-    { 0.705812645868230, 70.5, 9.9, 11.7, 5924.69, 0 },
-    { 0.716779093705681, 65.1, 11.3, 12.4, 7699.17, 0 },
-    { 0.329497378616058, 47.7, 2.3, 7.3, 875.18, 0 },
-    { 0, 70.2, 8, 13, 7069.87, 16474.498 },
-    { 0, 71.5, 8, 12.7, 4425.36, 8031.638 },
-    { 0, 70.6, 8, 12.8, 2777.27, 6187.726 },
-    { 0.654054767522237, 69.3, 10.3, 12, 3188.92, 0 },
-    { 0, 80.6, 8.5, 15, 31460.34, 0 }, // SMR
-    { 0.494982198448859, 63.3, 4.2, 9, 1078.57, 0 },
-    { 0.743771105153592, 72.4, 7.4, 11.5, 10194.62, 0 },
-    { 0.412819531314235, 57.8, 3.7, 5.4, 1555.67, 0 },
-    { 0.742500175249962, 71.8, 9.4, 12.7, 7652.35, 0 },
-    { 0.297316256568241, 38.1, 2.4, 6.9, 497.54, 0 },
-    { 0.799920296009501, 78.3, 7.6, 12.7, 25532.39, 0 },
-    { 0.776312813586554, 73.3, 11.2, 13.3, 10212.49, 0 },
-    { 0.821451173187078, 75.9, 11.6, 14.7, 11864.47, 0 },
-    { 0.474653571639953, 62.8, 4.5, 6.6, 1873.27, 0 },
-    { 0, 50.9, 1, 3, 15.6, 0 }, // SOM
-    { 0.627941910023033, 55.9, 8.8, 13.1, 8466, 0 },
-    { 0.818754995798851, 76.1, 10.6, 16, 15960.96, 0 },
-    { 0.825945971063926, 79, 8.4, 15.9, 18002.89, 0 },
-    { 0.678914330846858, 71.1, 10, 12.5, 3230.52, 0 },
-    { 0.385350910491370, 58, 2.4, 4.5, 989.45, 0 },
-    { 0, 67.9, 7.5, 11.9, 3410.16, 7789.69 },
-    { 0.498076028923352, 48.7, 6, 9.3, 3984.26, 0 },
-    { 0.888902320258359, 79.7, 11, 18.9, 22197.05, 0 },
-    { 0.885813882073941, 79.9, 11.4, 15.2, 28421.28, 0 },
-    { 0.604616825605886, 73.3, 5.1, 10.1, 3042.65, 0 },
-    { 0, 75, 9, 15, 17254.89, 21207.28 },
-    { 0.528585121750457, 63.6, 9.9, 9.7, 1109.64, 0 },
-    { 0.375525256705860, 50, 4.6, 6.2, 692.75, 0 },
-    { 0.648778175270580, 70.9, 6.1, 11.2, 6683.09, 0 },
-    { 0.429987663943690, 53.6, 4.4, 9.4, 1416.62, 0 },
-    { 0.671884151589762, 70.8, 8.9, 13.2, 2158.72, 0 },
-    { 0.696868550442917, 68.5, 8.3, 11.8, 9575.25, 0 },
-    { 0.652601801698248, 73.2, 4.8, 13.1, 6470.82, 0 },
-    { 0.653044353970065, 70, 5.5, 11.1, 6677.29, 0 },
-    { 0, 63.9, 9.9, 12, 4257.86, 2490.006 },
-    { 0, 63.8, 7, 10.8, 832.49, 3619.2 },
-    { 0.391802596023828, 48.1, 3.9, 10.7, 1092.31, 0 },
-    { 0.667944396133197, 67.3, 10.7, 12.6, 3884.29, 0 },
-    { 0.797453162542365, 74.2, 8.3, 12, 22430.27, 86155.584 },
-    { 0.863411915738744, 77.7, 11.6, 16.1, 22800.5, 0 },
-    { 0.883142042232941, 76.8, 12.7, 15.3, 35830.54, 0 },
-    { 0.740035769112046, 74.8, 8, 14.2, 9225.9, 0 },
-    { 0, 67, 10, 10.8, 2385.2, 1950.823 },
-    { 0, 67.4, 9, 10.1, 1270.02, 1867.855 },
-    { 0.677430213344440, 72.4, 6.6, 10.5, 6112.85, 0 },
-    { 0.563486149150807, 73.8, 4.5, 10.4, 1931.47, 0 },
-    { 0.427036086310080, 60.4, 1.1, 7.9, 796.54, 0 },
-    { 0.712537638139738, 72.1, 9.2, 13.6, 2266.49, 0 },
-    { 0.422923863406508, 41.8, 5.9, 10.4, 869.99, 0 },
-    { 0.428119335451708, 44, 5.9, 9.9, 2481.22, 0 },
-    { 0, 50, 2, 5, 402.88, 0 },
-};
-
 REAL64 GCountryDataItf::m_pResourceMarketAvailability[EResources::ItemCount];
 
 //! Default constructor
@@ -265,7 +63,7 @@ void GCountryData::ReadjustDesiredExportsImports(REAL64 l_fChangeRatio)
 	}
 }
 
-void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
+void GCountryData::SynchronizeWithRegions()
 {
 	const set<UINT32>& l_vRegionsPolitical = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
 		
@@ -302,48 +100,6 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
 	m_fGDPValueBase = 0.f;
 
 	m_iPopulationPoliticalControl = 0;
-
-    REAL64 l_fNewGDPPerCapita;
-
-    if(in_bFirstTime && m_iCountryID<=194)
-    {
-        // LE, MYS, and EYS are always nonzero
-        m_fLifeExpectancy = static_cast<REAL32>(c_countryDataOverwriteInfo[m_iCountryID].m_fLifeExpectancy);
-        gassert(m_fLifeExpectancy != 0,"Life expectancy is 0");
-        m_fMeanYearsSchooling = static_cast<REAL32>(c_countryDataOverwriteInfo[m_iCountryID].m_fMeanYearsSchooling);
-        gassert(m_fMeanYearsSchooling != 0,"Mean years schooling is 0");
-        m_fExpectedYearsSchooling = static_cast<REAL32>(c_countryDataOverwriteInfo[m_iCountryID].m_fExpectedYearsSchooling);
-        gassert(m_fExpectedYearsSchooling != 0,"Expected years schooling is 0");
-
-        m_fHumanDevelopment = static_cast<REAL32>(c_countryDataOverwriteInfo[m_iCountryID].m_fHumanDevelopment);
-        l_fNewGDPPerCapita = c_countryDataOverwriteInfo[m_iCountryID].m_fNewGDPPerCapita;
-        if(m_fHumanDevelopment != 0)
-        {
-            if(l_fNewGDPPerCapita == 0)
-            {
-                REAL32 l_fHI = max(0, min((m_fLifeExpectancy - 20) / 65, 1));
-
-                REAL32 l_fMeanYearsIndex = max(0, min(m_fMeanYearsSchooling / 15, 1));
-                REAL32 l_fExpectedYearsIndex = max(0, min(m_fExpectedYearsSchooling / 18, 1));
-                REAL32 l_fEI = (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
-
-                REAL32 l_fIncomeIndex = powf(m_fHumanDevelopment, 3) / l_fHI / l_fEI;
-                l_fNewGDPPerCapita = 100.f * expf(l_fIncomeIndex * logf(600));
-            }
-        }
-        else
-        {
-            if(l_fNewGDPPerCapita != 0)
-            {
-                m_fHumanDevelopment = GCountryData::FindHumanDevelopment(m_fLifeExpectancy, m_fMeanYearsSchooling, m_fExpectedYearsSchooling, l_fNewGDPPerCapita);
-            }
-            else
-            {
-                m_fHumanDevelopment = GCountryData::FindHumanDevelopment(m_fLifeExpectancy, m_fMeanYearsSchooling, m_fExpectedYearsSchooling, c_countryDataOverwriteInfo[m_iCountryID].m_fOldGDPPerCapita);
-            }
-        }
-    }
-
 	REAL32 l_fTempElevation = 0.0f;
 	REAL32 l_fArableLand = 0.0f;
 	REAL32 l_fParksLand = 0.0f;
@@ -385,18 +141,10 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
 			//Calculate the production total of a country
 			for(UINT32 j=0; j < EResources::ItemCount; j++)
 			{
-                REAL64 l_fResourceProduction = l_pRegion->ResourceProduction(static_cast<SP2::EResources::Enum>(j));
-                if(in_bFirstTime && l_fNewGDPPerCapita != 0)
-                {
-                    l_fResourceProduction *= l_fNewGDPPerCapita / c_countryDataOverwriteInfo[m_iCountryID].m_fOldGDPPerCapita;
-                    l_pRegion->ResourceProduction(static_cast<SP2::EResources::Enum>(j), l_fResourceProduction);
-                }
-
-                m_pResourceProduction[j]	+= l_fResourceProduction;
+				m_pResourceProduction[j]	+= l_pRegion->ResourceProduction((SP2::EResources::Enum)j);
 				gassert(!_isnan(m_pResourceProduction[j]),"Production is NAN");
 				//m_pResourceDemand[j]			+= l_pRegion->ResourceDemand((SP2::EResources::Enum)j);
-                
-            m_fGDPValueBase			+= l_fResourceProduction * m_fResourceProductionModifier;
+            m_fGDPValueBase			+= (l_pRegion->ResourceProduction((SP2::EResources::Enum)j)*m_fResourceProductionModifier);
 			}		
 
 		}
@@ -423,34 +171,7 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
 		}		
 	}
 
-    m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
-
 	m_fGDPValue = max(0.f,m_fGDPValueBase + (0.5*m_fEconomicActivity));
-
-    //Temporary: For countries without defined LE, MYS, and EYS, guess based on their HDI and II.
-    if(in_bFirstTime && m_iCountryID>194)
-    {
-        REAL32 l_fHIEIMean = powf(m_fHumanDevelopment, 3);
-        l_fHIEIMean /= GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) > 0 ? GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) : 1;
-        l_fHIEIMean = sqrt(l_fHIEIMean);
-        m_fLifeExpectancy = (l_fHIEIMean * 65) + 20;
-        m_fMeanYearsSchooling = l_fHIEIMean * 15;
-        m_fExpectedYearsSchooling = l_fHIEIMean * 18;
-    }
-
-    // The first time this method is called, right as the game starts, log out some country data.
-    if(in_bFirstTime)
-    {
-        g_Joshua.Log(
-            L"Country ID " + GString(m_iCountryID) + L", " +
-            g_ServerDAL.GetString(m_iNameID) + L": " +
-            L"GDP " + GString::FormatNumber(m_fGDPValueBase, L",", L".", L"$", L"", 3) + "; " +
-            L"LE " + GString::FormatNumber(m_fLifeExpectancy, 1) + "; " +
-            L"MYS " + GString::FormatNumber(m_fMeanYearsSchooling, 1) + "; " +
-            L"EYS " + GString::FormatNumber(m_fExpectedYearsSchooling, 1) + "; " +
-            L"GDP per capita " + GString::FormatNumber(m_fGDPValueBase/m_iPopulation, L",", L".", L"$", L"", 3) + L"; " +
-            L"HDI " + GString::FormatNumber(m_fHumanDevelopment, 3));
-    }
 
 	IterateDemand();
 	
@@ -472,6 +193,8 @@ void GCountryData::SynchronizeWithRegions(bool in_bFirstTime)
 			}			
 		}
 	}
+
+	m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
 
 	if(m_fAreaLandTotal != 0.0f)
 	{
@@ -794,8 +517,30 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 	m_fResourceProductionModifier = g_ServerDAL.ResourceProductionModifier(in_iCountryID,(EGovernmentType::Enum)m_iGvtType);
 	m_fResourceDemandModifier = SP2::c_pGvtTypeDemandModifier[m_iGvtType];	
 
-	//Fill information that comes from the regions; this will be the first time it's called.	
-	SynchronizeWithRegions(true);
+    m_sName = g_ServerDAL.GetString(m_iNameID);
+
+	//Fill information that comes from the regions
+	SynchronizeWithRegions();
+
+    {
+        REAL32 l_fHIEIMean = powf(m_fHumanDevelopment, 3);
+        l_fHIEIMean /= GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) > 0 ? GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) : 1;
+        l_fHIEIMean = sqrt(l_fHIEIMean);
+        m_fLifeExpectancy = (l_fHIEIMean * 65) + 20;
+        m_fMeanYearsSchooling = l_fHIEIMean * 15;
+        m_fExpectedYearsSchooling = l_fHIEIMean * 18;
+
+        //Log out some country data right as the game starts.
+        g_Joshua.Log(
+            L"Country ID " + GString(m_iCountryID) + L", " +
+            m_sName + L": " +
+            L"GDP " + GString::FormatNumber(m_fGDPValueBase, L",", L".", L"$", L"", 3) + "; " +
+            L"LE " + GString::FormatNumber(m_fLifeExpectancy, 1) + "; " +
+            L"MYS " + GString::FormatNumber(m_fMeanYearsSchooling, 1) + "; " +
+            L"EYS " + GString::FormatNumber(m_fExpectedYearsSchooling, 1) + "; " +
+            L"GDP per capita " + GString::FormatNumber(m_fGDPValueBase/m_iPopulation, L",", L".", L"$", L"", 3) + L"; " +
+            L"HDI " + GString::FormatNumber(m_fHumanDevelopment, 3));
+    }
 
 	m_fBudgetRevenues = m_fBudgetRevenueTax + m_fBudgetRevenueTrade + m_fBudgetRevenueIMF +
 								m_fBudgetRevenueTourism;
@@ -924,49 +669,6 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 				m_pResourceMeetDomesticConsumption[i] = false;
 			m_pResourceTaxes[i]			= *((REAL32*)l_TableResources.Row(0)->Cell((i*9)+8)->Data()) / 100.f;
 			m_pResourceGDP[i]	= *((REAL32*)l_TableResources.Row(0)->Cell((i*9)+9)->Data()) / 100.f;			
-
-            // Set some countries' tax information differently from the database.
-            vector<ENTITY_ID> l_vCountriesToReference;
-            EResources::Enum l_eResource = static_cast<EResources::Enum>(i);
-            bool l_bChangePreviousCountry = false;
-            switch(m_iCountryID)
-            {
-            case 104:
-            case 123:   // LUX, NLD from BEL
-                l_vCountriesToReference.push_back(17);
-                break;
-
-            case 154:   // SGP to MYS
-                l_vCountriesToReference.push_back(107);
-                l_bChangePreviousCountry = true;
-                break;
-
-            case 167:   // CHE to LIE, MCO
-                l_vCountriesToReference.push_back(102);
-                l_vCountriesToReference.push_back(116);
-                l_bChangePreviousCountry = true;
-                break;
-
-            default:
-                break;
-            }
-
-            for(vector<ENTITY_ID>::iterator l_CountryIDIt=l_vCountriesToReference.begin();
-                    l_CountryIDIt<l_vCountriesToReference.end(); ++l_CountryIDIt)
-            {
-                GCountryData* l_pCountryData = g_ServerDAL.CountryData(*l_CountryIDIt);
-
-                if(!l_bChangePreviousCountry)
-                {
-                    m_pResourceGvtControl[i] = l_pCountryData->ResourceGvtCtrl(l_eResource);
-                    m_pResourceTaxes[i]      = l_pCountryData->ResourceTaxes(l_eResource);
-                }
-                else
-                {
-                    l_pCountryData->ResourceGvtCtrl(l_eResource, m_pResourceGvtControl[i]);
-                    l_pCountryData->ResourceTaxes(l_eResource, m_pResourceTaxes[i]);
-                }
-            }
 	}
 	
    //Fetch the list of nuclear missiles
@@ -2174,6 +1876,16 @@ REAL32 GCountryData::FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_f
     return powf(l_fHI * l_fEI * GHumanDevelopmentUtilities::FindIncomeIndex(in_fGDPPerCapita), 1.f/3.f);
 }
 
+GString GCountryData::Name() const
+{
+    return m_sName;
+}
+
+void GCountryData::Name(const GString& in_sName)
+{
+    m_sName = in_sName;
+}
+
 bool GCountryData::OnSave(GIBuffer& io_Buffer)
 {
    io_Buffer << m_iCountryID;
@@ -2256,6 +1968,7 @@ bool GCountryData::OnSave(GIBuffer& io_Buffer)
                 << m_fPressure
                 << m_iClimateNameID
                 << m_iNameID
+                << m_sName
                 << m_iPoliticRank
                 << m_iEconomicRank
                 << m_iMilitaryRank
@@ -2517,6 +2230,7 @@ bool GCountryData::OnLoad(GOBuffer& io_Buffer)
                 >> m_fPressure
                 >> m_iClimateNameID
                 >> m_iNameID
+                >> m_sName
                 >> m_iPoliticRank
                 >> m_iEconomicRank
                 >> m_iMilitaryRank

@@ -266,6 +266,24 @@ bool GDataControlLayer::RequestCountryListToServer()
 
 void GDataControlLayer::ReceiveCountryListFromServer(SP2::Event::GReceiveCountryList* in_pData)
 {
+    SP2::GComboListBoxLess* l_pComboBox = NULL;
+    vector<GCountry>::difference_type l_iSelectedCountryZeroBasedId = -1;
+    if(g_ClientDDL.MainBar())
+    {
+        l_pComboBox = dynamic_cast<SP2::GComboListBoxLess*>(g_ClientDDL.MainBar()->Child(L"cboCountry"));
+
+        //If we're receiving the country list due to a name change, then keep track of which country is currently selected, in case it's that country's name that's changing.
+        //Don't use GDataAccessLayerClient::Country() with a name parameter, as it doesn't work if the passed-in name doesn't exist, which could happen here.
+        GString l_sSelectedContent = l_pComboBox->Selected_Content();
+        for(vector<GCountry>::const_iterator l_CountryIt = g_ClientDAL.Countries().cbegin(); l_CountryIt != g_ClientDAL.Countries().cend(); ++l_CountryIt)
+        {
+            if(l_CountryIt->Name() == l_sSelectedContent)
+            {
+                l_iSelectedCountryZeroBasedId = distance(g_ClientDAL.Countries().cbegin(), l_CountryIt);
+                break;
+            }
+        }
+    }
    g_ClientDAL.NbCountry( (UINT16) in_pData->m_vCountries.size() );
    g_ClientDAL.Countries() = in_pData->m_vCountries;
 
@@ -277,7 +295,13 @@ void GDataControlLayer::ReceiveCountryListFromServer(SP2::Event::GReceiveCountry
 
    //Set the Countries into the mainbar window
    if(g_ClientDDL.MainBar())
-      ((SP2::GComboListBoxLess*)g_ClientDDL.MainBar()->Child(L"cboCountry"))->SetListBox(g_ClientDDL.CountriesListBox()); 
+   { 
+       ((SP2::GComboListBoxLess*)g_ClientDDL.MainBar()->Child(L"cboCountry"))->SetListBox(g_ClientDDL.CountriesListBox()); 
+
+       //Re-select the currently-selected country, in case that country's name just changed.
+       if(l_iSelectedCountryZeroBasedId != -1)
+            SelectedCountrySet(g_ClientDAL.Countries().at(l_iSelectedCountryZeroBasedId), true);
+   }
 
    //Set the Countries into the single player window
    if(g_ClientDDL.StartSinglePlayerWindow())
