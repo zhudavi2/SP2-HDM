@@ -250,7 +250,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\SP2-HDM\sp2_human_development_utilities.cpp" />
     <ClCompile Include="Source\sp2_advisor.cpp" />
     <ClCompile Include="Source\sp2_advisor_event_handler.cpp" />
     <ClCompile Include="Source\sp2_ai.cpp" />
@@ -367,7 +366,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\includes\SP2-HDM\sp2_human_development_utilities.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Include\sp2_advisor.h" />
     <ClInclude Include="Include\sp2_advisor_event_handler.h" />

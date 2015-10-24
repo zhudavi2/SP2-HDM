@@ -524,13 +524,14 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 
     {
         REAL32 l_fHIEIMean = powf(m_fHumanDevelopment, 3);
-        l_fHIEIMean /= GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) > 0 ? GHumanDevelopmentUtilities::FindIncomeIndex(m_fGDPValueBase/m_iPopulation) : 1;
+        l_fHIEIMean /= (GCountryData::FindIncomeIndex(m_fGDPValueBase/m_iPopulation)) > 0 ? (GCountryData::FindIncomeIndex(m_fGDPValueBase/m_iPopulation)) : 1;
         l_fHIEIMean = sqrt(l_fHIEIMean);
         m_fLifeExpectancy = (l_fHIEIMean * 65) + 20;
         m_fMeanYearsSchooling = l_fHIEIMean * 15;
         m_fExpectedYearsSchooling = l_fHIEIMean * 18;
 
         //Log out some country data right as the game starts.
+        REAL64 l_fGDPPerCapita = (m_iPopulation > 0) ? (m_fGDPValueBase / m_iPopulation) : 0;
         g_Joshua.Log(
             L"Country ID " + GString(m_iCountryID) + L", " +
             m_sName + L": " +
@@ -538,7 +539,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
             L"LE " + GString::FormatNumber(m_fLifeExpectancy, 1) + "; " +
             L"MYS " + GString::FormatNumber(m_fMeanYearsSchooling, 1) + "; " +
             L"EYS " + GString::FormatNumber(m_fExpectedYearsSchooling, 1) + "; " +
-            L"GDP per capita " + GString::FormatNumber(m_fGDPValueBase/m_iPopulation, L",", L".", L"$", L"", 3) + L"; " +
+            L"GDP per capita " + GString::FormatNumber(l_fGDPPerCapita, L",", L".", L"$", L"", 3) + L"; " +
             L"HDI " + GString::FormatNumber(m_fHumanDevelopment, 3));
     }
 
@@ -1865,6 +1866,22 @@ void GCountryData::ExpectedYearsSchooling(REAL32 in_fExpectedYearsSchooling)
     m_fExpectedYearsSchooling = in_fExpectedYearsSchooling;
 }
 
+REAL32 GCountryData::FindIncomeIndex(REAL64 in_fGDPPerCapita)
+{
+    if(in_fGDPPerCapita <= 100)
+    {
+        return 0;
+    }
+    else if(in_fGDPPerCapita <= 60000)
+    {
+        return static_cast<REAL32>(log(in_fGDPPerCapita/100) / log(600.0));
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 REAL32 GCountryData::FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita)
 {
     REAL32 l_fHI = max(0, min((in_fLifeExpectancy - 20) / 65, 1));
@@ -1873,7 +1890,7 @@ REAL32 GCountryData::FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_f
     REAL32 l_fExpectedYearsIndex = max(0, min(in_fExpectedYearsSchooling / 18, 1));
     REAL32 l_fEI = (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
 
-    return powf(l_fHI * l_fEI * GHumanDevelopmentUtilities::FindIncomeIndex(in_fGDPPerCapita), 1.f/3.f);
+    return powf(l_fHI * l_fEI * GCountryData::FindIncomeIndex(in_fGDPPerCapita), 1.f/3.f);
 }
 
 GString GCountryData::Name() const

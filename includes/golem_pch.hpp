@@ -9,8 +9,6 @@
 #include "../includes/common_lib/sp2_constants_str_id.h"
 #include "../includes/common_lib/sp2_common.h"
 
-#include "../includes/SP2-HDM/sp2_human_development_utilities.h"
-
 
 using namespace SP2;
 

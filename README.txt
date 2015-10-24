@@ -1,4 +1,14 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V1
+SuperPower 2 Human Development Modification (SP2-HDM) V2
+
+V2 changes:
+- Internet multiplayer now works. However, some minor UI-related features had to be removed in order to get it to work.
+- Every 365 days of game time, the HDI, LE, MYS, and EYS of every active country will be written to the server console log.
+- Fixed an issue where during the logging out of stats to the server console at the beginning of the game, countries with 0 population would have their GDP per capita calculations messed up; such countries would now be listed as having $0 GDP per capita.
+
+Removed features in V2:
+- In the country information window, your numerical HDI, LE, MYS, and EYS will no longer be shown.
+- In the economic health window, your "income index" will no longer be shown.
+- If your covert mission succeeds but you're found out as the perpetrator, then you will no longer be informed as such in the mission outcome window.
 
 V1 changes:
 - Experimental feature: You can change your country's name. Just create a new covert cell with the name, "NAME", followed by a space, followed by your desired new name; a new covert cell won't actually be created when doing this. For example, if you type "NAME New Name" in the covert cell name blank and click "Confirm", then instead of creating a new covert cell, your country's name will be changed to "New Name". However, the new name will not automatically update in the any in-game windows you have open, unless you close and reopen those windows.
@@ -34,10 +44,8 @@ AI changes:
 - The number of military units that an AI country builds or buys now depends on how high the country's revenue is.
 
 UI changes:
-- If your covert mission succeeds but you're found out as the perpetrator, then you will be informed as such in the mission outcome window.
 - When creating a new covert cell, the default rank setting is Elite instead of Recruit.
 - Experimental feature: It's possible to create 10 covert cells at a time. In the cell name field, type a dash ('-') followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "-21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
-- In the economic health window, your "income index" (between 0.000 and 1.000) will be shown next to your GDP per capita; this is one component used in calculating your HDI. Higher is better.
 
 Fixes to existing SP2 issues:
 - High government approval and stability now decrease your emigration rate instead of increasing it.
@@ -49,13 +57,12 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Known issues:
-- When starting the mod, instead of the opening movies playing, you'll get a black screen. This is expected; keep pressing Esc until you reach the SP2 loading screen.
-- The country information window cannot display LE values greater than 409.5, or MYS and EYS values greater than 102.3; the game knows what the values actually are, it just can't display them. It shouldn't be a problem in most cases, as those kinds of stats aren't achievable until after a few hundred years of game time.
+- In the war list window, the attacking side's leader is always the country. 
 
 Future changes and "thoughts" in no particular order of priority:
 - Have LE, MYS, and EYS affect more than just the HDI. For example, all 3 could have some effect on birth and death rates, and MYS and EYS could affect resource growth.
-- In the covert cells window, display how many Elite cells you would need to reach 94.9% security.
 - Have resource sector taxes apply to all domestic production of resources, not just imports and exports.
 - Have immigration and emigration rates depend on more than just political factors.
 - Have interest rate have a larger effect on inflation rate.
 - Have wars and occupation directly and negatively affect LE, MYS, and EYS.
+- Find out some other way to show LE, MYS, and EYS to the player.

@@ -1264,8 +1264,7 @@ bool GWorldBehavior::Iterate_Human_Development()
     REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, l_fMeanYearsSchooling, l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita());
 	m_CountryData->HumanDevelopment(l_fNewHDLevel);
 
-    /*
-    if((static_cast<INT32>(g_Joshua.GameTime()) % 90 == 0) && (m_iHumanDevLogStartingCountryID == 0))
+    if((static_cast<INT32>(g_Joshua.GameTime()) % 365 == 0) && (m_iHumanDevLogStartingCountryID == 0))
         m_iHumanDevLogStartingCountryID = m_CountryData->CountryID();
 
     if(m_iHumanDevLogStartingCountryID != 0)
@@ -1279,10 +1278,9 @@ bool GWorldBehavior::Iterate_Human_Development()
             L"GDP per capita " + GString::FormatNumber(m_CountryData->GDPPerCapita(), L",", L".", L"$", L"", 3) + L"; " +
             L"HDI " + GString::FormatNumber(m_CountryData->HumanDevelopment(), 3));
 
-        if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHumanDevLogStartingCountryID) //We're finished loggging
+        if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHumanDevLogStartingCountryID) //We're finished logging
             m_iHumanDevLogStartingCountryID = 0;
     }
-    */
 
 	return true;
 }
@@ -3966,7 +3964,7 @@ REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
 **/
 REAL32 GWorldBehavior::FindGDPPopulationFactor(ENTITY_ID in_iCountryID)
 {
-    return GHumanDevelopmentUtilities::FindIncomeIndex(g_ServerDAL.CountryData(in_iCountryID)->GDPPerCapita());
+    return GCountryData::FindIncomeIndex(g_ServerDAL.CountryData(in_iCountryID)->GDPPerCapita());
 }
 
 /*!

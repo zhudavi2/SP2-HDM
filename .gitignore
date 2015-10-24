@@ -5,6 +5,7 @@ build/
 [Bb]in/
 [Oo]bj/
 
+Client/
 includes/RGAPI/
 
 *.sdf
