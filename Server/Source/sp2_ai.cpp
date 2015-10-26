@@ -124,6 +124,10 @@ void GAI::PossiblyLaunchNukeInSelfDefense(UINT32 in_iCountryID)
 	if(l_fRatio > ((1.f - g_SP2Server->AIAggressiveness()) * SP2::c_fPercentageOfRegionsLeft))
 		return;
 
+    //Disallow nuking based on the general occupied region percentage.
+    if(l_fRatio > 1.f - g_SP2Server->OccupiedRegionPercentageForNuclear())
+		return;
+
 	//The country will launch nuke against the country that has stolen the most regions
 	UINT32 l_iMaxCountry = 0;
 	UINT32 l_iNbRegions = 0;

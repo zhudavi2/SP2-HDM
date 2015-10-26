@@ -384,6 +384,14 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
            REAL32 l_fNewHumanDevelopment = GCountryData::FindHumanDevelopment(l_fNewLifeExpectancy, l_fNewMeanYearsSchooling, l_fNewExpectedYearsSchooling, l_pCountryData->GDPPerCapita());
            l_pCountryData->HumanDevelopment(l_fNewHumanDevelopment);
            //g_Joshua.Log(L"New HDI: " + GString::FormatNumber(l_fNewHumanDevelopment, 3));
+
+        if(g_SP2Server->ShowingHDIComponents())
+        {
+            l_pCountryData->ArableLandLevel(l_fNewHumanDevelopment);
+            l_pCountryData->ForestLandLevel(l_fNewLifeExpectancy / 100.f);
+            l_pCountryData->ParksLandLevel(l_fNewMeanYearsSchooling / 100.f);
+            l_pCountryData->NotUsedLandLevel(l_fNewExpectedYearsSchooling / 100.f);
+        }
        }
    }
 
@@ -903,6 +911,7 @@ bool GDataControlLayer::ChangeResourceGvtControlled(ENTITY_ID in_iCountryID, ERe
 bool GDataControlLayer::ChangeGlobalModTax(ENTITY_ID in_iCountryID, REAL32 in_fNewTax)
 {
 	REAL32 l_fOldTax = g_ServerDAL.CountryData(in_iCountryID)->GlobalTaxMod();
+    in_fNewTax = min(in_fNewTax, g_SP2Server->GlobalTaxLimit());
 
 	News::EType::Enum l_eType;
    EHistoryMarkerType::Enum l_eMarker;
@@ -943,6 +952,7 @@ bool GDataControlLayer::ChangeGlobalModTax(ENTITY_ID in_iCountryID, REAL32 in_fN
 bool GDataControlLayer::ChangeResourceTax(ENTITY_ID in_iCountryID, EResources::Enum in_iResource, REAL32 in_fNewTax)
 {
 	REAL32 l_fOldTax = g_ServerDAL.CountryData(in_iCountryID)->ResourceTaxes(in_iResource);
+    in_fNewTax = min(in_fNewTax, g_SP2Server->ResourceTaxLimit());
 
 	News::EType::Enum l_eType;
    EHistoryMarkerType::Enum l_eMarker;
@@ -1583,6 +1593,7 @@ bool GDataControlLayer::ChangePersonalIncomeTax(ENTITY_ID in_iCountryID,
    if(l_fOldPersonalIncomeTax == l_fNewPersonalIncomeTax)
       return true;
 
+   l_fNewPersonalIncomeTax = min(l_fNewPersonalIncomeTax, g_SP2Server->IncomeTaxLimit(static_cast<EGovernmentType::Enum>(g_ServerDAL.CountryData(in_iCountryID)->GvtType())));
 	if(l_fNewPersonalIncomeTax < SP2::PersonalTaxes_LowerCap)
 		l_fNewPersonalIncomeTax = SP2::PersonalTaxes_LowerCap;
 	else if (l_fNewPersonalIncomeTax > SP2::PersonalTaxes_UpperCap)
@@ -2994,6 +3005,32 @@ UINT32 GDataControlLayer::LaunchNuclearAttacks(const vector<GNukeLaunchRequest>&
    {
       UINT32 l_iNbSuccess = 0;
 
+      //Check if the country is allowed to nuke based on its occupied regions
+      {
+            const set<UINT32>& l_PoliticallyControlledRegions = g_ServerDAL.CountryPoliticalControl(in_vNukeRequest[0].m_iAttackerID);
+	        const vector<GRegionControl>& l_vAllRegions = g_ServerDAL.RegionControlArray();
+
+	        REAL32 l_fTotalRegions    = 0.f;
+	        REAL32 l_fOccupiedRegions = 0.f;
+
+	        for(set<UINT32>::const_iterator it = l_PoliticallyControlledRegions.begin();
+		        it != l_PoliticallyControlledRegions.end(); it++)
+	        {
+		        if(l_vAllRegions[*it].m_iMilitary != l_vAllRegions[*it].m_iPolitical)
+			        l_fOccupiedRegions += 1.f;
+		        l_fTotalRegions += 1.f;
+	        }
+
+	        if(l_fTotalRegions == 0.f)
+		        return 0;
+	
+	        REAL32 l_fOccupiedRegionsPercentage = l_fOccupiedRegions / l_fTotalRegions;
+
+            //Not enough regions occupied; disallow nuking
+            if(l_fOccupiedRegionsPercentage < g_SP2Server->OccupiedRegionPercentageForNuclear())
+		        return 0;
+      }
+
       //Prepare the game event that will notify the nukes to the Active Human Players
 		SDK::GGameEventSPtr                  l_Event       = CREATE_GAME_EVENT(SP2::Event::GStrategicWarfareNotify);
       SP2::Event::GStrategicWarfareNotify* l_pNukeNotify = (SP2::Event::GStrategicWarfareNotify*)l_Event.get();
@@ -4041,7 +4078,10 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 	{
 	case ETreatyType::War:
 		//Side A declares war to side B
-		DeclareNewWar(l_vSideA,*(l_vSideA.begin()),*(l_vSideB.begin()));		
+        //Treaty creator is the attacker master, unless the creator isn't a participant.
+		DeclareNewWar(l_vSideA,
+                      (l_pTreaty->CountrySide(l_pTreaty->Creator()) == 1) ? l_pTreaty->Creator() : *(l_vSideA.begin()),
+                      *(l_vSideB.begin()));		
 		break;
 	case ETreatyType::RequestMilitaryPresenceRemoval:
 		{
@@ -6091,7 +6131,8 @@ void GDataControlLayer::ChangeAllUnitGroupStatus(UINT32 in_iCountry, EMilitarySt
 void GDataControlLayer::LogMilitaryDataIncoherences(bool l_bFixIncoherences)
 {
 
-   FILE* l_pFile = fopen("mildataincoherences.log","a");
+   FILE* l_pFile;
+   fopen_s(&l_pFile,"mildataincoherences.log","a");
 
    const REAL32** l_pGunEfficiencyTable      = g_ServerDAL.GunCombatEfficiencyTable();
    const REAL32** l_pMissileEfficiencyTable  = g_ServerDAL.MissileCombatEfficiencyTable();

@@ -8,6 +8,7 @@ build/
 Client/
 includes/RGAPI/
 
+*.ipch
 *.sdf
 *.opensdf
 *.suo

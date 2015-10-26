@@ -1,0 +1,43 @@
+<SP2-HDM>
+  <!-- Maximum Global Tax for resources.
+  Allowed values are 0-100. Default is 100. -->
+  <globalTaxLimit>100</globalTaxLimit>
+  
+  <!-- Maximum income taxes per government type.
+  Allowed values are 0-100. Defaults are 100 for all types. -->
+  <incomeTaxLimits>
+    <com>100</com>
+    <mil>100</mil>
+    <mon>100</mon>
+    <mpd>100</mpd>
+    <spd>100</spd>
+    <the>100</the>
+  </incomeTaxLimits>
+  
+  <!-- Message to broadcast to each player who joins.
+  Default is "Welcome to SuperPower 2 Human Development Mod!". -->
+  <message>Welcome to SuperPower 2 Human Development Mod!</message>
+  
+  <!-- Set to 0 if you want to disable the "Naval Rule", which forces you to
+  have a navy in order to attack an overseas enemy, among other features.
+  Allowed values are 0 and 1. Default is 1. -->
+  <navalRuleEnabled>1</navalRuleEnabled>
+  
+  <!-- % of occupied regions for a nuclear-armed country before it can use nuclear weapons.
+  Allowed values are 0-100. Default is 0. -->
+  <occupiedRegionPercentageForNuclear>0</occupiedRegionPercentageForNuclear>
+
+  <!-- Maximum tax for each resource sector.
+  Allowed values are 0-100. Default is 100. -->
+  <resourceTaxLimit>100</resourceTaxLimit>
+  
+  <!-- Set to 1 if you want the country info window to show HDI, LE, MYS, and EYS
+  instead of arable land, forested land, parkland, and unusable land.
+  If 1, then you may see in your country info window:
+  ARABLE LAND    56.7% (Means the country's HDI is 0.567)
+  FORESTS        89.1% (Means LE 89.1 years)
+  NATIONAL PARKS 1.2% (Means MYS 1.2 years)
+  UNUSABLE       12.3% (Means EYS 12.3 years)
+  Allowed values are 0 and 1. Default is 0. -->
+  <showingHDIComponents>0</showingHDIComponents>
+</SP2-HDM>

@@ -1264,6 +1264,14 @@ bool GWorldBehavior::Iterate_Human_Development()
     REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, l_fMeanYearsSchooling, l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita());
 	m_CountryData->HumanDevelopment(l_fNewHDLevel);
 
+    if(g_SP2Server->ShowingHDIComponents())
+    {
+        m_CountryData->ArableLandLevel(l_fNewHDLevel);
+        m_CountryData->ForestLandLevel(l_fLifeExpectancy / 100.f);
+        m_CountryData->ParksLandLevel(l_fMeanYearsSchooling / 100.f);
+        m_CountryData->NotUsedLandLevel(l_fExpectedYearsSchooling / 100.f);
+    }
+
     if((static_cast<INT32>(g_Joshua.GameTime()) % 365 == 0) && (m_iHumanDevLogStartingCountryID == 0))
         m_iHumanDevLogStartingCountryID = m_CountryData->CountryID();
 

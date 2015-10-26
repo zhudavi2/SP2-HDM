@@ -120,10 +120,14 @@ void GCountryData::SynchronizeWithRegions()
 			l_RegionItr++)
 	{
 		l_pRegion = g_ServerDAL.GetGRegion(*l_RegionItr);
-		l_fArableLand += l_pRegion->ArableLand();
-		l_fParksLand += l_pRegion->ParksLand();
-		l_fForestLand += l_pRegion->ForestLand();
-		l_fNotUsedLand += l_pRegion->NotUsedLand();
+
+        if(!g_SP2Server->ShowingHDIComponents())
+        {
+		    l_fArableLand += l_pRegion->ArableLand();
+		    l_fParksLand += l_pRegion->ParksLand();
+		    l_fForestLand += l_pRegion->ForestLand();
+		    l_fNotUsedLand += l_pRegion->NotUsedLand();
+        }
 
 		m_fAreaTotal += l_pRegion->AreaTotal();
 		m_fAreaLandTotal += l_pRegion->AreaLand();
@@ -196,21 +200,25 @@ void GCountryData::SynchronizeWithRegions()
 
 	m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
 
-	if(m_fAreaLandTotal != 0.0f)
-	{
-		m_fArableLandLevel = l_fArableLand / m_fAreaLandTotal;
-		m_fParksLandLevel = l_fParksLand / m_fAreaLandTotal;
-		m_fForestLandLevel = l_fForestLand / m_fAreaLandTotal;
-		m_fNotUsedLandLevel = l_fNotUsedLand / m_fAreaLandTotal;
-		m_iStandardElevation = (INT32)(l_fTempElevation / m_fAreaLandTotal);
-	}
-	else
-	{
-		m_fArableLandLevel = 0.0f;
-		m_fParksLandLevel = 0.0f;
-		m_fForestLandLevel = 0.0f;
-		m_fNotUsedLandLevel = 0.0f;
-	}
+    if(!g_SP2Server->ShowingHDIComponents())
+    {
+	    if(m_fAreaLandTotal != 0.0f)
+	    {
+		    m_fArableLandLevel = l_fArableLand / m_fAreaLandTotal;
+		    m_fParksLandLevel = l_fParksLand / m_fAreaLandTotal;
+		    m_fForestLandLevel = l_fForestLand / m_fAreaLandTotal;
+		    m_fNotUsedLandLevel = l_fNotUsedLand / m_fAreaLandTotal;
+	    }
+	    else
+	    {
+		    m_fArableLandLevel = 0.0f;
+		    m_fParksLandLevel = 0.0f;
+		    m_fForestLandLevel = 0.0f;
+		    m_fNotUsedLandLevel = 0.0f;
+	    }
+    }
+
+    m_iStandardElevation = (m_fAreaLandTotal != 0.0f) ? (INT32)(l_fTempElevation / m_fAreaLandTotal) : m_iStandardElevation;
 
 	m_fTelecomLevel = 0.f;
 	m_fInfrastructure = 0.f;
@@ -405,7 +413,11 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 		m_bImmigrationClosed = true;
 	else
 		m_bImmigrationClosed = false;
+
+    //Limit income tax according to gov't type
 	m_iGvtType = *((INT32*)l_Table.Row(0)->Cell(8)->Data());	//81
+    m_fPersonalIncomeTax = min(m_fPersonalIncomeTax, g_SP2Server->IncomeTaxLimit(static_cast<EGovernmentType::Enum>(m_iGvtType)));
+
 	m_fPropagandaLevel = *((REAL64*)l_Table.Row(0)->Cell(9)->Data());	//200
 	m_fBudgetExpenseSecurity = *((REAL64*)l_Table.Row(0)->Cell(10)->Data());	//167
 	if((INT64*)l_Table.Row(0)->Cell(11)->Data() != NULL) 
@@ -452,7 +464,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 	gassert(!_isnan(m_fEmigrationLevel) && m_fEmigrationLevel >= 0.f,"Emigration isnan");
 	m_fImmigrationLevel = *((REAL32*)l_Table.Row(0)->Cell(46)->Data());
 	m_iNameID = *((INT32*)l_Table.Row(0)->Cell(47)->Data());
-	m_fGlobalTaxMod = *((REAL32*)l_Table.Row(0)->Cell(48)->Data());
+    m_fGlobalTaxMod = min( *((REAL32*)l_Table.Row(0)->Cell(48)->Data()), g_SP2Server->GlobalTaxLimit());
 	if(*((char*)l_Table.Row(0)->Cell(49)->Data()) == 'F' )
 		m_bActivated = false;
 	else
@@ -529,6 +541,14 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
         m_fLifeExpectancy = (l_fHIEIMean * 65) + 20;
         m_fMeanYearsSchooling = l_fHIEIMean * 15;
         m_fExpectedYearsSchooling = l_fHIEIMean * 18;
+
+        if(g_SP2Server->ShowingHDIComponents())
+        {
+            m_fArableLandLevel = m_fHumanDevelopment;
+            m_fForestLandLevel = m_fLifeExpectancy / 100.f;
+            m_fParksLandLevel = m_fMeanYearsSchooling / 100.f;
+            m_fNotUsedLandLevel = m_fExpectedYearsSchooling / 100.f;
+        }
 
         //Log out some country data right as the game starts.
         REAL64 l_fGDPPerCapita = (m_iPopulation > 0) ? (m_fGDPValueBase / m_iPopulation) : 0;
@@ -668,7 +688,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 				m_pResourceMeetDomesticConsumption[i] = true;
 			else
 				m_pResourceMeetDomesticConsumption[i] = false;
-			m_pResourceTaxes[i]			= *((REAL32*)l_TableResources.Row(0)->Cell((i*9)+8)->Data()) / 100.f;
+			m_pResourceTaxes[i]			= min(*((REAL32*)l_TableResources.Row(0)->Cell((i*9)+8)->Data()) / 100.f, g_SP2Server->ResourceTaxLimit());
 			m_pResourceGDP[i]	= *((REAL32*)l_TableResources.Row(0)->Cell((i*9)+9)->Data()) / 100.f;			
 	}
 	

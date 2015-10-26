@@ -1644,129 +1644,133 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
       }
 
       // Connect water waypoints
-      //m_pCountryTypes[0] = ERegionType::Water;
+      if(!g_SP2Server->NavalRuleEnabled())
+      {
+            m_pCountryTypes[0] = ERegionType::Water;
+      }
+      else
+      {
+          //MultiMOD
+          //first, if country is NOT at war, allow movement to allies/own/tresspassing regions
+          if (!g_ServerDAL.IsAtWar(l_iOwner))
+          {
+              if (l_iOwner == l_iTargetID)
+              {
+                  m_pCountryTypes[0] = ERegionType::Water;
+              }
 
-		//MultiMOD
-      // Connect water waypoints
-	  //first, if country is NOT at war, allow movement to allies/own/tresspassing regions
-		if (!g_ServerDAL.IsAtWar(l_iOwner))
-		{
-			if (l_iOwner == l_iTargetID)
-			{
-				m_pCountryTypes[0] = ERegionType::Water;
-			}
-
-			if (g_ServerDAL.DiplomaticStatus(l_iOwner, l_iTargetID) == EDiplomaticStatus::Allied ||
-				g_ServerDAL.DiplomaticStatus(l_iOwner, l_iTargetID) == EDiplomaticStatus::MilitaryAccess)
-			{
-				m_pCountryTypes[0] = ERegionType::Water;
-			}
-		}
-
-
-		if (g_ServerDAL.IsAtWar(l_iOwner))
-		{
-			bool NoNavalGroups = true;
-			const set<UINT32>& l_UnitGroupsId = g_Joshua.UnitManager().CountryUnitGroups(l_iOwner);
-			for (set<UINT32>::const_iterator  l_UnitGroupIt = l_UnitGroupsId.begin();
-				l_UnitGroupIt != l_UnitGroupsId.end();
-				l_UnitGroupIt++)
-				{
-					
-					//check if country has naval units that can bombard 
- 					SP2::GUnitGroup* l_pGroup = (SP2::GUnitGroup*)g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIt);
-					
-
-					if(l_pGroup->CanPerformOffShoreBombardment())
-					{	
-						//Calculate distance between navalgroup & enemy navalgroups. If closest is further than 750km, allow
-						UINT32 l_iNbCountries = (UINT32)g_ServerDAL.NbCountry();
-						for(UINT32 i9=1; i9 <= l_iNbCountries; i9++)
-						{
-							if(g_ServerDAL.DiplomaticStatus(i9,l_iOwner) == EDiplomaticStatus::Hostile)
-							{
-								
-								
-								const set<UINT32>& l_EnemyId = g_Joshua.UnitManager().CountryUnitGroups(i9);
-								for (set<UINT32>::const_iterator  l_EnemyNavalGroupIt = l_EnemyId.begin();
-								l_EnemyNavalGroupIt != l_EnemyId.end();
-								l_EnemyNavalGroupIt++)
-								{
-									//check if enemy country has naval units
-									SP2::GUnitGroup* l_pEnemyNavalGroup = (SP2::GUnitGroup*)g_Joshua.UnitManager().UnitGroup(*l_EnemyNavalGroupIt);
-									
-									if(l_pEnemyNavalGroup->IsNaval())
-									{
-										NoNavalGroups = false;
-										//REAL32 l_fEnemyDistance = 0;
-										REAL32 l_fEnemyDistance = g_ServerDAL.DistanceBetween2PointsLatLong(l_pGroup->Position(),l_pEnemyNavalGroup->Position());
-										if (l_fEnemyDistance > 1500) 
-										{
-
-											//Calculate distance between navalgroup & targetregion. If less than 750km & not in battle, allow
-											//REAL32 l_fDistance = 0;
-											REAL32 l_fDistance = g_ServerDAL.DistanceBetween2PointsLatLong(l_pGroup->Position(),RegionLocation(l_iTargetRegionID));
-											if (l_fDistance <= 750)
-											{ 
-												//Calculate the worth of the units here that can bombard
-												
-												REAL64 CapitalWorth = 0;
-												for(vector<SDK::Combat::GUnit*>::const_iterator l_It2 = l_pGroup->Units().begin();
-													l_It2 != l_pGroup->Units().end();
-													l_It2++)
-												{
-													SDK::Combat::GUnit* UnitToCheck = *l_It2;
-													GUnitDesign* UnitDesignToCheck = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign((*l_It2)->Design()->Id());
-													if (UnitDesignToCheck->Type()->Id() == EUnitType::AircraftCarrier ||
-														UnitDesignToCheck->Type()->Id() == EUnitType::Destroyer)
-													{	
-														CapitalWorth += UnitToCheck->Design()->Cost();
-													}
-												}
+              if (g_ServerDAL.DiplomaticStatus(l_iOwner, l_iTargetID) == EDiplomaticStatus::Allied ||
+                  g_ServerDAL.DiplomaticStatus(l_iOwner, l_iTargetID) == EDiplomaticStatus::MilitaryAccess)
+              {
+                  m_pCountryTypes[0] = ERegionType::Water;
+              }
+          }
 
 
-															
-												//Now we'll go through the units being moved one by one, calculate their cost
-												//add it to the total cost thus far. If it's less than CapitalWorth times three
-												//allow movement.
-												REAL64 UnitsToMoveCost = 0;
-												for(UINT32 g = 0;g < in_vUnitGroups.size();g ++)
-												{
-													SP2::GUnitGroupEx* l_pUnitGroupToMove = (SP2::GUnitGroupEx*)in_vUnitGroups[g];
-													UnitsToMoveCost += l_pUnitGroupToMove->Value();
+          if (g_ServerDAL.IsAtWar(l_iOwner))
+          {
+              bool NoNavalGroups = true;
+              const set<UINT32>& l_UnitGroupsId = g_Joshua.UnitManager().CountryUnitGroups(l_iOwner);
+              for (set<UINT32>::const_iterator  l_UnitGroupIt = l_UnitGroupsId.begin();
+                  l_UnitGroupIt != l_UnitGroupsId.end();
+                  l_UnitGroupIt++)
+              {
 
-													if (UnitsToMoveCost <= CapitalWorth)
-													{
-														m_pCountryTypes[0] = ERegionType::Water;
-													}
-												}
-											}
-										}
-									}
-								}
-								if (NoNavalGroups)
-								{
-									REAL32 Distance = g_ServerDAL.DistanceBetween2PointsLatLong(l_pGroup->Position(),RegionLocation(l_iTargetRegionID));
-									if (Distance <= 750)
-									{ 
-										m_pCountryTypes[0] = ERegionType::Water;
-									}
-								}						
-							}
-						}
-					}
-				}
-		}
-		//MultiMOD
-	   //allow the naval units access to water in all cases
-		for(UINT32 g = 0;g < in_vUnitGroups.size();g ++)
-		{
-			SP2::GUnitGroup* l_pGroupToMove = (SP2::GUnitGroup*)in_vUnitGroups[g];
-			if (l_pGroupToMove->IsNaval())
-			{
-				m_pCountryTypes[0] = ERegionType::Water;
-			}
-		}	
+                  //check if country has naval units that can bombard 
+                  SP2::GUnitGroup* l_pGroup = (SP2::GUnitGroup*)g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIt);
+
+
+                  if(l_pGroup->CanPerformOffShoreBombardment())
+                  {	
+                      //Calculate distance between navalgroup & enemy navalgroups. If closest is further than 750km, allow
+                      UINT32 l_iNbCountries = (UINT32)g_ServerDAL.NbCountry();
+                      for(UINT32 i9=1; i9 <= l_iNbCountries; i9++)
+                      {
+                          if(g_ServerDAL.DiplomaticStatus(i9,l_iOwner) == EDiplomaticStatus::Hostile)
+                          {
+
+
+                              const set<UINT32>& l_EnemyId = g_Joshua.UnitManager().CountryUnitGroups(i9);
+                              for (set<UINT32>::const_iterator  l_EnemyNavalGroupIt = l_EnemyId.begin();
+                                  l_EnemyNavalGroupIt != l_EnemyId.end();
+                                  l_EnemyNavalGroupIt++)
+                              {
+                                  //check if enemy country has naval units
+                                  SP2::GUnitGroup* l_pEnemyNavalGroup = (SP2::GUnitGroup*)g_Joshua.UnitManager().UnitGroup(*l_EnemyNavalGroupIt);
+
+                                  if(l_pEnemyNavalGroup->IsNaval())
+                                  {
+                                      NoNavalGroups = false;
+                                      //REAL32 l_fEnemyDistance = 0;
+                                      REAL32 l_fEnemyDistance = g_ServerDAL.DistanceBetween2PointsLatLong(l_pGroup->Position(),l_pEnemyNavalGroup->Position());
+                                      if (l_fEnemyDistance > 1500) 
+                                      {
+
+                                          //Calculate distance between navalgroup & targetregion. If less than 750km & not in battle, allow
+                                          //REAL32 l_fDistance = 0;
+                                          REAL32 l_fDistance = g_ServerDAL.DistanceBetween2PointsLatLong(l_pGroup->Position(),RegionLocation(l_iTargetRegionID));
+                                          if (l_fDistance <= 750)
+                                          { 
+                                              //Calculate the worth of the units here that can bombard
+
+                                              REAL64 CapitalWorth = 0;
+                                              for(vector<SDK::Combat::GUnit*>::const_iterator l_It2 = l_pGroup->Units().begin();
+                                                  l_It2 != l_pGroup->Units().end();
+                                                  l_It2++)
+                                              {
+                                                  SDK::Combat::GUnit* UnitToCheck = *l_It2;
+                                                  GUnitDesign* UnitDesignToCheck = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign((*l_It2)->Design()->Id());
+                                                  if (UnitDesignToCheck->Type()->Id() == EUnitType::AircraftCarrier ||
+                                                      UnitDesignToCheck->Type()->Id() == EUnitType::Destroyer)
+                                                  {	
+                                                      CapitalWorth += UnitToCheck->Design()->Cost();
+                                                  }
+                                              }
+
+
+
+                                              //Now we'll go through the units being moved one by one, calculate their cost
+                                              //add it to the total cost thus far. If it's less than CapitalWorth times three
+                                              //allow movement.
+                                              REAL64 UnitsToMoveCost = 0;
+                                              for(UINT32 g = 0;g < in_vUnitGroups.size();g ++)
+                                              {
+                                                  SP2::GUnitGroupEx* l_pUnitGroupToMove = (SP2::GUnitGroupEx*)in_vUnitGroups[g];
+                                                  UnitsToMoveCost += l_pUnitGroupToMove->Value();
+
+                                                  if (UnitsToMoveCost <= CapitalWorth)
+                                                  {
+                                                      m_pCountryTypes[0] = ERegionType::Water;
+                                                  }
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                              if (NoNavalGroups)
+                              {
+                                  REAL32 Distance = g_ServerDAL.DistanceBetween2PointsLatLong(l_pGroup->Position(),RegionLocation(l_iTargetRegionID));
+                                  if (Distance <= 750)
+                                  { 
+                                      m_pCountryTypes[0] = ERegionType::Water;
+                                  }
+                              }						
+                          }
+                      }
+                  }
+              }
+          }
+          //MultiMOD
+          //allow the naval units access to water in all cases
+          for(UINT32 g = 0;g < in_vUnitGroups.size();g ++)
+          {
+              SP2::GUnitGroup* l_pGroupToMove = (SP2::GUnitGroup*)in_vUnitGroups[g];
+              if (l_pGroupToMove->IsNaval())
+              {
+                  m_pCountryTypes[0] = ERegionType::Water;
+              }
+          }	
+      }
 
 
       // Make sure unit will be able to move through its owner country

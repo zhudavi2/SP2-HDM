@@ -104,6 +104,18 @@ namespace SP2
 		REAL32 AIAggressiveness();
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
+      inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
+      inline REAL32  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
+      inline GString Message() const { return m_sMessage; }
+      inline bool    NavalRuleEnabled() const { return m_bNavalRuleEnabled; }
+      inline REAL32  OccupiedRegionPercentageForNuclear() const { return m_fOccupiedRegionPercentageForNuclear; }
+      inline REAL32  ResourceTaxLimit() const { return m_fResourceTaxLimit; }
+      inline bool    ShowingHDIComponents() const { return m_bShowingHDIComponents; }
+
+      //! Server message helpers
+      inline void    AddPlayerID(INT32 in_iID) { m_PlayerIDs.insert(in_iID); }
+      inline bool    HasPlayerIDBeenAdded(INT32 in_iID) { return (m_PlayerIDs.find(in_iID) != m_PlayerIDs.end()); }
+
    protected:
       //! Trigger load game flag
       void GameLoaded(bool in_bGameStarted);
@@ -203,6 +215,20 @@ namespace SP2
 		REAL32			m_fAIAggressiveness;
       bool           m_bUpdateStaticOnly;
       bool           m_bCleanVariableOnly;		
+
+      //! SP2-HDM configuration
+      void           LoadSP2HDMConfigXML();
+
+      REAL32                             m_fGlobalTaxLimit;
+      map<EGovernmentType::Enum, REAL32> m_IncomeTaxLimits;
+      GString                            m_sMessage;
+      bool                               m_bNavalRuleEnabled;
+      REAL32                             m_fOccupiedRegionPercentageForNuclear;
+      REAL32                             m_fResourceTaxLimit;
+      bool                               m_bShowingHDIComponents;
+
+      //! Server message helper to keep track of players who have joined
+      set<INT32>    m_PlayerIDs;
    };
 
 }

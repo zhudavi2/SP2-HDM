@@ -1,4 +1,16 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V2
+SuperPower 2 Human Development Modification (SP2-HDM) V3
+
+V3 changes:
+- Configuration XML file added, SP2-HDM_Config.xml. Modifiable settings include:
+ - Global tax limit
+ - Income tax limits per government type
+ - Server message to be displayed to players who join
+ - "Naval Rule" disablement
+ - Percentage of regions occupied in order to be able to use nuclear weapons
+ - Resource tax limit
+ - HDI component (LE, MYS, EYS) viewing through the country info window
+- When a country creates a war treaty and is on the attacking side, in the war list window it will be listed as the leader of the attacking side. Previously, the leader of the attacking side wouldn't always be the treaty creator even if the creator were on the attacking side.
+- Multiple covert cell creation is fixed from V2.
 
 V2 changes:
 - Internet multiplayer now works. However, some minor UI-related features had to be removed in order to get it to work.
@@ -57,7 +69,7 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Known issues:
-- In the war list window, the attacking side's leader is always the country. 
+- There's a possible issue where if a country is occupied for a long time, releasing all its regions would make the country extremely rich in resources momentarily. (Existed in SP2 V1.5.1)
 
 Future changes and "thoughts" in no particular order of priority:
 - Have LE, MYS, and EYS affect more than just the HDI. For example, all 3 could have some effect on birth and death rates, and MYS and EYS could affect resource growth.
@@ -66,3 +78,4 @@ Future changes and "thoughts" in no particular order of priority:
 - Have interest rate have a larger effect on inflation rate.
 - Have wars and occupation directly and negatively affect LE, MYS, and EYS.
 - Find out some other way to show LE, MYS, and EYS to the player.
+- If your country isn't meeting your domestic consumption of food-related resources, then it should have detrimental effects on your LE.

@@ -450,6 +450,25 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
       }
    }
 
+   // Player just joined, send server message through chat
+   // Detect by observing that the player hasn't selected a country and hasn't changed their name
+   if(!g_SP2Server->HasPlayerIDBeenAdded(l_player->Id()))
+   {
+       const GString l_sMessage = g_SP2Server->Message();
+       if(!l_sMessage.empty())
+       {
+           SDK::GGameEventSPtr l_pChatEvent = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
+
+           // reinterpret_cast, CREATE_GAME_EVENT doesn't "actually" create a GChatEvent object for some reason
+           reinterpret_cast<SDK::Event::GChatEvent *>(l_pChatEvent.get())->Message(l_sMessage);
+
+           l_pChatEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
+           l_pChatEvent->m_iTarget = l_player->Id();
+           g_Joshua.RaiseEvent(l_pChatEvent);
+       }
+       g_SP2Server->AddPlayerID(l_player->Id());
+   }
+
    // Set Player Selected Country
    l_player->ModID(l_pSetPlayerInfo->m_PlayerInfo.CountryID);
 
@@ -640,7 +659,7 @@ void SP2::GGeneralEventHandler::HandleGameOverAnswer(SDK::GGameEventSPtr in_Even
          //Game is over, shutdown the server
          SDK::GGameEventSPtr l_Evt = CREATE_GAME_EVENT(SDK::Event::GSystemGameEvent);
          SDK::Event::GSystemGameEvent* l_pEvt = (SDK::Event::GSystemGameEvent*)l_Evt.get();
-         l_pEvt->SystemEventType(SDK::Event::GSystemGameEvent::ESystemEventType::TERMINATE_SERVER);
+         l_pEvt->SystemEventType(SDK::Event::GSystemGameEvent::TERMINATE_SERVER);
          l_Evt->m_iSource = SDK::Event::ESpecialTargets::Server;
          l_Evt->m_iTarget = SDK::Event::ESpecialTargets::Server;
          g_Joshua.RaiseEvent(l_Evt);

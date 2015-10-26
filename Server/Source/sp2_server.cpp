@@ -67,7 +67,7 @@ SDK::GAME_MSG GServer::Initialize()
 
    // Initialize Mode
    // JMercier : This will be changed later by reading a xml file or a menu.
-   ModName(L"SuperPower 2");
+   ModName(L"SuperPower 2 Human Development Mod");
 
    GDALInterface::Instance = &m_DAL;
    GDCLInterface::Instance = &m_DCL;
@@ -250,7 +250,23 @@ SDK::GAME_MSG GServer::Initialize()
 
    // World Behavior Initialisation
    m_WorldBehavior.Reset();
-   IF_RETURN_LOG(!m_WorldBehavior.LoadConfigFile(L"behavior.xml", L""),SDK::GAME_INIT_ERROR,"Couldnt load behavior file");	
+   IF_RETURN_LOG(!m_WorldBehavior.LoadConfigFile(L"behavior.xml", L""),SDK::GAME_INIT_ERROR,"Couldnt load behavior file");
+
+   {
+        // Default values
+        m_fGlobalTaxLimit       = 1.f;
+        
+        for(INT32 i=0; i<EGovernmentType::ItemCount; i++)
+            m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
+
+        m_bNavalRuleEnabled     = true;
+        m_fOccupiedRegionPercentageForNuclear = 0.f;
+        m_fResourceTaxLimit     = 1.f;
+        m_bShowingHDIComponents = false;
+
+        // Load the SP2-HDM_Config.xml
+        LoadSP2HDMConfigXML();
+   }
 
    // Initialize the DCL (must be done before loading military data, since it uses the unit mover)
    m_DCL.Initialize();
@@ -805,6 +821,7 @@ void GServer::OnPlayerDisconnect(SDK::GPlayer* in_pPlayer)
       g_ServerDAL.CountryData(in_pPlayer->ModID())->RemoveAdvisor();
 
    // a player as left
+   m_PlayerIDs.erase(in_pPlayer->Id());
    InformPlayerLeft(in_pPlayer);
 
    // A new player list was generated, send it
@@ -2372,4 +2389,111 @@ void GServer::AIAggressiveness(REAL32 in_fAIAggressiveness)
 {
 	m_fAIAggressiveness = in_fAIAggressiveness;
 		
+}
+
+
+/*!
+* Load server options from SP2-HDM_Config.xml.
+*/
+void GServer::LoadSP2HDMConfigXML()
+{
+    const GString  c_sConfigXMLFile("SP2-HDM_Config.xml");
+
+    GFile          l_XMLFile;
+	
+	//Request the file to the file manager
+	if(m_DAL.File(c_sConfigXMLFile,l_XMLFile))
+	{
+        GString l_sTempName;
+
+		//Extract the file to a temp file on the disk so it can be parsed (xml)
+	    if(l_XMLFile.Extract(l_sTempName))
+        {
+            GXMLParser l_XmlParser;
+            GTree<GXMLNode>* l_XMLData = l_XmlParser.Parse(l_sTempName);
+	        l_XMLFile.Unextract(); //free the temp file
+
+            if(l_XMLData != NULL)
+	        {
+                // parse the file
+	            for(UINT32 i=0; i<l_XMLData->Root()->NbChilds(); i++)
+	            {
+		            //Look for OBJECT nodes
+		            const GTreeNode<GXMLNode>* objectNode = l_XMLData->Root()->Child(i);
+
+		            const GString elementName = objectNode->Data().m_sName;
+                    const GString elementValue = objectNode->Data().m_value;
+
+                    if(elementName == L"globalTaxLimit")
+		            {
+                        m_fGlobalTaxLimit = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(GString(L"globalTaxLimit: ") + GString::FormatNumber(m_fGlobalTaxLimit, 3));
+		            }
+                    else if(elementName == L"incomeTaxLimits")
+                    {
+                        for(UINT32 j=0; j<objectNode->NbChilds(); j++)
+	                    {
+                            const GTreeNode<GXMLNode>* l_GovernmentNode = objectNode->Child(j);
+
+		                    const GString l_sName = l_GovernmentNode->Data().m_sName;
+                            EGovernmentType::Enum l_eGovernmentType = EGovernmentType::ItemCount;
+                            if(l_sName == L"com")
+                                l_eGovernmentType = EGovernmentType::Communist;
+                            else if(l_sName == L"mil")
+                                l_eGovernmentType = EGovernmentType::MilitaryDictatorship;
+                            else if(l_sName == L"mon")
+                                l_eGovernmentType = EGovernmentType::Monarchy;
+                            else if(l_sName == L"mpd")
+                                l_eGovernmentType = EGovernmentType::MultiPartyDemocracy;
+                            else if(l_sName == L"spd")
+                                l_eGovernmentType = EGovernmentType::SinglePartyDemocracy;
+                            else if(l_sName == L"the")
+                                l_eGovernmentType = EGovernmentType::Theocracy;
+
+                            m_IncomeTaxLimits[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL32() / 100.f;
+                            g_Joshua.Log(GString(L"incomeTaxLimit[") + l_sName + L"]: " +
+                                         GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
+                        }
+                    }
+                    else if(elementName == L"message")
+                    {
+                        m_sMessage = elementValue;
+                        g_Joshua.Log(GString(L"message: ") + m_sMessage);
+                    }
+		            else if(elementName == L"navalRuleEnabled")
+		            {
+                        m_bNavalRuleEnabled = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(GString(L"navalRuleEnabled: ") + GString(m_bNavalRuleEnabled));
+		            }
+                    else if(elementName == L"occupiedRegionPercentageForNuclear")
+                    {
+                        m_fOccupiedRegionPercentageForNuclear = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(GString(L"occupiedRegionPercentageForNuclear: ") + GString::FormatNumber(m_fOccupiedRegionPercentageForNuclear, 2));
+                    }
+                    else if(elementName == L"resourceTaxLimit")
+                    {
+                        m_fResourceTaxLimit = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(GString(L"resourceTaxLimit: ") + GString::FormatNumber(m_fResourceTaxLimit, 3));
+                    }
+                    else if(elementName == L"showingHDIComponents")
+                    {
+                        m_bShowingHDIComponents = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(GString(L"showingHDIComponents: ") + GString(m_bShowingHDIComponents));
+                    }
+	            }
+            }
+            else
+            {
+		        g_Joshua.Log(SP2::ERROR_PARSING_XML_FILE + l_XMLFile.Name(),MSGTYPE_WARNING);
+	        }
+        }
+        else
+	    {
+		    g_Joshua.Log(SP2::ERROR_EXTRACT_FILE + l_XMLFile.Name(),MSGTYPE_WARNING);
+	    }
+	}
+    else
+    {
+        g_Joshua.Log(SP2::ERROR_CANT_FIND_FILE + c_sConfigXMLFile,MSGTYPE_WARNING);
+    }
 }

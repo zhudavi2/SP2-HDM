@@ -312,16 +312,37 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
    }
    
    GCountryData* l_pData = g_ServerDAL.CountryData(l_iCurPlayerID);
-   
-   SP2::GCovertActionCell l_Cell;
 
-   l_Cell.OwnerID(l_iCurPlayerID);
-	l_Cell.Name( l_pEvent->m_sName );
-   l_Cell.AssignedCountry( l_pEvent->m_iAssignedCountryID );
-   l_Cell.ExperienceLevel( (REAL32)l_pEvent->m_eTraining );
-   l_Cell.Initialize();
+   INT32 l_iStartingCellNumber = -1;
 
-   l_pData->AddCovertActionCell(l_Cell);
+   //Create 10 cells at a time if the given name was '-' followed immediately by a whole number.
+   static const GString c_sMultipleCellsPrefix = L"-";
+   if(l_pEvent->m_sName.find(c_sMultipleCellsPrefix) == 0)
+   {
+       const GString& l_sStartingCellName = l_pEvent->m_sName.substr(c_sMultipleCellsPrefix.length());
+       l_iStartingCellNumber = l_sStartingCellName.ToINT32();
+       gassert(l_iStartingCellNumber >= 1,"Invalid starting cell number for multiple cell creation");
+   }
+
+   for(INT32 i=l_iStartingCellNumber; i<l_iStartingCellNumber+10; i++)
+   {
+       SP2::GCovertActionCell l_Cell;
+
+       l_Cell.OwnerID(l_iCurPlayerID);
+
+       const GString& l_sCellName = (l_iStartingCellNumber == -1) ? l_pEvent->m_sName : GString(i);
+       l_Cell.Name( l_sCellName );
+
+       l_Cell.AssignedCountry( l_pEvent->m_iAssignedCountryID );
+       l_Cell.ExperienceLevel( (REAL32)l_pEvent->m_eTraining );
+       l_Cell.Initialize();
+
+       l_pData->AddCovertActionCell(l_Cell);
+       
+       //If it's not the special case of creating multiple cells
+       if(l_iStartingCellNumber == -1)
+           break;
+   }
 }
 
 void GMilitaryEventHandler::HandleUpdateWarState(SDK::GGameEventSPtr in_Event)
