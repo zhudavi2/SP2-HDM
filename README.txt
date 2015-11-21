@@ -1,4 +1,10 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V3
+SuperPower 2 Human Development Modification (SP2-HDM) V4
+
+V4 changes:
+- Added new settings to the configuration file, to help set resource state control, export quotas, taxes, etc. quickly. Please see SP2-HDM_Config.xml for details.
+- Added a new configuration file setting to make the server autosave the game every time a specified number of minutes have passed.
+- Added a new console option, set_admin_country, that allows changing the server's admin to the player controlling the country with the given country ID. (Usage: set_admin_country <1-based country ID>)
+- The HDI, LE, MYS, and EYS of every active country will be no longer written to the server console log every 365 days of game time.
 
 V3 changes:
 - Configuration XML file added, SP2-HDM_Config.xml. Modifiable settings include:
@@ -14,7 +20,7 @@ V3 changes:
 
 V2 changes:
 - Internet multiplayer now works. However, some minor UI-related features had to be removed in order to get it to work.
-- Every 365 days of game time, the HDI, LE, MYS, and EYS of every active country will be written to the server console log.
+- Every 365 days of game time, the HDI, LE, MYS, and EYS of every active country will be written to the server console log. (Removed in V4.)
 - Fixed an issue where during the logging out of stats to the server console at the beginning of the game, countries with 0 population would have their GDP per capita calculations messed up; such countries would now be listed as having $0 GDP per capita.
 
 Removed features in V2:
@@ -33,7 +39,7 @@ Human development changes:
 - Human development, or human development index (HDI), is now dependent on 4 stats: Life expectancy (in years; LE), mean years of schooling (MYS), expected years of schooling (EYS), and GNI per capita. This is to match the United Nations Development Programme's method of calculating human development (but with a $60,000 maximum for GNI per capita for the mod's purposes).
 - For the mod's purposes, GDP and GNI are treated as the same thing.
 - LE, MYS, and EYS increase and decrease depending on your country's stability and budgetary spending.
-- The country information window will display the numerical values of your country's HDI, LE, MYS, and EYS, as well as the world average HDI.
+- The country information window will display the numerical values of your country's HDI, LE, MYS, and EYS, as well as the world average HDI. (Removed in V2.)
 
 Internal political sphere changes:
 - Reduce how much government stability contributes to birth rate. This is partially to prevent highly-developed and stable countries having unrealistic population booms.
@@ -56,7 +62,7 @@ AI changes:
 - The number of military units that an AI country builds or buys now depends on how high the country's revenue is.
 
 UI changes:
-- When creating a new covert cell, the default rank setting is Elite instead of Recruit.
+- When creating a new covert cell, the default rank setting is Elite instead of Recruit. (Removed in V2.)
 - Experimental feature: It's possible to create 10 covert cells at a time. In the cell name field, type a dash ('-') followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "-21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
 
 Fixes to existing SP2 issues:
@@ -70,6 +76,7 @@ Other changes:
 
 Known issues:
 - There's a possible issue where if a country is occupied for a long time, releasing all its regions would make the country extremely rich in resources momentarily. (Existed in SP2 V1.5.1)
+- Some people have reported that in a multiplayer game, if your in-game nickname that you chose in the Multiplayer Lobby window is different from your nickname in your Game Options > Player (or sp2_cfg_client.xml), then if you change your country's name, your in-game nickname may also automatically change to your Options menu nickname. I'm currently investigating; for now, if confusion is a concern, it's recommended that your Game Options nickname is the same as or similar to the nickname that you choose in the Multiplayer Lobby. (Existed in V3, maybe V2.)
 
 Future changes and "thoughts" in no particular order of priority:
 - Have LE, MYS, and EYS affect more than just the HDI. For example, all 3 could have some effect on birth and death rates, and MYS and EYS could affect resource growth.
@@ -79,3 +86,8 @@ Future changes and "thoughts" in no particular order of priority:
 - Have wars and occupation directly and negatively affect LE, MYS, and EYS.
 - Find out some other way to show LE, MYS, and EYS to the player.
 - If your country isn't meeting your domestic consumption of food-related resources, then it should have detrimental effects on your LE.
+
+Credits:
+- Radu, Fenix, and Mr Monday for suggestions and support.
+- Many more people on the SP2-HDM discussion topic and the SP2 Discussion forum.
+- Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.

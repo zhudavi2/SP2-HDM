@@ -1272,7 +1272,7 @@ bool GWorldBehavior::Iterate_Human_Development()
         m_CountryData->NotUsedLandLevel(l_fExpectedYearsSchooling / 100.f);
     }
 
-    if((static_cast<INT32>(g_Joshua.GameTime()) % 365 == 0) && (m_iHumanDevLogStartingCountryID == 0))
+    /*if((static_cast<INT32>(g_Joshua.GameTime()) % 365 == 0) && (m_iHumanDevLogStartingCountryID == 0))
         m_iHumanDevLogStartingCountryID = m_CountryData->CountryID();
 
     if(m_iHumanDevLogStartingCountryID != 0)
@@ -1288,7 +1288,7 @@ bool GWorldBehavior::Iterate_Human_Development()
 
         if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHumanDevLogStartingCountryID) //We're finished logging
             m_iHumanDevLogStartingCountryID = 0;
-    }
+    }*/
 
 	return true;
 }

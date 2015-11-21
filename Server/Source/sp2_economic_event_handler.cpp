@@ -115,27 +115,81 @@ bool SP2::GEconomicEventHandler::HandleUpdateResources(SDK::GGameEventSPtr in_Ev
 
       g_ServerDCL.ChangeGlobalModTax(l_iCountryId, l_pUpdate->m_fGeneralTaxMod);
 
-      for(INT32 i=0; i<l_pUpdate->m_iNbResources; i++)
+      if(l_pUpdate->m_fGeneralTaxMod <= g_SP2Server->GlobalTaxLimit())
       {
-         g_ServerDCL.ChangeResourceGvtControlled(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_bGvtCtrl[i]);
-         g_ServerDCL.ChangeResourceStatus(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_bLegal[i]);
-			g_ServerDCL.ChangeResourceTax(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_fTaxes[i]);
-			
-			l_pData->ResourceMeetConsumption((SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_bMeetConsumption[i]);
+          for(INT32 i=0; i<l_pUpdate->m_iNbResources; i++)
+          {
+              g_ServerDCL.ChangeResourceGvtControlled(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_bGvtCtrl[i]);
+              g_ServerDCL.ChangeResourceStatus(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_bLegal[i]);
+              g_ServerDCL.ChangeResourceTax(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_fTaxes[i]);
 
-			if(l_pUpdate->m_fImportDesired[i] > 0)
-            g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_fImportDesired[i]);
-         else
-            g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], 0.f);
-         
-         if(l_pUpdate->m_fExportDesired[i] > 0)
-            g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_fExportDesired[i]); 
-         else
-            g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], 0.f); 
+              l_pData->ResourceMeetConsumption((SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_bMeetConsumption[i]);
+
+              if(l_pUpdate->m_fImportDesired[i] > 0)
+                  g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_fImportDesired[i]);
+              else
+                  g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], 0.f);
+
+              if(l_pUpdate->m_fExportDesired[i] > 0)
+                  g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], l_pUpdate->m_fExportDesired[i]); 
+              else
+                  g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, (SP2::EResources::Enum)l_pUpdate->m_iID[i], 0.f); 
+          }
+      }
+      else
+      {
+          const INT32 l_iGlobalTaxBoxValue = static_cast<INT32>(l_pUpdate->m_fGeneralTaxMod * 100);
+
+          // Special GTM cases.
+          for(INT32 i=0; i<SP2::EResources::ItemCount; i++)
+          {
+              const SP2::EResources::Enum l_eResourceID = static_cast<SP2::EResources::Enum>(i);
+
+              if(l_pData->ResourceLegal(l_eResourceID))
+              {
+                  if(l_iGlobalTaxBoxValue == g_SP2Server->GlobalTaxSpecial(EGlobalTaxSpecialType::ExportAll))
+                  {
+                      g_ServerDCL.ChangeResourceGvtControlled(l_iCountryId, l_eResourceID, true);
+                      l_pData->ResourceMeetConsumption(l_eResourceID, false);
+                      g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, l_eResourceID, 0);
+                      g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, l_eResourceID, l_pData->ResourceProduction(l_eResourceID));
+                      //g_Joshua.Log(L"DZDEBUG: " + g_ServerDAL.GetString(g_ServerDAL.StringIdResource(l_eResourceID)) + L" resource, exporting " + GString::FormatNumber(l_pData->ResourceExportDesired(l_eResourceID)/1000000, L" ", L".", L"$", L"M"));
+                  }
+                  else if(l_iGlobalTaxBoxValue == g_SP2Server->GlobalTaxSpecial(EGlobalTaxSpecialType::MeetDomestic))
+                  {
+                      g_ServerDCL.ChangeResourceGvtControlled(l_iCountryId, l_eResourceID, true);
+                      g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, l_eResourceID, 0);
+                      g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, l_eResourceID, 0);
+                      l_pData->ResourceMeetConsumption(l_eResourceID, true);
+                  }
+                  else if(l_iGlobalTaxBoxValue == g_SP2Server->GlobalTaxSpecial(EGlobalTaxSpecialType::ImportAll))
+                  {
+                      g_ServerDCL.ChangeResourceGvtControlled(l_iCountryId, l_eResourceID, true);
+                      l_pData->ResourceMeetConsumption(l_eResourceID, false);
+                      g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, l_eResourceID, 0);
+                      g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, l_eResourceID, l_pData->ResourceDemand(l_eResourceID));
+                  }
+                  else if(l_iGlobalTaxBoxValue == g_SP2Server->GlobalTaxSpecial(EGlobalTaxSpecialType::PrivatizeAll))
+                      g_ServerDCL.ChangeResourceGvtControlled(l_iCountryId, l_eResourceID, false);
+                  else if(!l_pData->ResourceGvtCtrl(l_eResourceID))
+                      g_ServerDCL.ChangeResourceTax(l_iCountryId, l_eResourceID, l_pUpdate->m_fGeneralTaxMod);
+              }
+          }
       }
 
       // This event requires an acknowledgement !
       g_ServerDCL.AcknowledgeRequest(l_pUpdate->m_iRequestID, l_pUpdate->m_iSource);
+
+      if(l_pUpdate->m_fGeneralTaxMod > g_SP2Server->GlobalTaxLimit())
+      {
+          // Send a resource window update immediately, to reduce confusion and delay.
+          SDK::GGameEventSPtr l_Event                                  = CREATE_GAME_EVENT(SP2::Event::GResourcesUpdate);
+          SP2::Event::GResourcesUpdate* l_pUpdateResourcesAfterSpecial = reinterpret_cast<SP2::Event::GResourcesUpdate*>(l_Event.get());
+          l_pUpdateResourcesAfterSpecial->m_bGetData                   = true;
+          l_pUpdateResourcesAfterSpecial->m_iCountryID                 = l_iCountryId;
+          l_pUpdateResourcesAfterSpecial->m_iSource                    = l_pUpdate->m_iSource;
+          HandleUpdateResources(l_Event);
+      }
    }
 
    return true;

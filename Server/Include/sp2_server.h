@@ -23,6 +23,19 @@ namespace SP2
    class GGeneralEventHandler;
    class GEconomicEventHandler;
    class GMilitaryEventHandler;
+
+   namespace EGlobalTaxSpecialType
+   {
+      enum Enum
+      {
+         ExportAll = 0,
+         MeetDomestic,
+         ImportAll,
+         PrivatizeAll,
+         ItemCount,
+      };
+   }
+
    /*!
    * Superpower 2 Game Server Main class
    **/
@@ -105,6 +118,7 @@ namespace SP2
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
+      inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
       inline REAL32  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
       inline GString Message() const { return m_sMessage; }
       inline bool    NavalRuleEnabled() const { return m_bNavalRuleEnabled; }
@@ -219,10 +233,17 @@ namespace SP2
       //! SP2-HDM configuration
       void           LoadSP2HDMConfigXML();
 
-      REAL32                             m_fGlobalTaxLimit;
-      map<EGovernmentType::Enum, REAL32> m_IncomeTaxLimits;
-      GString                            m_sMessage;
-      bool                               m_bNavalRuleEnabled;
+      REAL32                                   m_fDedicatedServerAutosavePeriod;
+      REAL64                                   m_fTimeOfLastAutosave;
+
+      REAL32                                   m_fGlobalTaxLimit;
+
+      //! INT32 to eliminate precision issues with REAL32
+      map<EGlobalTaxSpecialType::Enum, INT32>  m_GlobalTaxSpecials;
+
+      map<EGovernmentType::Enum, REAL32>       m_IncomeTaxLimits;
+      GString                                  m_sMessage;
+      bool                                     m_bNavalRuleEnabled;
       REAL32                             m_fOccupiedRegionPercentageForNuclear;
       REAL32                             m_fResourceTaxLimit;
       bool                               m_bShowingHDIComponents;

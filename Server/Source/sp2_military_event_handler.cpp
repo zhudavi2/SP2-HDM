@@ -261,11 +261,14 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 {
    SP2::Event::GEventCellCreation* l_pEvent = (SP2::Event::GEventCellCreation*)in_Event.get();
 
-   if(!g_Joshua.ActivePlayer(l_pEvent->m_iSource) )
+   //Can't be const because GPlayer::ModID() isn't const
+   SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayer(l_pEvent->m_iSource);
+   if(!l_pPlayer )
       return;
 
-   UINT32 l_iCurPlayerID = g_Joshua.ActivePlayer(l_pEvent->m_iSource)->ModID();
+   INT32 l_iCurPlayerID = l_pPlayer->ModID();
 
+   //Handle name change
    static const GString c_sChangeNamePrefix("NAME ");
    if(l_pEvent->m_sName.find(c_sChangeNamePrefix) == 0)
    {
@@ -292,7 +295,8 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
        l_Country.Name(l_sNewCountryName);
 
        g_Joshua.Log(L"Player country ID " + GString(l_iCurPlayerID) + ", " +
-           l_sOldCountryName + L", has changed its name to " + l_sNewCountryName);
+           l_pPlayer->Name() + L", has changed its country's name from " +
+           l_sOldCountryName + L" to " + l_sNewCountryName);
 
        const SDK::GPlayers& l_HumanPlayers = g_Joshua.HumanPlayers();
        for(SDK::GPlayers::const_iterator l_PlayerIt = l_HumanPlayers.cbegin();

@@ -254,7 +254,15 @@ SDK::GAME_MSG GServer::Initialize()
 
    {
         // Default values
-        m_fGlobalTaxLimit       = 1.f;
+        m_fDedicatedServerAutosavePeriod = 0.f;
+        m_fTimeOfLastAutosave            = 0;
+
+        m_fGlobalTaxLimit                = 1.f;
+
+        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ExportAll] = 100;
+        m_GlobalTaxSpecials[EGlobalTaxSpecialType::MeetDomestic] = 99;
+        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ImportAll] = 98;
+        m_GlobalTaxSpecials[EGlobalTaxSpecialType::PrivatizeAll] = 97;
         
         for(INT32 i=0; i<EGovernmentType::ItemCount; i++)
             m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
@@ -664,9 +672,17 @@ SDK::GAME_MSG GServer::Iterate(void* param)
       m_DCL.IterateResearch(g_Joshua.GameTime() );
    }
 
-   // Final update all unit values
+   // Update all unit values
    g_ServerDAL.UpdateCountryUnitAndMissilesValues();
 
+   // Iterate autosave
+   if((m_fDedicatedServerAutosavePeriod > 0) && ((g_Joshua.Clock() - m_fTimeOfLastAutosave) >= (m_fDedicatedServerAutosavePeriod * 60.f)))
+   {
+       m_fTimeOfLastAutosave = g_Joshua.Clock();
+       const GString l_sSaveName = g_Joshua.CurrentMod().m_sPath + c_sSaveGameLocation + L"Autosave.gss";
+       //g_Joshua.Log(L"DZDEBUG: Autosaving to " + l_sSaveName + L" based on server config");
+       RequestSaveGame(l_sSaveName);
+   }
 
    return SDK::GAME_OK;
 }
@@ -1390,6 +1406,18 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    {
       // Clear list of banned people
       g_Joshua.ClearBanList();
+   }
+   else if(in_sCommand == "set_admin_country")
+   {
+       // Set admin by country ID
+       INT32 l_iNewAdminCountryID      = in_vArgs[0].ToINT32();
+       SDK::GPlayer* l_pNewAdminPlayer = g_Joshua.ActivePlayerByModID(l_iNewAdminCountryID);
+       if(l_pNewAdminPlayer != NULL)
+       {
+           g_Joshua.AdminPlayerID(l_pNewAdminPlayer->Id());
+           g_Joshua.Log(L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
+                        m_DAL.CountryData(l_iNewAdminCountryID)->Name());
+       }
    }
 #ifdef GOLEM_DEBUG
    else if(in_sCommand == L"build")
@@ -2424,10 +2452,37 @@ void GServer::LoadSP2HDMConfigXML()
 		            const GString elementName = objectNode->Data().m_sName;
                     const GString elementValue = objectNode->Data().m_value;
 
-                    if(elementName == L"globalTaxLimit")
+                    if(elementName == L"dedicatedServerAutosavePeriod")
+                    {
+                        m_fDedicatedServerAutosavePeriod = elementValue.ToREAL32();
+                        g_Joshua.Log(GString(L"dedicatedServerAutosavePeriod: ") + GString(m_fDedicatedServerAutosavePeriod));
+                    }
+                    else if(elementName == L"globalTaxLimit")
 		            {
                         m_fGlobalTaxLimit = elementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(GString(L"globalTaxLimit: ") + GString::FormatNumber(m_fGlobalTaxLimit, 3));
+		            }
+                    else if(elementName == L"globalTaxSpecials")
+		            {
+                        for(UINT32 j=0; j<objectNode->NbChilds(); j++)
+	                    {
+                            const GTreeNode<GXMLNode>* l_GovernmentNode = objectNode->Child(j);
+
+		                    const GString l_sName = l_GovernmentNode->Data().m_sName;
+                            EGlobalTaxSpecialType::Enum l_eGlobalTaxSpecial = EGlobalTaxSpecialType::ItemCount;
+                            if(l_sName == L"exportAll")
+                                l_eGlobalTaxSpecial = EGlobalTaxSpecialType::ExportAll;
+                            else if(l_sName == L"meetDomestic")
+                                l_eGlobalTaxSpecial = EGlobalTaxSpecialType::MeetDomestic;
+                            else if(l_sName == L"importAll")
+                                l_eGlobalTaxSpecial = EGlobalTaxSpecialType::ImportAll;
+                            else if(l_sName == L"privatizeAll")
+                                l_eGlobalTaxSpecial = EGlobalTaxSpecialType::PrivatizeAll;
+
+                            m_GlobalTaxSpecials[l_eGlobalTaxSpecial] = l_GovernmentNode->Data().m_value.ToINT32();
+                            g_Joshua.Log(GString(L"globalTaxSpecials[") + l_sName + L"]: " +
+                                         GString(m_GlobalTaxSpecials[l_eGlobalTaxSpecial]));
+                        }
 		            }
                     else if(elementName == L"incomeTaxLimits")
                     {
