@@ -67,7 +67,7 @@ SDK::GAME_MSG GServer::Initialize()
 
    // Initialize Mode
    // JMercier : This will be changed later by reading a xml file or a menu.
-   ModName(L"SuperPower 2 Human Development Mod");
+   ModName(L"Human Development Mod V5");
 
    GDALInterface::Instance = &m_DAL;
    GDCLInterface::Instance = &m_DCL;
@@ -254,23 +254,29 @@ SDK::GAME_MSG GServer::Initialize()
 
    {
         // Default values
-        m_fDedicatedServerAutosavePeriod = 0.f;
-        m_fTimeOfLastAutosave            = 0;
+        m_bAllowAIAssumeDebt                     = true;
+        m_bDedicatedServerAutosaveToJoshuaFolder = false;
+        m_fDedicatedServerAutosavePeriod         = 0.f;
+        m_fTimeOfLastAutosave                    = 0;
 
-        m_fGlobalTaxLimit                = 1.f;
+        m_fGlobalTaxLimit                        = 1.f;
 
-        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ExportAll] = 100;
+        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ExportAll]    = 100;
         m_GlobalTaxSpecials[EGlobalTaxSpecialType::MeetDomestic] = 99;
-        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ImportAll] = 98;
+        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ImportAll]    = 98;
         m_GlobalTaxSpecials[EGlobalTaxSpecialType::PrivatizeAll] = 97;
         
         for(INT32 i=0; i<EGovernmentType::ItemCount; i++)
             m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
 
+        m_iMaximumCellsInForeignCountry = 0;
         m_bNavalRuleEnabled     = true;
+        m_fNuclearMissileRangePercentage = 1.f;
         m_fOccupiedRegionPercentageForNuclear = 0.f;
         m_fResourceTaxLimit     = 1.f;
         m_bShowingHDIComponents = false;
+        m_fStabilityAnarchyLowerLimit = c_fStabilityAnarchyLowerLimit;
+        m_fStabilityAnarchyUpperLimit = c_fStabilityAnarchyHigherLimit;
 
         // Load the SP2-HDM_Config.xml
         LoadSP2HDMConfigXML();
@@ -364,6 +370,18 @@ SDK::GAME_MSG GServer::Initialize()
          L"Clear the list of banned people",
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
+      g_Joshua.RegisterConsoleCommand(
+         "set_admin_country",
+         L"S",
+         L"Set server admin player by country ID",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
+         "print_players",
+         L"",
+         L"List all current players",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
    }
 
 
@@ -377,98 +395,98 @@ SDK::GAME_MSG GServer::Initialize()
          L"build",
          L"SSS",
          L"Used to build units, 3 Params needed: CountryID DesignID Qty",   
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"start_game",
          L"",
          L"Artificially start the game",   
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"fight",
          L"",
          L"Artificially setup a fight",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"status",
          L"II",
          L"Change status of a unit group",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"declare_war",
          L"II",
          L"Declare war between the 2 countries.",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
 		g_Joshua.RegisterConsoleCommand(
          L"print_wars",
          L"",
          L"Print the description of every wars currently going on.",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"sell_units",
          L"",
          L"Print, and sell, necessary units for every country",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"print_relations",
          L"I",
          L"Print relations of that country",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"embargo",
          L"II",
          L"First country make a trade embargo against second country.",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"occupy",
          L"II",
          L"First country will occupy second country.",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"military_removal",
          L"II",
          L"First country ask for second country to leave",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"annex",
          L"II",
          L"annex all possible regions of second country to first country",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"bombard",
          L"II",
          L"test bombardment, country1 tries to bombard country2",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
       g_Joshua.RegisterConsoleCommand(
          L"givemoney",
          L"II",
          L"give money to accelerate testing country, money amount",
-         (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleServerCommandsHandler,
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
    } 
@@ -679,9 +697,17 @@ SDK::GAME_MSG GServer::Iterate(void* param)
    if((m_fDedicatedServerAutosavePeriod > 0) && ((g_Joshua.Clock() - m_fTimeOfLastAutosave) >= (m_fDedicatedServerAutosavePeriod * 60.f)))
    {
        m_fTimeOfLastAutosave = g_Joshua.Clock();
-       const GString l_sSaveName = g_Joshua.CurrentMod().m_sPath + c_sSaveGameLocation + L"Autosave.gss";
-       //g_Joshua.Log(L"DZDEBUG: Autosaving to " + l_sSaveName + L" based on server config");
-       RequestSaveGame(l_sSaveName);
+       
+       if(!m_bDedicatedServerAutosaveToJoshuaFolder)
+           m_DCL.CreateSaveDirectory();
+
+       GSaveRequest l_Request;
+       const GString& l_sAutosaveName = L"Autosave";
+       l_Request.m_iSourceID = 0;
+       l_Request.m_sSaveName = l_sAutosaveName;
+       l_Request.m_sSaveFile = (m_bDedicatedServerAutosaveToJoshuaFolder ? L"" : (g_Joshua.CurrentMod().m_sPath + c_sSaveGameLocation)) +
+                               l_sAutosaveName + c_sSaveExtServer;
+       m_vPendingSaves.push_back(l_Request);
    }
 
    return SDK::GAME_OK;
@@ -1386,7 +1412,7 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    }
    else if(in_sCommand == L"save")
    {
-      RequestSaveGame(in_vArgs[0] );
+      RequestSaveGame(in_vArgs[0], 0 );
    }
    else if(in_sCommand == "kick")
    {
@@ -1415,9 +1441,30 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
        if(l_pNewAdminPlayer != NULL)
        {
            g_Joshua.AdminPlayerID(l_pNewAdminPlayer->Id());
-           g_Joshua.Log(L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
-                        m_DAL.CountryData(l_iNewAdminCountryID)->Name());
+           return L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
+                  m_DAL.CountryData(l_iNewAdminCountryID)->Name();
        }
+   }
+   else if(in_sCommand == "print_players")
+   {
+       GString l_sPlayersList;
+       for(SDK::GPlayers::const_iterator l_HumanPlayersIt = g_Joshua.HumanPlayers().begin();
+           l_HumanPlayersIt != g_Joshua.HumanPlayers().end();
+           ++l_HumanPlayersIt)
+		{
+			SDK::GPlayer* l_pPlayer = l_HumanPlayersIt->second;
+            if(l_pPlayer->PlayerStatus() == SDK::PLAYER_STATUS_ACTIVE && 
+			   l_pPlayer->ModID() > 0)
+            {
+                const INT32 l_iCountryID = l_pPlayer->ModID();
+                l_sPlayersList += L"Player ID " + GString(l_pPlayer->Id()) + L": " +
+                                  L"Name " + l_pPlayer->Name() + L"; " +
+                                  L"country ID " + GString(l_iCountryID) + "; " +
+                                  L"country name " + m_Countries.at(l_iCountryID - 1).Name() +
+                                  L"\n";
+            }
+		}
+        return l_sPlayersList;
    }
 #ifdef GOLEM_DEBUG
    else if(in_sCommand == L"build")
@@ -2452,15 +2499,25 @@ void GServer::LoadSP2HDMConfigXML()
 		            const GString elementName = objectNode->Data().m_sName;
                     const GString elementValue = objectNode->Data().m_value;
 
-                    if(elementName == L"dedicatedServerAutosavePeriod")
+                    if(elementName == L"allowAIAssumeDebt")
+                    {
+                        m_bAllowAIAssumeDebt = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"allowAIAssumeDebt: " + GString(m_bAllowAIAssumeDebt));
+                    }
+                    else if(elementName == L"dedicatedServerAutosavePeriod")
                     {
                         m_fDedicatedServerAutosavePeriod = elementValue.ToREAL32();
-                        g_Joshua.Log(GString(L"dedicatedServerAutosavePeriod: ") + GString(m_fDedicatedServerAutosavePeriod));
+                        g_Joshua.Log(L"dedicatedServerAutosavePeriod: " + GString::FormatNumber(m_fDedicatedServerAutosavePeriod, 2));
+                    }
+                    else if(elementName == L"dedicatedServerAutosaveToJoshuaFolder")
+                    {
+                        m_bDedicatedServerAutosaveToJoshuaFolder = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"dedicatedServerAutosaveToJoshuaFolder: " + GString(m_bDedicatedServerAutosaveToJoshuaFolder));
                     }
                     else if(elementName == L"globalTaxLimit")
 		            {
                         m_fGlobalTaxLimit = elementValue.ToREAL32() / 100.f;
-                        g_Joshua.Log(GString(L"globalTaxLimit: ") + GString::FormatNumber(m_fGlobalTaxLimit, 3));
+                        g_Joshua.Log(L"globalTaxLimit: " + GString::FormatNumber(m_fGlobalTaxLimit, 3));
 		            }
                     else if(elementName == L"globalTaxSpecials")
 		            {
@@ -2480,7 +2537,7 @@ void GServer::LoadSP2HDMConfigXML()
                                 l_eGlobalTaxSpecial = EGlobalTaxSpecialType::PrivatizeAll;
 
                             m_GlobalTaxSpecials[l_eGlobalTaxSpecial] = l_GovernmentNode->Data().m_value.ToINT32();
-                            g_Joshua.Log(GString(L"globalTaxSpecials[") + l_sName + L"]: " +
+                            g_Joshua.Log(L"globalTaxSpecials[" + l_sName + L"]: " +
                                          GString(m_GlobalTaxSpecials[l_eGlobalTaxSpecial]));
                         }
 		            }
@@ -2506,34 +2563,59 @@ void GServer::LoadSP2HDMConfigXML()
                                 l_eGovernmentType = EGovernmentType::Theocracy;
 
                             m_IncomeTaxLimits[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL32() / 100.f;
-                            g_Joshua.Log(GString(L"incomeTaxLimit[") + l_sName + L"]: " +
+                            g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " +
                                          GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }
+                    }
+                    else if(elementName == L"maximumCellsInForeignCountry")
+                    {
+                        m_iMaximumCellsInForeignCountry = elementValue.ToINT32();
+                        g_Joshua.Log(L"maximumCellsInForeignCountry: " + GString(m_iMaximumCellsInForeignCountry));
                     }
                     else if(elementName == L"message")
                     {
                         m_sMessage = elementValue;
-                        g_Joshua.Log(GString(L"message: ") + m_sMessage);
+                        g_Joshua.Log(L"message: " + m_sMessage);
                     }
 		            else if(elementName == L"navalRuleEnabled")
 		            {
                         m_bNavalRuleEnabled = (elementValue.ToINT32() != 0);
-                        g_Joshua.Log(GString(L"navalRuleEnabled: ") + GString(m_bNavalRuleEnabled));
+                        g_Joshua.Log(L"navalRuleEnabled: " + GString(m_bNavalRuleEnabled));
 		            }
+                    else if(elementName == L"nuclearMissileRangePercentage")
+                    {
+                        m_fNuclearMissileRangePercentage = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(L"nuclearMissileRangePercentage: " + GString::FormatNumber(m_fNuclearMissileRangePercentage, 2));
+                    }
                     else if(elementName == L"occupiedRegionPercentageForNuclear")
                     {
                         m_fOccupiedRegionPercentageForNuclear = elementValue.ToREAL32() / 100.f;
-                        g_Joshua.Log(GString(L"occupiedRegionPercentageForNuclear: ") + GString::FormatNumber(m_fOccupiedRegionPercentageForNuclear, 2));
+                        g_Joshua.Log(L"occupiedRegionPercentageForNuclear: " + GString::FormatNumber(m_fOccupiedRegionPercentageForNuclear, 2));
+                    }
+                    else if(elementName == L"productionLossOnAnnex")
+                    {
+                        m_fProductionLossOnAnnex = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(L"productionLossOnAnnex: " + GString::FormatNumber(m_fProductionLossOnAnnex, 3));
                     }
                     else if(elementName == L"resourceTaxLimit")
                     {
                         m_fResourceTaxLimit = elementValue.ToREAL32() / 100.f;
-                        g_Joshua.Log(GString(L"resourceTaxLimit: ") + GString::FormatNumber(m_fResourceTaxLimit, 3));
+                        g_Joshua.Log(L"resourceTaxLimit: " + GString::FormatNumber(m_fResourceTaxLimit, 3));
                     }
                     else if(elementName == L"showingHDIComponents")
                     {
                         m_bShowingHDIComponents = (elementValue.ToINT32() != 0);
-                        g_Joshua.Log(GString(L"showingHDIComponents: ") + GString(m_bShowingHDIComponents));
+                        g_Joshua.Log(L"showingHDIComponents: " + GString(m_bShowingHDIComponents));
+                    }
+                    else if(elementName == L"stabilityAnarchyLowerLimit")
+                    {
+                        m_fStabilityAnarchyLowerLimit = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(L"stabilityAnarchyLowerLimit: " + GString::FormatNumber(m_fStabilityAnarchyLowerLimit, 3));
+                    }
+                    else if(elementName == L"stabilityAnarchyUpperLimit")
+                    {
+                        m_fStabilityAnarchyUpperLimit = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(L"stabilityAnarchyUpperLimit: " + GString::FormatNumber(m_fStabilityAnarchyUpperLimit, 3));
                     }
 	            }
             }

@@ -329,13 +329,25 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
    
    IF_RETURN(!ConfirmChangePoliticalControl(in_iRegionID, in_iNewControl), false);
 
+   GRegion* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
+   assert(l_pRegion);
+
+   //Remove some production from the region if it was gained through force
+   if(!in_bForceChange)
+   {
+       for(UINT32 j=0; j<EResources::ItemCount; j++)
+       {
+           const EResources::Enum l_eResource = static_cast<EResources::Enum>(j);
+           REAL64 l_fResourceProduction = l_pRegion->ResourceProduction(l_eResource);
+           l_fResourceProduction *= 1 - g_SP2Server->ProductionLossOnAnnex();
+           l_pRegion->ResourceProduction(l_eResource, l_fResourceProduction);
+       }
+   }
+
    g_ServerDAL.CountryData(l_CurrentControl.m_iPolitical)->SynchronizeWithRegions();
    l_pCountryData->SynchronizeWithRegions();
 
    //Now l_pCountryData has been updated with the new population.
-
-	GRegion* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
-   assert(l_pRegion);
 
    if(l_pCountryData->Population() > 0)
    {
@@ -385,13 +397,23 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
            l_pCountryData->HumanDevelopment(l_fNewHumanDevelopment);
            //g_Joshua.Log(L"New HDI: " + GString::FormatNumber(l_fNewHumanDevelopment, 3));
 
-        if(g_SP2Server->ShowingHDIComponents())
-        {
-            l_pCountryData->ArableLandLevel(l_fNewHumanDevelopment);
-            l_pCountryData->ForestLandLevel(l_fNewLifeExpectancy / 100.f);
-            l_pCountryData->ParksLandLevel(l_fNewMeanYearsSchooling / 100.f);
-            l_pCountryData->NotUsedLandLevel(l_fNewExpectedYearsSchooling / 100.f);
-        }
+           if(g_SP2Server->ShowingHDIComponents())
+           {
+               l_pCountryData->ArableLandLevel(l_fNewHumanDevelopment);
+               l_pCountryData->ForestLandLevel(l_fNewLifeExpectancy / 100.f);
+               l_pCountryData->ParksLandLevel(l_fNewMeanYearsSchooling / 100.f);
+               l_pCountryData->NotUsedLandLevel(l_fNewExpectedYearsSchooling / 100.f);
+           }
+
+           //Lose stability, lose 0.25f of usual if region gained through trade.
+           REAL32 l_fStabilityLoss = static_cast<REAL32>(l_pRegion->Population()) / static_cast<REAL32>(l_iCurrentCountryPop15 + l_iCurrentCountryPopOver15);
+           l_fStabilityLoss *= in_bForceChange ? 0.25f : 1;
+           /*g_Joshua.Log(L"DZDEBUG: Country " + GString(in_iNewControl) + L", " +
+                        g_SP2Server->Countries().at(in_iNewControl - 1).Name() + L" gains region " +
+                        g_ServerDAL.GetString(g_ServerDAL.StringIdRegion(in_iRegionID)) +
+                        L" with population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0) + L"; " +
+                        L"loses " + GString::FormatNumber(l_fStabilityLoss, 3) + L" stability ");*/
+           ChangeCountryStability(in_iNewControl, -l_fStabilityLoss, false);
        }
    }
 
@@ -3380,14 +3402,17 @@ bool GDataControlLayer::ChangeCountryStability(ENTITY_ID in_iCountryID, REAL32 i
 	if(!l_pCountryData->InternalLaw(EInternalLaws::FreedomOfDemonstration))
 		l_fBonus += SP2::c_fFreedomOfDemonstrationStabilityBonus;
 
-	if(l_fStability < (SP2::c_fStabilityAnarchyLowerLimit-l_fBonus) && 
-		l_pCountryData->GvtStabilityExpected() < (SP2::c_fStabilityAnarchyLowerLimit-l_fBonus) &&
+    const REAL32 l_fServerStabilityAnarchyLowerLimit = g_SP2Server->StabilityAnarchyLowerLimit();
+    const REAL32 l_fServerStabilityAnarchyUpperLimit = g_SP2Server->StabilityAnarchyUpperLimit();
+
+	if(l_fStability < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) && 
+		l_pCountryData->GvtStabilityExpected() < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) &&
 		l_pCountryData->GvtType() != EGovernmentType::Anarchy)
 	{
 		ChangeGovernmentType(in_iCountryID, (EGovernmentType::Enum)l_pCountryData->GvtType(), EGovernmentType::Anarchy);
 	}
-	else if(l_fStability > (SP2::c_fStabilityAnarchyHigherLimit-l_fBonus) && 
-		l_pCountryData->GvtStabilityExpected() > (SP2::c_fStabilityAnarchyHigherLimit-l_fBonus) &&
+	else if(l_fStability > (l_fServerStabilityAnarchyUpperLimit-l_fBonus) && 
+		l_pCountryData->GvtStabilityExpected() > (l_fServerStabilityAnarchyUpperLimit-l_fBonus) &&
 		l_pCountryData->GvtType() == EGovernmentType::Anarchy)
 	{
 		ChangeGovernmentType(in_iCountryID, EGovernmentType::Anarchy, l_pCountryData->LeaderParty()->GvtType());
@@ -3457,6 +3482,10 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
 
    //List all the cities that are within range of the largest damage, key = distance from center
    multimap<REAL32,const SCityInfo*> l_CitiesInRange;
+
+   //Keep track of the regions that will be affected, and their initial populations for casualty calculation
+   map<UINT32, INT64> l_mRegionsInRange;
+
    {
 	   const vector<SCityInfo>& l_vCityList = GDALInterface::Instance->Cities();
 	   for(UINT32 i = 0 ; i  < l_vCityList.size() ; i++)
@@ -3473,12 +3502,42 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
 
 				//Check how much area is superposed between the city and the nuke explosion full range
             REAL32 l_fTouchesIt = GDCLInterface::AreaOf2IntersectingCircles(l_City.m_Position,l_fCityRadiusDegree,in_Target.m_Position,l_fHighestDamageRangeDegrees);
-            if(l_fTouchesIt && (l_City.m_iPopulation > 0) )
-               l_CitiesInRange.insert(make_pair(l_City.m_Position.Distance(in_Target.m_Position),&l_City));
+            if(l_fTouchesIt)
+            {
+                if(l_City.m_iPopulation > 0)
+                    l_CitiesInRange.insert(make_pair(l_City.m_Position.Distance(in_Target.m_Position),&l_City));
+
+                const UINT32 l_iRegionId = l_City.m_iRegionId;
+                const GRegion* l_pRegion = g_ServerDAL.GetGRegion(l_iRegionId);
+                if(l_pRegion != NULL && l_pRegion->Population() > 0 && l_mRegionsInRange.find(l_iRegionId) == l_mRegionsInRange.cend())
+                {
+                    l_mRegionsInRange[l_iRegionId] = l_pRegion->Population();
+                    /*g_Joshua.Log(L"DZDEBUG: Adding affected region " +
+                                 g_ServerDAL.GetString(l_pRegion->NameId()) + L" of " +
+                                 L"country " + g_SP2Server->Countries().at(l_pRegion->OwnerId() - 1).Name() + L" with " +
+                                 L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0));*/
+                }
+            }
          }//end if city has a valid id
       }//end of for each city
    }//end of list all the cities that are in range of the biggest missile
    
+   //
+   for(multimap<REAL32,GNuclearMissile>::const_iterator l_MissileIt = in_Missiles.cbegin();
+       l_MissileIt != in_Missiles.cend();
+       ++l_MissileIt)
+   {
+        const UINT32 l_iRegionId = GDCLInterface::EarthLocateRegion(in_Target.m_Position.x, in_Target.m_Position.y);
+        const GRegion* l_pRegion = g_ServerDAL.GetGRegion(l_iRegionId);
+        if(l_pRegion != NULL && l_pRegion->Population() > 0 && l_mRegionsInRange.find(l_iRegionId) == l_mRegionsInRange.cend())
+        {
+            l_mRegionsInRange[l_iRegionId] = l_pRegion->Population();
+            /*g_Joshua.Log(L"DZDEBUG: Adding affected region (not from city) " +
+                         g_ServerDAL.GetString(l_pRegion->NameId()) + L" of " +
+                         L"country " + g_SP2Server->Countries().at(l_pRegion->OwnerId() - 1).Name() + L" with " +
+                         L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0));*/
+        }
+   }
 
    //For each city of the city in range, check if the missile touches it
    for(multimap<REAL32,const SCityInfo*>::iterator l_CitiesInRangeIt = l_CitiesInRange.begin();
@@ -3494,7 +3553,7 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
 	      REAL32 l_fFullAreaKmHit = 0.f;
 
       	//Given the strength of the nuke
-	      REAL32 l_fFullDamageRange = l_MissileIt->second.FullDamageRange();
+	      REAL32 l_fFullDamageRange = l_MissileIt->second.FullDamageRange() * g_SP2Server->NuclearMissileRangePercentage();
 
 	      REAL32 l_fFullDamageRangeDegrees = GDCLInterface::KMLengthInDegrees(in_Target.m_Position,l_fFullDamageRange);
 
@@ -3524,16 +3583,55 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
          AddCasualtiesToCountry(l_vControls[l_CitiesInRangeIt->second->m_iRegionId].m_iPolitical,l_iCityCasualties);
 			l_vCountriesHit.insert(l_vControls[l_CitiesInRangeIt->second->m_iRegionId].m_iPolitical);
          l_iTotalCivilianCasualties += l_iCityCasualties;
-
-			//Drop infrastructure in that region
-			GRegion* l_pRegion = g_ServerDAL.GetGRegion(l_CitiesInRangeIt->second->m_iRegionId);
-			if(l_pRegion)
-			{
-				l_pRegion->Infrastructure( l_pRegion->Infrastructure() * 0.9f );
-			}
-
       }
    }
+
+   //Now do a rough calculation for region casualties
+   for(map<UINT32, INT64>::const_iterator l_RegionIt = l_mRegionsInRange.cbegin();
+       l_RegionIt != l_mRegionsInRange.cend();
+       ++l_RegionIt)
+   {
+        GRegion* l_pRegion = g_ServerDAL.GetGRegion(l_RegionIt->first);
+        const REAL32 l_fRegionAreaTotal = l_pRegion->AreaTotal();
+
+        /*g_Joshua.Log(L"DZDEBUG: Region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L": " +
+                     L"Current population is " + GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0));*/
+
+        INT64 l_iRegionCasualtiesTotal = 0;
+
+        for(multimap<REAL32,GNuclearMissile>::const_iterator l_MissileIt = in_Missiles.cbegin();
+           l_MissileIt != in_Missiles.cend();
+           ++l_MissileIt)
+        {
+            if(l_pRegion->Population() > 0)
+            {
+                const REAL64 l_fMissileAreaKm = Math::PI * pow(l_MissileIt->second.FullDamageRange() * g_SP2Server->NuclearMissileRangePercentage(), 2);
+                REAL64 l_fRegionLandAreaPercentage = (l_fMissileAreaKm / l_fRegionAreaTotal) *
+                    (l_pRegion->AreaLand() / l_fRegionAreaTotal);
+                l_fRegionLandAreaPercentage = min(max(0, l_fRegionLandAreaPercentage), 1);
+                /*g_Joshua.Log(L"DZDEBUG: Region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L": " +
+                             L"Missile area: " + GString::FormatNumber(l_fMissileAreaKm, L",", L".", L"", L"", 3, 2) + L"; " +
+                             L"total region area: " + GString::FormatNumber(l_fRegionAreaTotal, L",", L".", L"", L"", 3, 2) + L"; " +
+                             L"percentage: " + GString::FormatNumber(l_fRegionLandAreaPercentage * 100, 2));*/
+
+                INT64 l_iRegionCasualtiesFromMissile = static_cast<INT64>(l_RegionIt->second * l_fRegionLandAreaPercentage);
+                l_iRegionCasualtiesFromMissile = min(max(0, l_iRegionCasualtiesFromMissile), l_pRegion->Population());
+
+                RemovePopulationFromRegion(l_RegionIt->first, l_iRegionCasualtiesFromMissile, false);
+                AddCasualtiesToCountry(l_vControls[l_RegionIt->first].m_iPolitical, static_cast<UINT32>(l_iRegionCasualtiesFromMissile));
+                l_iTotalCivilianCasualties += static_cast<UINT32>(l_iRegionCasualtiesFromMissile);
+                l_iRegionCasualtiesTotal += l_iRegionCasualtiesFromMissile;
+            }
+
+            //Drop infrastructure and telecom in the region
+            l_pRegion->Infrastructure( l_pRegion->Infrastructure() * 0.9f );
+            l_pRegion->TelecomLevel( l_pRegion->TelecomLevel() * 0.9f );
+        }
+
+        /*g_Joshua.Log(L"DZDEBUG: Removed " + GString::FormatNumber(static_cast<REAL64>(l_iRegionCasualtiesTotal), L",", L".", L"", L"", 3, 0) + L" population " +
+                     L"from region " + g_ServerDAL.GetString(l_pRegion->NameId()));*/
+   }
+
 	for(set<UINT32>::const_iterator l_Itr = l_vCountriesHit.begin();
 		 l_Itr != l_vCountriesHit.end(); l_Itr++)
 	{
@@ -3602,7 +3700,7 @@ UINT32 GDataControlLayer::NuclearCasualtiesMilitaryExecute(const GNukeTarget& in
           l_MissileIt++)
       {
          //Given the strength of the nuke
-	      REAL32 l_fFullDamageRange = l_MissileIt->second.FullDamageRange();
+          REAL32 l_fFullDamageRange = l_MissileIt->second.FullDamageRange() * g_SP2Server->NuclearMissileRangePercentage();
 
          bool l_bFullBlast = false;
          
@@ -4149,7 +4247,7 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 		}
 		break;
 	case ETreatyType::FreeRegion:
-		//Annex every regions that first country has military control, and second country has political control
+		//Free every region that first country has military control, and second country has political control
 		{
 			const vector<GRegionControl>& l_vRegions = g_ServerDAL.RegionControlArray();
 			UINT32 l_iMilitaryControl = *l_vSideA.begin();
@@ -4162,14 +4260,9 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 					//Liberate that region
 					g_ServerDCL.ChangeRegionMilitaryControl(i,l_iPoliticControl);
 
-					//MultiMOD
-					//Liberating gives +2 relations to everyone for every region freed
-					INT32 l_iNbCountries = 0;
-					for (UINT32 i=1; i<= g_ServerDAL.NbCountry(); i++)
-					{
-						g_ServerDAL.RelationBetweenCountries(i, l_iMilitaryControl,
-							g_ServerDAL.RelationBetweenCountries(i,l_iMilitaryControl)+ 2);
-					} //end MultiMOD
+					//Liberating gives +2 relations between the owner and former occupier for every region freed
+					g_ServerDAL.RelationBetweenCountries(l_iPoliticControl, l_iMilitaryControl,
+						g_ServerDAL.RelationBetweenCountries(l_iPoliticControl, l_iMilitaryControl) + 2);
 				}
 			}
 
@@ -6423,38 +6516,30 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 
 		}
 		else
-			l_fSuccessRate = FindCovertOpsSuccessRate(in_Cell.MissionComplexity(),
-																	in_Cell.ExperienceLevelType(),
-																	l_eMissionType,
-																	in_Cell.TargetSector(),
-																	l_bFraming,
-																	l_iCountryTarget,
-																	l_iSpecificSector);		
-
-        // More covert cells in the country should result in a better success rate.
-        // Each extra elite cell adds 0.8% to the success rate
         {
+            //More covert cells in the target country should result in a better success rate
             GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_iCellOwnerID);
             const vector<GCovertActionCell> l_vCells = l_pCountryData->CovertActionCells();
-            REAL32 l_fNumberOfCellsModifier = 0.f;
-            for (vector<GCovertActionCell>::const_iterator l_CellIt=l_vCells.cbegin(); l_CellIt<l_vCells.cend(); ++l_CellIt)
+            REAL32 l_fTotalTrainingOfAdditionalCells = 0.f;
+            for (vector<GCovertActionCell>::const_iterator l_CellIt = l_vCells.cbegin();
+                 l_CellIt < l_vCells.cend();
+                 ++l_CellIt)
             {
                 if ((l_CellIt->AssignedCountry() == l_iCountryTarget) &&
                     (l_CellIt->ActualState() == ECovertActionsCellState::Active))
                 {
-                    gassert(l_CellIt->ID() != in_Cell.ID(),
-                        "GDataControlLayer::ExecuteMission(): Ready-to-execute cell has wrong state");
+                    gassert(l_CellIt->ID() != in_Cell.ID(), "GDataControlLayer::ExecuteMission(): Ready-to-execute cell has wrong state");
 
                     switch(l_CellIt->ExperienceLevelType())
                     {
                     case ECovertActionCellTraining::Recruit:
-                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsRecruitSuccessRate; break;
+                        l_fTotalTrainingOfAdditionalCells += SP2::c_fCovertActionsCellsRecruitSuccessRate; break;
                     case ECovertActionCellTraining::Regular:
-                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsRegularSuccessRate; break;
+                        l_fTotalTrainingOfAdditionalCells += SP2::c_fCovertActionsCellsRegularSuccessRate; break;
                     case ECovertActionCellTraining::Veteran:
-                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsVeteranSuccessRate; break;
+                        l_fTotalTrainingOfAdditionalCells += SP2::c_fCovertActionsCellsVeteranSuccessRate; break;
                     case ECovertActionCellTraining::Elite:
-                        l_fNumberOfCellsModifier += SP2::c_fCovertActionsCellsEliteSuccessRate; break;
+                        l_fTotalTrainingOfAdditionalCells += SP2::c_fCovertActionsCellsEliteSuccessRate; break;
                     default:
                         gassert(false,"GDataControlLayer::ExecuteMission(): Invalid training level for multiple cells");
                         return 0.f;
@@ -6462,19 +6547,19 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
                 }
             }
 
-            REAL32 l_fsuccessRateBonus = l_fNumberOfCellsModifier * 0.4f / 100.f;
-            /*
-            g_Joshua.Log( "l_fSuccessRate: " +
-                GString::FormatNumber( l_fSuccessRate / ( 1 - FindNationalSecurity( l_iCountryTarget ) ), 3 ) +
-                " * ( 1 - security ); " +
-                " successRateBonus: " + GString::FormatNumber( successRateBonus, 3 ) );
-                */
-            l_fSuccessRate = min( l_fSuccessRate + l_fsuccessRateBonus, SP2::c_fMaximumSuccessRateAllowed );
+			l_fSuccessRate = FindCovertOpsSuccessRate(in_Cell.MissionComplexity(),
+																	in_Cell.ExperienceLevelType(),
+																	l_eMissionType,
+																	in_Cell.TargetSector(),
+																	l_bFraming,
+																	l_iCountryTarget,
+																	l_iSpecificSector,
+                                                                    l_fTotalTrainingOfAdditionalCells);	
         }
 
 		//Success?
 		Random::GQuick l_Rand;
-		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)(l_fSuccessRate*100.f)) );
+		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)(l_fSuccessRate*100.f) * time(NULL)) );
 		if(l_Rand.RandomReal() < l_fSuccessRate)
 			l_bSuccess = true;
 	}
@@ -6506,7 +6591,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 
 		//Check if the cell has been captured
 		Random::GQuick l_Rand;
-		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryB) );
+		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryB * time(NULL)) );
 		if(l_Rand.RandomReal() < SP2::c_fChanceOfCapture)
 		{
 			l_bCaptured = true;
@@ -6534,7 +6619,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 
 			//Success?
 			Random::GQuick l_Rand;
-			l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget) );
+			l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * time(NULL)) );
 			if(l_Rand.RandomReal() < l_fChanceOfKnowingAttacker)
 			{
 				l_bKnowAttacker = true;
@@ -6585,8 +6670,77 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		switch(l_eMissionType)
 		{
 			case SP2::ECovertActionsMissionType::Assassination:
+            {
 				g_ServerDCL.ChangeCountryStability(l_iCountryTarget,SP2::c_fStabilityChangeAssassination * l_fEffectModifier);
-				break;
+
+                if(l_iCountryTarget != l_iCellOwnerID)
+                {
+                    //If performed against a foreign country, we may remove (assassinate) a covert cell from the target country at random
+                    //Higher the experience level and complexity, higher the chance
+                    REAL32 l_fDeterminer = SP2::c_fCovertActionsCellsRecruitSuccessRate;
+
+                    switch(in_Cell.ExperienceLevelType())
+			        {
+			        case ECovertActionCellTraining::Recruit:
+				        l_fDeterminer = SP2::c_fCovertActionsCellsRecruitSuccessRate; break;
+			        case ECovertActionCellTraining::Regular:
+				        l_fDeterminer = SP2::c_fCovertActionsCellsRegularSuccessRate; break;
+			        case ECovertActionCellTraining::Veteran:
+				        l_fDeterminer = SP2::c_fCovertActionsCellsVeteranSuccessRate; break;
+			        case ECovertActionCellTraining::Elite:
+				        l_fDeterminer = SP2::c_fCovertActionsCellsEliteSuccessRate; break;
+			        }
+
+                    switch(in_Cell.MissionComplexity())
+		            {
+		            case ECovertActionsMissionComplexity::Low:
+			            l_fDeterminer *= SP2::c_fMissionComplexityModifierLow;
+			            break;
+		            case ECovertActionsMissionComplexity::Medium:
+			            l_fDeterminer *= SP2::c_fMissionComplexityModifierMedium;
+			            break;
+		            case ECovertActionsMissionComplexity::High:
+			            l_fDeterminer *= SP2::c_fMissionComplexityModifierHigh;
+			            break;
+		            case ECovertActionsMissionComplexity::Undefined:
+			            gassert(false,"GDataControlLayer::ExecuteMission(): Undefined target importance");
+			            return false;
+		            }
+
+                    //0.125f <= l_fDeterminer <= 4.f
+                    Random::GQuick l_Rand;
+                    l_Rand.Seed(static_cast<UINT32>(g_Joshua.GameTime() * l_iCountryTarget * time(NULL)));
+                    if(l_fDeterminer > l_Rand.RandomReal(10.f))
+                    {
+                        const vector<GCovertActionCell>& l_vTotalCells = l_pCountryData->CovertActionCells();
+
+                        //Get a list of cells that are actually in the target country
+                        vector<vector<GCovertActionCell>::const_iterator> l_vEligibleCells;
+                        for(vector<GCovertActionCell>::const_iterator l_CellIt = l_vTotalCells.cbegin();
+                            l_CellIt < l_vTotalCells.cend();
+                            ++l_CellIt)
+                        {
+                            if(l_CellIt->AssignedCountry() == l_iCountryTarget &&
+                                (l_CellIt->ActualState() == ECovertActionsCellState::Active ||
+                                l_CellIt->ActualState() == ECovertActionsCellState::Dormant ||
+                                l_CellIt->ActualState() == ECovertActionsCellState::PreparingMission ||
+                                l_CellIt->ActualState() == ECovertActionsCellState::ReadyToExecute))
+                                l_vEligibleCells.push_back(l_CellIt);
+                        }
+
+                        if(!l_vEligibleCells.empty())
+                        {
+                            //There exist eligible cells to remove, so remove one at random
+                            Random::GQuick l_Rand;
+                            l_Rand.Seed(static_cast<UINT32>(g_Joshua.GameTime() * l_iCountryTarget * l_vEligibleCells.size() * time(NULL)));
+                            INT32 l_iEligibleCellToRemove = static_cast<INT32>(l_Rand.RandomReal(static_cast<REAL32>(l_vEligibleCells.size())));
+                            l_pCountryData->RemoveCovertActionCell(*l_vEligibleCells.at(l_iEligibleCellToRemove));
+                            l_pCountryData->m_bCovertActionCellsDirty = true;
+                        }
+                    }
+                }
+            }
+			break;
 			case SP2::ECovertActionsMissionType::CoupEtat:
 			{
 				if(l_iCountryTarget == l_iCellOwnerID)
@@ -6645,6 +6799,8 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 			break;
 			case SP2::ECovertActionsMissionType::Espionage:
 			{
+                if(l_iCountryTarget == l_iCellOwnerID)
+					break;
 				if(in_Cell.TargetSector() == ECovertActionsTargetSector::Civilian)
 				{
 					//Increase the resource for the country doing the action
@@ -8085,7 +8241,8 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 																	ECovertActionsTargetSector::Enum in_eTargetSector,
 																	bool in_bFraming,
 																	UINT32 in_iTarget,
-																	INT32 in_iSpecificSector) const
+																	INT32 in_iSpecificSector,
+                                                                    REAL32 in_fTotalTrainingOfAdditionalCells) const
 {
 	// Mission complexity modifier
 	REAL32 l_fDifficultyModifier = 0.f;
@@ -8121,6 +8278,9 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 		gassert(false,"GDataControlLayer::ExecuteMission(): Invalid training level");
 		return 0.f;
 	}
+
+    // Additional cells
+    l_fTrainingModifier += logf(in_fTotalTrainingOfAdditionalCells + 1.f);
 
 	// Mission type modifier && Stability rate
 	REAL32 l_fMissionBaseRate = 0.f;

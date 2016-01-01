@@ -711,7 +711,7 @@ namespace SP2
 
 	const REAL32 c_fMaximumDistanceForDeployment = 500.f;
 
-   const REAL32 c_fCombatThresholdSquare = 0.25f*0.25f;
+   const REAL32 c_fCombatThresholdSquare = 0.7f*0.7f;
 
 	//Used units constants
 	const REAL32 c_fUsedUnitsRebates = 0.75f;

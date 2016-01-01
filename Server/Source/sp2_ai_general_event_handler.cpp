@@ -87,7 +87,7 @@ bool GAIGeneralEventHandler::HandleNukeLaunchNotify(SDK::GGameEventSPtr in_Event
 		   //If the target has less forces, he launches more missiles
 		   l_iMegatonsSending = (UINT32)((REAL32)l_iMegatonsSent * (1.f + (max(2.f - l_fRatio,0.1f))));
 
-		   if(l_fRatio <= 0.5f)
+		   if(l_fRatio <= 2.f)
 			   l_Type = ENuclearTargetType::Military;
 		   else
 			   l_Type = ENuclearTargetType::Civil;
@@ -110,7 +110,7 @@ bool GAIGeneralEventHandler::HandleNukeLaunchNotify(SDK::GGameEventSPtr in_Event
 
 			   l_iMegatonsSending = (UINT32)((REAL32)l_iMegatonsSent * (1.f + (max(2.f - l_fRatio,0.1f))));
 
-			   if(l_fRatio <= 0.5f)
+			   if(l_fRatio <= 2.f)
 				   l_Type = ENuclearTargetType::Military;
 			   else
 				   l_Type = ENuclearTargetType::Civil;
@@ -151,7 +151,7 @@ bool GAIGeneralEventHandler::HandleNukeLaunchNotify(SDK::GGameEventSPtr in_Event
 
 			   l_iMegatonsSending = (UINT32)((REAL32)l_iMegatonsSent * (1.f + (max(2.f - l_fRatio,0.1f))));
 
-			   if(l_fRatio <= 0.5f)
+			   if(l_fRatio <= 2.f)
 				   l_Type = ENuclearTargetType::Military;
 			   else
 				   l_Type = ENuclearTargetType::Civil;
@@ -189,7 +189,7 @@ bool GAIGeneralEventHandler::HandleNukeLaunchNotify(SDK::GGameEventSPtr in_Event
 
 		   l_iMegatonsSending = (UINT32)((REAL32)l_iMegatonsSent * (1.f + (max(2.f - l_fRatio,0.1f))));		
 
-		   if(l_fRatio <= 0.5f)
+		   if(l_fRatio <= 2.f)
 			   l_Type = ENuclearTargetType::Military;
 		   else
 			   l_Type = ENuclearTargetType::Civil;
@@ -209,7 +209,7 @@ bool GAIGeneralEventHandler::HandleNukeLaunchNotify(SDK::GGameEventSPtr in_Event
 
 		   l_iMegatonsSending = (UINT32)((REAL32)l_iMegatonsSent * (1.f + (max(2.f - l_fRatio,0.1f))));
 
-		   if(l_fRatio <= 0.5f)
+		   if(l_fRatio <= 2.f)
 			   l_Type = ENuclearTargetType::Military;
 		   else
 			   l_Type = ENuclearTargetType::Civil;

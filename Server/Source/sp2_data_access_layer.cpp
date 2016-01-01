@@ -1795,6 +1795,11 @@ void GDataAccessLayerServer::DestroyCountryEntity(UINT32 in_iCountryID, UINT32 i
 					if(l_vCells[j].AssignedCountry() == in_iCountryID)
 					{						
 						l_vCells[j].AssignedCountry(in_iConquerorID);
+
+                        //Recalculate national security if conqueror's cells were in the conquered country
+                        if(i == in_iConquerorID)
+                            CountryData(i)->NationalSecurity( g_ServerDCL.FindNationalSecurity(i) );
+
 						CountryData(i)->FlagCovertActionsCellsAsDirty();
 					}
 				}				
@@ -3651,4 +3656,105 @@ void GDataAccessLayerServer::CheckWorldPeace()
 
    // update our world peace status after our in depth analysis ?
    g_ServerDCL.UpdateWorldPeaceStatus(l_bWorldAtPeace);
+}
+
+bool GDataAccessLayerServer::CountryCanAssignCovertCellToTarget(UINT32 in_iSource, UINT32 in_iTarget)
+{
+    const INT32 l_iMaximumCellsInForeignCountry = g_SP2Server->MaximumCellsInForeignCountry();
+
+    bool l_bCanMove = true;
+
+    if(in_iTarget != in_iSource && l_iMaximumCellsInForeignCountry > 0)
+    {
+        INT32 l_iNumberCellsAlreadyInIntendedCountry = 0;
+
+        const vector<GCovertActionCell>& l_vExistingCells = m_pCountryData[in_iSource].CovertActionCells();
+        for(vector<GCovertActionCell>::const_iterator l_It = l_vExistingCells.cbegin();
+            l_It < l_vExistingCells.cend();
+            ++l_It)
+        {
+            if(l_It->AssignedCountry() == in_iTarget ||
+               l_It->NextAssignedCountry() == in_iTarget)
+                l_iNumberCellsAlreadyInIntendedCountry++;
+
+            if(l_iNumberCellsAlreadyInIntendedCountry >= l_iMaximumCellsInForeignCountry)
+            {
+                l_bCanMove = false;
+                break;
+            }
+        }
+
+        /*g_Joshua.Log(L"DZDEBUG: Country ID " + GString(in_iSource) +
+                     L" trying to assign a cell to country ID " + GString(in_iTarget) + L"; " +
+                     L"already has " + GString(l_iNumberCellsAlreadyInIntendedCountry) + L" cells in that country. " +
+                     L"CanMove " + GString(l_bCanMove));*/
+    }
+
+    return l_bCanMove;
+}
+
+void GDataAccessLayerServer::ChangeCountryName(UINT32 in_iCountryID, const GString& in_sNewName)
+{
+    gassert(in_iCountryID >= 1,"Invalid country ID, name change won't work");
+
+    //See if the new country's name is taken already. If yes, then the name change will not occur
+    bool l_bNameTakenAlready = false;
+    for(vector<GCountry>::const_iterator l_CountryIt = g_SP2Server->Countries().cbegin();
+        l_CountryIt != g_SP2Server->Countries().cend();
+        ++l_CountryIt)
+    {
+        if(l_CountryIt->Name() == in_sNewName)
+            l_bNameTakenAlready = true;
+    }
+
+    if(!l_bNameTakenAlready)
+    {
+        //Change the country's name
+        //g_SP2Server->Countries() is 0-based
+        GCountries& l_vCountries = g_SP2Server->Countries();
+        GCountry& l_Country = l_vCountries.at(in_iCountryID - 1);
+
+        const GString l_sOldName = l_Country.Name();
+
+        m_pCountryData[in_iCountryID].Name(in_sNewName);
+        l_Country.Name(in_sNewName);
+
+        SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayerByModID(in_iCountryID);
+        g_Joshua.Log(L"Country ID " + GString(in_iCountryID) +
+                     ((l_pPlayer != NULL) ?
+                      (L", played by player ID " + GString(l_pPlayer->Id()) + L", " + l_pPlayer->Name() + L", ") :
+                      L" ") +
+                     L"has changed its name from " +
+                     l_sOldName + L" to " + in_sNewName);
+
+        {
+            SDK::GGameEventSPtr l_ReceiveCountryListEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
+            l_ReceiveCountryListEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
+            l_ReceiveCountryListEvent->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
+
+            Event::GReceiveCountryList* l_pCntrListEvent = (Event::GReceiveCountryList*) l_ReceiveCountryListEvent.get();
+            l_pCntrListEvent->m_vCountries = g_SP2Server->Countries();
+
+            g_Joshua.RaiseEvent(l_ReceiveCountryListEvent);
+        }
+
+        //Resend all news of countries being conquered
+        //Libraries automatically change all GCountry objects to active for GReceiveCountryList event, so we need to correct for that
+        for(INT32 i = 1;
+            i < NbCountry();
+            i++)
+        {
+            if(!m_pCountryValidityArray[i])
+            {
+                //g_Joshua.Log(L"DZDEBUG: Resending news that country ID " + GString(i) + L" has been conquered");
+                SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GConquerCountry);
+                SP2::Event::GConquerCountry* l_ConquerEvent = (SP2::Event::GConquerCountry*) (l_Event.get() );
+                l_ConquerEvent->m_iConqeredID = i;
+                l_ConquerEvent->m_iConqueringID = 0;
+                l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
+                l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
+                g_Joshua.RaiseEvent(l_Event);
+            }
+        }
+    }
 }

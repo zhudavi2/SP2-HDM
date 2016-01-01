@@ -1159,7 +1159,14 @@ bool GWorldBehavior::Iterate_Pop_15_65_Unemployed()
 		l_fNewUnemployement = (-0.04f*l_fEconomicHealth) + 0.06f;
 	else
 		l_fNewUnemployement = (-0.32f*l_fEconomicHealth) + 0.2f;
-	
+
+    const REAL32 l_fMaximumEmploymentChangePerIteration = 0.005f * m_fFrequency;
+    const REAL32 l_fOldUnemployment = m_CountryData->Pop1565Unemployed();
+    if(l_fNewUnemployement - l_fOldUnemployment < -l_fMaximumEmploymentChangePerIteration)
+        l_fNewUnemployement = l_fOldUnemployment - l_fMaximumEmploymentChangePerIteration;
+    else if(l_fNewUnemployement - l_fOldUnemployment > l_fMaximumEmploymentChangePerIteration)
+        l_fNewUnemployement = l_fOldUnemployment + l_fMaximumEmploymentChangePerIteration;
+
 	m_CountryData->Pop1565Unemployed(l_fNewUnemployement);	
 
 	return true;
@@ -2901,13 +2908,16 @@ void GWorldBehavior::IterateChangingVariables(REAL64 in_fGameTime)
 		if(!l_pCountryData->InternalLaw(EInternalLaws::FreedomOfDemonstration))
 			l_fBonus += SP2::c_fFreedomOfDemonstrationStabilityBonus;
 
+        const REAL32 l_fServerStabilityAnarchyLowerLimit = g_SP2Server->StabilityAnarchyLowerLimit();
+        const REAL32 l_fServerStabilityAnarchyUpperLimit = g_SP2Server->StabilityAnarchyUpperLimit();
+
 		if(l_pCountryData->GvtType() == EGovernmentType::Anarchy &&
-			l_pCountryData->GvtStability() > (SP2::c_fStabilityAnarchyHigherLimit-l_fBonus))
+			l_pCountryData->GvtStability() > (l_fServerStabilityAnarchyUpperLimit-l_fBonus))
 		{
 			g_ServerDCL.ChangeGovernmentType(i, EGovernmentType::Anarchy, l_pCountryData->LeaderParty()->GvtType());
 		}
-		else if(l_fStability < (SP2::c_fStabilityAnarchyLowerLimit-l_fBonus) && 
-			l_pCountryData->GvtStabilityExpected() < (SP2::c_fStabilityAnarchyLowerLimit-l_fBonus) &&
+		else if(l_fStability < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) && 
+			l_pCountryData->GvtStabilityExpected() < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) &&
 			l_pCountryData->GvtType() != EGovernmentType::Anarchy)
 		{
 			g_ServerDCL.ChangeGovernmentType(i, (EGovernmentType::Enum)l_pCountryData->GvtType(), EGovernmentType::Anarchy);

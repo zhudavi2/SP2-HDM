@@ -1644,7 +1644,9 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
       }
 
       // Connect water waypoints
-      if(!g_SP2Server->NavalRuleEnabled())
+      const bool c_bNavalRuleEnabled = g_SP2Server->NavalRuleEnabled();
+
+      if(!c_bNavalRuleEnabled)
       {
             m_pCountryTypes[0] = ERegionType::Water;
       }
@@ -1777,7 +1779,9 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
       m_pCountryTypes[l_iOwner] = ERegionType::Owned;
 
       // Make sure unit will be able to move to its destination
-      if(m_pCountryTypes[l_iTargetID] == ERegionType::Blocked)
+      // But don't allow moving to Antarctica, which would be target ID 0 and region ID 111, if Naval Rule is enabled
+      if((l_iTargetID != 0 || l_iTargetRegionID != 111 || !c_bNavalRuleEnabled) &&
+         m_pCountryTypes[l_iTargetID] == ERegionType::Blocked)
       {
          m_pCountryTypes[l_iTargetID] = ERegionType::Enemy;
       }
@@ -2337,7 +2341,15 @@ void GUnitMover::DeployUnit(SP2::GUnitGroup* in_pGroup,list<UINT32>& in_UnitList
 
    // Calculate time to deploy
    // Linear distance / 2000km a day + 1 day
-   REAL32 l_totalDayToDeploy = g_ServerDAL.DistanceBetween2PointsLatLong(g_ServerDAL.CapitalPosition(l_pNewGroup->OwnerId()),in_Dest) / 2000 + 1 ;
+   const GVector2D<REAL32>& l_CapitalPosition = g_ServerDAL.CapitalPosition(l_pNewGroup->OwnerId());
+   REAL32 l_fDistanceFromCapital = 0.f;
+
+   // Only use the built-in distance calculation if the deployment location is far enough from the capital
+   // This prevents units from getting stuck in deployment due to the calculation sometimes giving NaN for close distances
+   if(fabs(l_CapitalPosition.x - in_Dest.x) > 0.01f || fabs(l_CapitalPosition.y - in_Dest.y) > 0.01f)
+      l_fDistanceFromCapital = g_ServerDAL.DistanceBetween2PointsLatLong(l_CapitalPosition,in_Dest);
+
+   REAL32 l_totalDayToDeploy = l_fDistanceFromCapital / 2000 + 1 ;
    l_UnitGroupInDeployement.m_fDeployementTime         = g_Joshua.GameTime()+ l_totalDayToDeploy;
 
    // Get the list for the current country.

@@ -327,6 +327,12 @@ namespace SP2
          return m_ConfigZeroDate;
       }
 
+      //! Checks if country can assign more cells to a target country, based on server config
+      bool CountryCanAssignCovertCellToTarget(UINT32 in_iSource, UINT32 in_iTarget);
+
+      //! Helper method to change a country's name
+      void ChangeCountryName(UINT32 in_iCountryID, const GString& in_sNewName);
+
    private:
       //-----------------------------------------------
       //  Military data loading functions

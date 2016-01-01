@@ -1,4 +1,36 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V4
+SuperPower 2 Human Development Modification (SP2-HDM) V5
+
+V5 changes:
+- Military units that are hostile against each other will start battling each other from a farther distance; this negates the tactic of excessively splitting one's military units to make it artificially difficult for hostile units to engage in battle. Thanks to Fenix for the code suggestion.
+- Added a configuration setting to limit the number of covert cells that a human player may assign to any one foreign country. Thanks to Fenix for the suggestion. The limit does not apply to AI-controlled countries.
+- Fixed an issue in which if a country is conquered, and then another country changes its name, then the conquered country would reappear in country listings.
+- When performing covert actions against a target country, the positive effect on success rate of having additional cells in the target country has been lessened. Thanks to Fenix for the suggestion.
+- Added a configuration setting to force the AI to always refuse Assume Debt treaties when an AI country is requested to assume a human player's debt.
+- Added a configuration setting to control the effective damage radius of nuclear missiles.
+- Added a configuration setting to control how much of a region's resource production is lost upon being annexed. The production loss does not affect regions gained through trade.
+- Added a configuration setting for dedicated servers, to choose whether to autosave to the same folder as joshua.exe.
+- Added configuration settings for adjusting the expected (not actual) stability levels required for entering and exiting Anarchy.
+- Minor modifications to the Server.vcxproj file.
+- When a nuclear-armed AI country has enough of its regions under foreign occupation, it will launch nuclear attacks against the occupiers' military, instead of against the occupiers' civilians. Thanks to Fenix for the suggestion.
+- Fixed a potential issue in which countries with extremely low revenue wouldn't be able to build or buy non-infantry units.
+- A nuclear-armed AI country, in response to a nuclear launch involving another country that it really likes or really dislikes, will have a bigger preference for itself to launch a military nuclear strike rather than civilian. Thanks to Fenix for the code suggestion.
+- When starting a new game, each country's population will be logged out to the console in addition to all the stats already being logged.
+- When a country conquers another country in which the conquering country has covert cells stationed, then the conquering country will have its national security correctly recalculated immediately.
+- When a country gains a region, it will lose stability based on the ratio of the region's population to the gaining country's population. The stability penalty is lower if the region is gained through trade.
+- Nuclear strikes against civilians now affect regional populations that are not attached to any specific cities. This effectively increases the amount of people that nuclear strikes can kill at once. Thanks to Fenix for the suggestion.
+- Nuclear strikes against civilians now affect telecom development level as well as that of infrastructure.
+- The Free Region treaty now only gives relations bonuses between the original owner of the region(s) and the former occupier of the region(s), instead of between everyone and the former occupier. Thanks to Fenix for the suggestion.
+- Changed how the game determines whether a covert mission succeeds, whether or not the true perpetrator would be found out, and whether or not the executing cell would be captured in case of mission failure. Previously, the outcome of a mission would always be the same as long as all the mission details (e.g., type, cell training level, complexity, etc.) and the in-game date and time of mission execution were the same.
+- When an Assassination mission succeeds against a target country, if the target country has any covert cells stationed in itself, then one of the foreign cell may be removed (assassinated) at random, depending on the executing cell's experience level and the mission's complexity. Thanks to Mr Monday for the suggestion.
+- It is no longer possible to perform Espionage missions against one's own country for economic benefit. Thanks to Fenix for the code suggestion.
+- Changed the method of creating 10 covert cells at once. In the cell name field, type "MULTIPLE, followed by a space, followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "MULTIPLE 21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
+- Changed the mod's server list display name to "Human Development Mod V5" from "SuperPower 2 Human Development Mod".
+- When the game saves, either via the dedicated server autosave feature or the "save" console command, the game will now be saved correctly even if the "save" folder doesn't already exist. Thanks to Fenix for the suggestion.
+- Fixed an issue where the "set_admin_country" console command wasn't recognized.
+- Added a "print_players" console command to list all active players. Thanks to Fenix for the suggestion.
+- It is no longer possible to move ground units to Antarctica when the Naval Rule is enabled; this prevents circumventing the Naval Rule by moving non-naval units to Antarctica before moving them to their final destination.
+- Fixed at least some instances of the issue in which units that are deployed close to their capital may get stuck in deployment status.
+- Unemployment now changes more gradually than before.
 
 V4 changes:
 - Added new settings to the configuration file, to help set resource state control, export quotas, taxes, etc. quickly. Please see SP2-HDM_Config.xml for details.
@@ -45,7 +77,7 @@ Internal political sphere changes:
 - Reduce how much government stability contributes to birth rate. This is partially to prevent highly-developed and stable countries having unrealistic population booms.
 - Maximum possible immigration rate has been raised to equal the maximum emigration rate.
 
-Internal mlitary sphere changes:
+Internal military sphere changes:
 - The number of covert cells that a country needs, in order to maintain a constant security level, increases more gradually along with population.
 - A country's covert mission will have a higher chance of succeeding if it has other active cells in the target country.
 
@@ -63,7 +95,7 @@ AI changes:
 
 UI changes:
 - When creating a new covert cell, the default rank setting is Elite instead of Recruit. (Removed in V2.)
-- Experimental feature: It's possible to create 10 covert cells at a time. In the cell name field, type a dash ('-') followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "-21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
+- Experimental feature: It's possible to create 10 covert cells at a time. In the cell name field, type a dash ('-') followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "-21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30". (Changed in V5.)
 
 Fixes to existing SP2 issues:
 - High government approval and stability now decrease your emigration rate instead of increasing it.
@@ -75,8 +107,9 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Known issues:
-- There's a possible issue where if a country is occupied for a long time, releasing all its regions would make the country extremely rich in resources momentarily. (Existed in SP2 V1.5.1)
-- Some people have reported that in a multiplayer game, if your in-game nickname that you chose in the Multiplayer Lobby window is different from your nickname in your Game Options > Player (or sp2_cfg_client.xml), then if you change your country's name, your in-game nickname may also automatically change to your Options menu nickname. I'm currently investigating; for now, if confusion is a concern, it's recommended that your Game Options nickname is the same as or similar to the nickname that you choose in the Multiplayer Lobby. (Existed in V3, maybe V2.)
+- There's a possible issue where if a country is occupied for a long time, releasing all its regions would make the country extremely rich in resources momentarily. (Existed in SP2 V1.5.1.)
+- Some people have reported that in a multiplayer game, if your in-game nickname that you chose in the Multiplayer Lobby window is different from your nickname on your Game Options > Player screen (or sp2_cfg_client.xml), then if you change your country's name, your in-game nickname may also automatically change to your Options menu nickname. I'm currently investigating; for now, if confusion is a concern, it's recommended that your Game Options nickname is the same as or similar to the nickname that you choose in the Multiplayer Lobby. (Existed in V3, maybe V2.)
+- After a country is conquered, it may still appear to suffer from covert actions for a while. (Existed in SP2 V1.5.1.)
 
 Future changes and "thoughts" in no particular order of priority:
 - Have LE, MYS, and EYS affect more than just the HDI. For example, all 3 could have some effect on birth and death rates, and MYS and EYS could affect resource growth.
@@ -86,8 +119,14 @@ Future changes and "thoughts" in no particular order of priority:
 - Have wars and occupation directly and negatively affect LE, MYS, and EYS.
 - Find out some other way to show LE, MYS, and EYS to the player.
 - If your country isn't meeting your domestic consumption of food-related resources, then it should have detrimental effects on your LE.
+- Have the foreign covert cell limit apply to AI countries.
+- Modify how the AI handles its military. For example, it could try to increase its own covert action success rates by moving more cells into the target country, or it could be more aggressive in building up its military.
+- Modify how the AI handles its covert actions. When it prepares a mission against a target country, but the target is conquered before the mission is execued, then it shouldn't go about blindly executing the mission against the conquering country.
+- Change the method of changing a country's name to be more intuitive.
+- General AI improvements in light of the new SP2-HDM features.
 
 Credits:
-- Radu, Fenix, and Mr Monday for suggestions and support.
-- Many more people on the SP2-HDM discussion topic and the SP2 Discussion forum.
+- Fenix for code suggestions and support.
+- Radu and Mr Monday for suggestions and support.
+- Many more people on the SP2-HDM discussion thread and the SP2 Discussion forum.
 - Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.

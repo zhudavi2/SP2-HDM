@@ -117,14 +117,20 @@ namespace SP2
 		REAL32 AIAggressiveness();
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
+      inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
       inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
       inline REAL32  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
+      inline INT32   MaximumCellsInForeignCountry() const { return m_iMaximumCellsInForeignCountry; }
       inline GString Message() const { return m_sMessage; }
       inline bool    NavalRuleEnabled() const { return m_bNavalRuleEnabled; }
+      inline REAL32  NuclearMissileRangePercentage() const { return m_fNuclearMissileRangePercentage; }
       inline REAL32  OccupiedRegionPercentageForNuclear() const { return m_fOccupiedRegionPercentageForNuclear; }
+      inline REAL32  ProductionLossOnAnnex() const { return m_fProductionLossOnAnnex; }
       inline REAL32  ResourceTaxLimit() const { return m_fResourceTaxLimit; }
       inline bool    ShowingHDIComponents() const { return m_bShowingHDIComponents; }
+      inline REAL32  StabilityAnarchyLowerLimit() const { return m_fStabilityAnarchyLowerLimit; }
+      inline REAL32  StabilityAnarchyUpperLimit() const { return m_fStabilityAnarchyUpperLimit; }
 
       //! Server message helpers
       inline void    AddPlayerID(INT32 in_iID) { m_PlayerIDs.insert(in_iID); }
@@ -233,20 +239,27 @@ namespace SP2
       //! SP2-HDM configuration
       void           LoadSP2HDMConfigXML();
 
-      REAL32                                   m_fDedicatedServerAutosavePeriod;
-      REAL64                                   m_fTimeOfLastAutosave;
+      bool                                    m_bAllowAIAssumeDebt;
+      REAL32                                  m_fDedicatedServerAutosavePeriod;
+      bool                                    m_bDedicatedServerAutosaveToJoshuaFolder;
+      REAL64                                  m_fTimeOfLastAutosave;
 
-      REAL32                                   m_fGlobalTaxLimit;
+      REAL32                                  m_fGlobalTaxLimit;
 
       //! INT32 to eliminate precision issues with REAL32
-      map<EGlobalTaxSpecialType::Enum, INT32>  m_GlobalTaxSpecials;
+      map<EGlobalTaxSpecialType::Enum, INT32> m_GlobalTaxSpecials;
 
-      map<EGovernmentType::Enum, REAL32>       m_IncomeTaxLimits;
-      GString                                  m_sMessage;
-      bool                                     m_bNavalRuleEnabled;
-      REAL32                             m_fOccupiedRegionPercentageForNuclear;
-      REAL32                             m_fResourceTaxLimit;
-      bool                               m_bShowingHDIComponents;
+      map<EGovernmentType::Enum, REAL32>      m_IncomeTaxLimits;
+      INT32                                   m_iMaximumCellsInForeignCountry;
+      GString                                 m_sMessage;
+      bool                                    m_bNavalRuleEnabled;
+      REAL32                                  m_fNuclearMissileRangePercentage;
+      REAL32                                  m_fOccupiedRegionPercentageForNuclear;
+      REAL32                                  m_fProductionLossOnAnnex;
+      REAL32                                  m_fResourceTaxLimit;
+      bool                                    m_bShowingHDIComponents;
+      REAL32                                  m_fStabilityAnarchyLowerLimit;
+      REAL32                                  m_fStabilityAnarchyUpperLimit;
 
       //! Server message helper to keep track of players who have joined
       set<INT32>    m_PlayerIDs;

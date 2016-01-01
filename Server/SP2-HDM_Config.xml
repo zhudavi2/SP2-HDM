@@ -1,9 +1,20 @@
 <SP2-HDM>
+  <!-- Setting to 0 disallows human-controlled countries to have AI countries
+  assume their debts.
+  Allowed values are 0 and 1. Default is 1. -->
+  <allowAIAssumeDebt>1</allowAIAssumeDebt>
+
   <!-- For dedicated servers, the game autosaves every time this number of
   minutes have passed.
-  It's not recommended to set this on a non-dedicated server.
+  0 disables the feature. It's not recommended to set this nonzero on a non-dedicated server.
   Default is 0. -->
   <dedicatedServerAutosavePeriod>0</dedicatedServerAutosavePeriod>
+  
+  <!-- For dedicated servers, if set to 1, the game autosaves its save file to
+  the same folder as joshua.exe, instead of the "save" folder.
+  It's not recommended to set this on a non-dedicated server.
+  Default is 0. -->
+  <dedicatedServerAutosaveToJoshuaFolder>0</dedicatedServerAutosaveToJoshuaFolder>
   
   <!-- Maximum Global Tax for resources.
   Entering into the Global Tax box anything more than this value, but less than
@@ -47,6 +58,11 @@
     <the>100</the>
   </incomeTaxLimits>
   
+  <!-- The maximum number of covert cells each country can have in each foreign country.
+  0 means no limit.
+  Default is 0. -->
+  <maximumCellsInForeignCountry>0</maximumCellsInForeignCountry>
+  
   <!-- Message to broadcast to each player who joins.
   Default is "Welcome to SuperPower 2 Human Development Mod!". -->
   <message>Welcome to SuperPower 2 Human Development Mod!</message>
@@ -56,9 +72,18 @@
   Allowed values are 0 and 1. Default is 1. -->
   <navalRuleEnabled>1</navalRuleEnabled>
   
+  <!-- Percentage of default missile range to use in calculating civilian and military casualties.
+  Minimum value is 0. Default is 100. -->
+  <nuclearMissileRangePercentage>100</nuclearMissileRangePercentage>
+  
   <!-- % of occupied regions for a nuclear-armed country before it can use nuclear weapons.
   Allowed values are 0-100. Default is 0. -->
   <occupiedRegionPercentageForNuclear>0</occupiedRegionPercentageForNuclear>
+  
+  <!-- % drop in resource production that occurs in a region when it's annexed
+  by force.
+  Allowed values are 0-100. Default is 0. -->
+  <productionLossOnAnnex>0</productionLossOnAnnex>
 
   <!-- Maximum tax for each resource sector.
   Allowed values are 0-100. Default is 100. -->
@@ -73,4 +98,15 @@
   UNUSABLE       12.3% (Means EYS 12.3 years)
   Allowed values are 0 and 1. Default is 0. -->
   <showingHDIComponents>0</showingHDIComponents>
+  
+  <!-- A country will enter Anarchy when its expected (not actual) stability
+  drops to this value.
+  Works best when this is less than stabilityAnarchyUpperLimit.
+  Allowed values are 0-100. Default is 10. -->
+  <stabilityAnarchyLowerLimit>10</stabilityAnarchyLowerLimit>
+  
+  <!-- A country will leave Anarchy when its expected (not actual) stabilty
+  rises to this value.
+  Allowed values are 0-100. Default is 20. -->
+  <stabilityAnarchyUpperLimit>20</stabilityAnarchyUpperLimit>
 </SP2-HDM>

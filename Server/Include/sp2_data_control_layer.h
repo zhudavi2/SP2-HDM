@@ -144,7 +144,8 @@ namespace SP2
 												  ECovertActionsTargetSector::Enum in_eTargetSector,
 												  bool in_bFraming,
 												  UINT32 in_iTarget,
-												  INT32 in_iSpecificSector = 0) const;
+												  INT32 in_iSpecificSector = 0,
+                                                  REAL32 in_fTotalTrainingOfAdditionalCells = 0) const;
 
 		//! Should be used only in the destroy country function
 		void LeaveWar(UINT32 in_iCountryID, UINT32 in_iWarID);

@@ -154,7 +154,7 @@ void GAI::PossiblyLaunchNukeInSelfDefense(UINT32 in_iCountryID)
 			l_iMegatons += l_It->m_iQty * l_It->Megatons();
 		}
 	   
-		g_CombatPlanner.AddNukeToWaitingList(in_iCountryID,l_iMaxCountry,l_iMegatons,ENuclearTargetType::Civil);
+		g_CombatPlanner.AddNukeToWaitingList(in_iCountryID,l_iMaxCountry,l_iMegatons,ENuclearTargetType::Military);
 	}
 	
 
@@ -1646,7 +1646,11 @@ UINT32 GAI::BuildOrBuyUnits(UINT32 in_iCountry, REAL32 in_fStrength, EUnitCatego
 	const UINT32 c_iNbGroundsByStrength = 10;
 
     // Have countries with higher revenue, build or buy more
-    in_fStrength *= logf(max(1.f, static_cast<REAL32>(g_ServerDAL.CountryData(in_iCountry)->BudgetRevenues())));
+    in_fStrength *= logf(max(1.f, static_cast<REAL32>(g_ServerDAL.CountryData(in_iCountry)->BudgetRevenues()))) + 1.f;
+    /*g_Joshua.Log(L"DZDEBUG: GAI::BuildOrBuyUnits(): Country ID " + GString(in_iCountry) + L", " +
+                 g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                 L"wants to build or buy category " +
+                 GString(in_Category) + L" units with strength " + GString(in_fStrength));*/
 
 	if(in_Category == EUnitCategory::Air)
 		return BuildAirUnits(in_iCountry, max(1,(UINT32)(in_fStrength*c_iNbPlanesByStrength)));
@@ -1770,16 +1774,31 @@ UINT32 GAI::ExecuteBuildUnits(UINT32                                    in_iCoun
 							in_Research[EUnitDesignCharacteristics::CounterMesures]  > l_pUnitDesign->CounterMesures() ||
 							in_Research[EUnitDesignCharacteristics::Armor]           > l_pUnitDesign->Armor())
 						{
+                            /*g_Joshua.Log(L"DZDEBUG: GAI::ExecuteBuildUnits(): Country ID " + GString(in_iCountry) + L", " +
+                                         g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                                         L"will try to create a new design for its " +
+                                         GString(in_iDesired) + L" category " +
+                                         GString(in_eCategory) + L" units");*/
 							SP2::GUnitDesign* l_pNewDesign = GAI::CreateNewOptimalDesign(in_iCountry,in_eCategory,in_eUnitType);
 							if(l_pNewDesign && l_pNewDesign->Cost() <= in_fMaximumCostByUnit)
 							{
 								//Build that unit
+                                /*g_Joshua.Log(L"DZDEBUG: GAI::ExecuteBuildUnits(): Country ID " + GString(in_iCountry) + L", " +
+                                         g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                                         L"is building " +
+                                         GString(in_iDesired) + L" category " +
+                                         GString(in_eCategory) + L" units" +
+                                         L" based on its new design " + l_pNewDesign->Name());*/
 								return g_ServerDCL.BuildUnits(in_iCountry,in_iCountry,l_pNewDesign->Id(),in_iDesired,0,EUnitProductionPriority::Normal);
 							}		
 						}
 
 					}
-
+                    /*g_Joshua.Log(L"DZDEBUG: GAI::ExecuteBuildUnits(): Country ID " + GString(in_iCountry) + L", " +
+                                 g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                                 L"is building " +
+                                 GString(in_iDesired) + L" category " +
+                                 GString(in_eCategory) + L" units");*/
 					return g_ServerDCL.BuildUnits(in_iCountry,in_iCountry,l_pUnitDesign->Id(),in_iDesired,0,EUnitProductionPriority::Normal);
 				}
 			}
@@ -1798,8 +1817,18 @@ UINT32 GAI::ExecuteBuildUnits(UINT32                                    in_iCoun
 	else
 	{
 		//We did buy unit. Go home!
+        /*g_Joshua.Log(L"DZDEBUG: GAI::ExecuteBuildUnits(): Country ID " + GString(in_iCountry) + L", " +
+                     g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                     L"bought its " +
+                     GString(in_iDesired) + L" category " +
+                     GString(in_eCategory) + L" units");*/
 		return UINT_MAX;
 	}
+    /*g_Joshua.Log(L"DZDEBUG: GAI::ExecuteBuildUnits(): Country ID " + GString(in_iCountry) + L", " +
+                 g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                 L"did not build or buy " +
+                 GString(in_iDesired) + L" category " +
+                 GString(in_eCategory) + L" units");*/
 	return UINT_MAX;
 }
 
@@ -3042,6 +3071,10 @@ ETreatyRefusal::Enum GAI::HandleAssumeForeignDebtOffer(GTreaty* in_pTreaty, ENTI
 			 l_ItrB != l_vSideB.end();
 			 l_ItrB++)
 		{
+            //Don't allow AI to assume players' debt if the setting disallows it.
+            const SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayerByModID(*l_ItrB);
+            if(!g_SP2Server->AllowAIAssumeDebt() && l_pPlayer)
+                return ETreatyRefusal::Unknown;
 
 			if(g_ServerDAL.CountryData(*l_ItrB)->EconomicRank() < l_pCountryData->EconomicRank())
 				return ETreatyRefusal::WillNotHelpCountriesInBetterShapeThanItsOwnCountry;

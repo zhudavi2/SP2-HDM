@@ -553,12 +553,12 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
         //Log out some country data right as the game starts.
         REAL64 l_fGDPPerCapita = (m_iPopulation > 0) ? (m_fGDPValueBase / m_iPopulation) : 0;
         g_Joshua.Log(
-            L"Country ID " + GString(m_iCountryID) + L", " +
-            m_sName + L": " +
-            L"GDP " + GString::FormatNumber(m_fGDPValueBase, L",", L".", L"$", L"", 3) + "; " +
-            L"LE " + GString::FormatNumber(m_fLifeExpectancy, 1) + "; " +
-            L"MYS " + GString::FormatNumber(m_fMeanYearsSchooling, 1) + "; " +
-            L"EYS " + GString::FormatNumber(m_fExpectedYearsSchooling, 1) + "; " +
+            L"Country ID " + GString(m_iCountryID) + L", " + m_sName + L": " +
+            L"Population " + GString::FormatNumber(static_cast<REAL64>(m_iPopulation), L",", L".", L"", L"", 3, 0) + L"; " +
+            L"GDP " + GString::FormatNumber(m_fGDPValueBase, L",", L".", L"$", L"", 3) + L"; " +
+            L"LE " + GString::FormatNumber(m_fLifeExpectancy, 1) + L"; " +
+            L"MYS " + GString::FormatNumber(m_fMeanYearsSchooling, 1) + L"; " +
+            L"EYS " + GString::FormatNumber(m_fExpectedYearsSchooling, 1) + L"; " +
             L"GDP per capita " + GString::FormatNumber(l_fGDPPerCapita, L",", L".", L"$", L"", 3) + L"; " +
             L"HDI " + GString::FormatNumber(m_fHumanDevelopment, 3));
     }

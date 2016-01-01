@@ -269,83 +269,49 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
    INT32 l_iCurPlayerID = l_pPlayer->ModID();
 
    //Handle name change
-   static const GString c_sChangeNamePrefix("NAME ");
-   if(l_pEvent->m_sName.find(c_sChangeNamePrefix) == 0)
+   static const GString l_sChangeNamePrefix("NAME ");
+   if(l_pEvent->m_sName.find(l_sChangeNamePrefix) == 0)
+       g_ServerDAL.ChangeCountryName(l_iCurPlayerID, l_pEvent->m_sName.substr(l_sChangeNamePrefix.length()));
+   else
    {
-       gassert(l_iCurPlayerID >= 1,"Invalid player ID, name change won't work");
+       //Regular cell creation
+       GCountryData* l_pData = g_ServerDAL.CountryData(l_iCurPlayerID);
 
-       const GString& l_sNewCountryName = l_pEvent->m_sName.substr(c_sChangeNamePrefix.length());
+       //To keep track of the names of multiple cells; if it stays -1, means only creating 1 cell
+       INT32 l_iStartingCellNumber = -1;
 
-       //See if the new country's name is taken already. If yes, then cancel the name change.
-       for(vector<GCountry>::const_iterator l_CountryIt = g_SP2Server->Countries().cbegin();
-           l_CountryIt != g_SP2Server->Countries().cend();
-           ++l_CountryIt)
+       //Create 10 cells at a time if the given name was "MULTIPLE " followed immediately by a whole number
+       static const GString l_sMultipleCellsPrefix = L"MULTIPLE ";
+       if(l_pEvent->m_sName.find(l_sMultipleCellsPrefix) == 0)
        {
-           if(l_CountryIt->Name() == l_sNewCountryName)
-            return;
+           const GString& l_sStartingCellName = l_pEvent->m_sName.substr(l_sMultipleCellsPrefix.length());
+           l_iStartingCellNumber = l_sStartingCellName.ToINT32();
+           gassert(l_iStartingCellNumber >= 1,"Invalid starting cell number for multiple cell creation");
        }
 
-       //Change the country's name
-       //g_SP2Server->Countries() is 0-based
-       GCountry& l_Country = g_SP2Server->Countries().at(l_iCurPlayerID - 1);
+       for(INT32 i = l_iStartingCellNumber;
+           i < l_iStartingCellNumber + 10;
+           i++)
+       {
+           SP2::GCovertActionCell l_Cell;
 
-       const GString  l_sOldCountryName = l_Country.Name();
+           l_Cell.OwnerID(l_iCurPlayerID);
 
-       g_ServerDAL.CountryData(l_iCurPlayerID)->Name(l_sNewCountryName);
-       l_Country.Name(l_sNewCountryName);
+           const GString& l_sCellName = (l_iStartingCellNumber == -1) ? l_pEvent->m_sName : GString(i);
+           l_Cell.Name( l_sCellName );
 
-       g_Joshua.Log(L"Player country ID " + GString(l_iCurPlayerID) + ", " +
-           l_pPlayer->Name() + L", has changed its country's name from " +
-           l_sOldCountryName + L" to " + l_sNewCountryName);
+           l_Cell.AssignedCountry( g_ServerDAL.CountryCanAssignCovertCellToTarget(l_iCurPlayerID, l_pEvent->m_iAssignedCountryID) ?
+                                   l_pEvent->m_iAssignedCountryID :
+                                   l_iCurPlayerID );
+           l_Cell.ExperienceLevel( (REAL32)l_pEvent->m_eTraining );
+           l_Cell.Initialize();
 
-       const SDK::GPlayers& l_HumanPlayers = g_Joshua.HumanPlayers();
-       for(SDK::GPlayers::const_iterator l_PlayerIt = l_HumanPlayers.cbegin();
-           l_PlayerIt != l_HumanPlayers.cend(); 
-           ++l_PlayerIt)
-	   {
-        if(l_PlayerIt->second->PlayerStatus() == SDK::PLAYER_STATUS_ACTIVE)
-        {
-            SDK::GGameEventSPtr l_RequestEvent = CREATE_GAME_EVENT(Event::GRequestCountryList);
-            l_RequestEvent->m_iSource = l_PlayerIt->second->Id();
-            l_RequestEvent->m_iTarget = SDK::Event::ESpecialTargets::Server;
-            g_Joshua.RaiseEvent(l_RequestEvent);
-        }
+           l_pData->AddCovertActionCell(l_Cell);
+
+           //If it's not the special case of creating multiple cells
+           if(l_iStartingCellNumber == -1)
+               break;
        }
-
-       return;
-   }
-   
-   GCountryData* l_pData = g_ServerDAL.CountryData(l_iCurPlayerID);
-
-   INT32 l_iStartingCellNumber = -1;
-
-   //Create 10 cells at a time if the given name was '-' followed immediately by a whole number.
-   static const GString c_sMultipleCellsPrefix = L"-";
-   if(l_pEvent->m_sName.find(c_sMultipleCellsPrefix) == 0)
-   {
-       const GString& l_sStartingCellName = l_pEvent->m_sName.substr(c_sMultipleCellsPrefix.length());
-       l_iStartingCellNumber = l_sStartingCellName.ToINT32();
-       gassert(l_iStartingCellNumber >= 1,"Invalid starting cell number for multiple cell creation");
-   }
-
-   for(INT32 i=l_iStartingCellNumber; i<l_iStartingCellNumber+10; i++)
-   {
-       SP2::GCovertActionCell l_Cell;
-
-       l_Cell.OwnerID(l_iCurPlayerID);
-
-       const GString& l_sCellName = (l_iStartingCellNumber == -1) ? l_pEvent->m_sName : GString(i);
-       l_Cell.Name( l_sCellName );
-
-       l_Cell.AssignedCountry( l_pEvent->m_iAssignedCountryID );
-       l_Cell.ExperienceLevel( (REAL32)l_pEvent->m_eTraining );
-       l_Cell.Initialize();
-
-       l_pData->AddCovertActionCell(l_Cell);
-       
-       //If it's not the special case of creating multiple cells
-       if(l_iStartingCellNumber == -1)
-           break;
    }
 }
 
@@ -415,8 +381,11 @@ void GMilitaryEventHandler::HandleCellUpdate(SDK::GGameEventSPtr in_Event)
    }
    else if(l_pEvent->m_iToCountryID)
    {
-      l_Cells[i].NextAssignedCountry( l_pEvent->m_iToCountryID); 
-      l_Cells[i].ChangeState(ECovertActionsCellState::InTransit);
+      if(g_ServerDAL.CountryCanAssignCovertCellToTarget(l_iCurPlayerID, l_pEvent->m_iToCountryID))
+      {
+         l_Cells[i].NextAssignedCountry( l_pEvent->m_iToCountryID); 
+         l_Cells[i].ChangeState(ECovertActionsCellState::InTransit);
+      }
       l_pData->m_bCovertActionCellsDirty = true;
    }
    else if(l_pEvent->m_bCancelMission)
