@@ -359,9 +359,17 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
        //Update HDI and other stats
        {
            const GCountryData* l_pFormerCountryData = g_ServerDAL.CountryData(l_CurrentControl.m_iPolitical);
-           assert(l_pFormerCountryData);
+           gassert(l_pFormerCountryData,"Country data is NULL");
 
-           //g_Joshua.Log(L"Old populations: " + GString(l_pRegion->Population15()) + ", " + GString(l_pRegion->Population() - l_pRegion->Population15()) + " and " + GString(l_iCurrentCountryPop15) + ", " + GString(l_iCurrentCountryPopOver15));
+           GDZDebug::Log(l_pCountryData->Name() + L": Under-15 population " +
+                         GString::FormatNumber(static_cast<REAL64>(l_iCurrentCountryPop15), L",", L".", L"", L"", 3, 0) + L", " +
+                         L"over-15 population " +
+                         GString::FormatNumber(static_cast<REAL64>(l_iCurrentCountryPopOver15), L",", L".", L"", L"", 3, 0) + L"; " +
+                         L"gaining region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L" with under-15 population " +
+                         GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population15()), L",", L".", L"", L"", 3, 0) + L", " +
+                         L"over-15 population " +
+                         GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population() - l_pRegion->Population15()), L",", L".", L"", L"", 3, 0),
+                         __FUNCTION__, __LINE__);
 
            REAL32 l_fFormerBirths = l_pFormerCountryData->BirthRate() * l_pRegion->Population();
            REAL32 l_fCurrentBirths = l_fCurrentCountryBirthRate * (l_iCurrentCountryPop15 + l_iCurrentCountryPopOver15);
@@ -1899,7 +1907,8 @@ bool GDataControlLayer::DeclareWar(ENTITY_ID in_iAttackingCountry, ENTITY_ID in_
 				it != l_Treaties.end();it++)
 			{
 				const GTreaty& l_CurTreaty = it->second;
-				if(l_CurTreaty.Type() == ETreatyType::Alliance)
+				if(l_CurTreaty.Type() == ETreatyType::Alliance  ||
+                   l_CurTreaty.Type() == ETreatyType::WeaponTrade)
 				{
 					if(l_CurTreaty.CountrySide(in_iAttackingCountry) == 1 &&
 						l_CurTreaty.CountrySide(in_iDefendingCountry) == 1)
@@ -1926,6 +1935,50 @@ bool GDataControlLayer::DeclareWar(ENTITY_ID in_iAttackingCountry, ENTITY_ID in_
 			SendNews(l_News);
 		}
 	}
+
+        //Cancel any military units currently in production between the two countries
+    {
+        vector<pair<pair<ENTITY_ID, ENTITY_ID>, UINT32>> l_vUnitsToCancel;
+
+        const auto& l_vDeclarerProductionQueue = m_UnitProductor.m_vProductionQueues.at(in_iAttackingCountry - 1).m_ActiveQueue;
+        for(auto l_RequestIt = l_vDeclarerProductionQueue.cbegin();
+            l_RequestIt != l_vDeclarerProductionQueue.cend();
+            ++l_RequestIt)
+        {
+            if(l_RequestIt->m_iBuilderCountryID == in_iAttackingCountry &&
+               l_RequestIt->m_iDestinationCountryID == in_iDefendingCountry)
+               l_vUnitsToCancel.push_back(pair<pair<ENTITY_ID, ENTITY_ID>, UINT32>(pair<ENTITY_ID, ENTITY_ID>(in_iAttackingCountry, in_iDefendingCountry), l_RequestIt->m_iID));
+        }
+
+        const auto& l_vTargetProductionQueue = m_UnitProductor.m_vProductionQueues.at(in_iDefendingCountry - 1).m_ActiveQueue;
+        for(auto l_RequestIt = l_vTargetProductionQueue.cbegin();
+            l_RequestIt != l_vTargetProductionQueue.cend();
+            ++l_RequestIt)
+        {
+            if(l_RequestIt->m_iBuilderCountryID == in_iDefendingCountry &&
+               l_RequestIt->m_iDestinationCountryID == in_iAttackingCountry)
+                l_vUnitsToCancel.push_back(pair<pair<ENTITY_ID, ENTITY_ID>, UINT32>(pair<ENTITY_ID, ENTITY_ID>(in_iDefendingCountry, in_iAttackingCountry), l_RequestIt->m_iID));
+        }
+
+        for(auto l_UnitIt = l_vUnitsToCancel.cbegin();
+            l_UnitIt != l_vUnitsToCancel.cend();
+            ++l_UnitIt)
+        {
+            const auto l_iBuilderID = l_UnitIt->first.first;
+            const auto l_iDestinationID = l_UnitIt->first.second;
+            const auto l_iRequestID = l_UnitIt->second;
+            GDZDebug::Log(L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
+                          L"Built by country ID " + GString(l_iBuilderID) + L" " +
+                          L"(" + g_SP2Server->Countries().at(l_iBuilderID - 1).Name() + L") and destined for " +
+                          L"country ID " + GString(l_iDestinationID) + L" " +
+                          L"(" + g_SP2Server->Countries().at(l_iDestinationID - 1).Name() + L")",
+                          __FUNCTION__, __LINE__);
+            CancelUnitProduction(l_iBuilderID, l_iDestinationID, l_iRequestID);
+        }
+
+        SendProductionQueueToCountry(in_iAttackingCountry);
+        SendProductionQueueToCountry(in_iDefendingCountry);
+    }
 
 	//Add the war status between the 2 countries.	
 	g_ServerDAL.AddWarStatus(in_iAttackingCountry,in_iDefendingCountry);			
@@ -2349,9 +2402,12 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
 	SP2::GUnitDesign* l_pDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(in_iDesignID);
    gassert(l_pDesign,"Build units: Asking for an unknown design");
 
+   const GCountryData* const l_pDestinationCountryData = g_ServerDAL.CountryData(in_iDestinationCountryID);
+   gassert(l_pDestinationCountryData != NULL,"Destination Country data is NULL");
+
    // Can we really start the production ?
-   if(!g_ServerDAL.CountryData(in_iDestinationCountryID)->Activated()   ||
-      !g_ServerDAL.CountryData(in_iBuildingCountryID)->Activated()      ||
+   if(!l_pDestinationCountryData->Activated()                       ||
+      !g_ServerDAL.CountryData(in_iBuildingCountryID)->Activated()  ||
       ((!g_ServerDAL.GameOptions().NuclearAllowed()) && 
        (l_pDesign->Type()->Category() == SP2::EUnitCategory::Nuclear)))
    {
@@ -2369,6 +2425,21 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
          // no, then chow bye
          return 0;
    }
+
+    if(l_pDesign->Type()->Category() == EUnitCategory::Infantry)
+    {
+        const INT64 l_iMiliManpowerAvailable = l_pDestinationCountryData->MiliManpowerAvailable();
+        GDZDebug::Log(L"Country ID " + GString(in_iDestinationCountryID) + L", " +
+                      g_SP2Server->Countries().at(in_iDestinationCountryID - 1).Name() + L", " +
+                      L"is requesting " + GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
+                      L" infantry; has " + GString::FormatNumber(static_cast<REAL64>(l_iMiliManpowerAvailable), L",", L".", L"", L"", 3, 0) +
+                      L" people available",
+                      __FUNCTION__, __LINE__);
+
+        in_iQty = min(static_cast<UINT32>(l_iMiliManpowerAvailable), in_iQty);
+        if(in_iQty == 0)
+            return 0;
+    }
 
 	vector<INT32> l_vNumbers;
 	vector<INT32> l_vStrings;
@@ -2430,10 +2501,17 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
                                       in_iQty*l_pDesign->Cost() );
    }
 
-   // Decrease population if we just ship some infantry
+   //If it is infantry, remove population from country
    SP2::GUnitDesign* l_pUnitToShipDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(in_iDesignID);
    if(l_pUnitToShipDesign->Type()->Category() == EUnitCategory::Infantry)
+   {
+      GDZDebug::Log(L"Country ID " + GString(in_iDestinationCountryID) + L", " +
+                    g_SP2Server->Countries().at(in_iDestinationCountryID - 1).Name() + L", " +
+                    L"will have " + GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
+                    L" people removed due to enrolling infantry",
+                    __FUNCTION__, __LINE__);
       g_ServerDCL.RemovePopulationFromCountry(in_iDestinationCountryID,in_iQty,true);
+   }
 
  
    REAL32 l_fTechLevelFromDesign = 0;
@@ -2546,10 +2624,6 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
       l_Request.m_bUnitIsBeingBuilt       = false;
    }
 
-	//If it is infantry, remove population from country
-	if(l_pDesign->Type()->Category() == EUnitCategory::Infantry)
-      RemovePopulationFromCountry(in_iDestinationCountryID,in_iQty,true);
-
    //Insert the request into the production queue
    UINT32 l_requestID =  m_UnitProductor.InsertProductionRequest(l_Request);
 
@@ -2607,6 +2681,16 @@ bool GDataControlLayer::CancelUnitProduction(UINT32 in_iBuildingCountryID,
    IF_RETURN(!m_UnitProductor.CancelUnitProduction(in_iBuildingCountryID,in_iProductionRequestID,l_Request),false);
 
    SP2::GUnitDesign* l_pDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(l_Request.m_iDesignID);
+
+   gassert(l_pDesign != NULL,"Trying to cancel a unit with invalid design");
+   GDZDebug::Log(L"Cancelling units in production: Request ID " + GString(in_iProductionRequestID) + L": " +
+                 L"Built by country ID " + GString(in_iBuildingCountryID) + L" " +
+                 L"(" + g_SP2Server->Countries().at(in_iBuildingCountryID - 1).Name() + L") and destined for " +
+                 L"country ID " + GString(in_iCancellingCountryID) + L" " +
+                 L"(" + g_SP2Server->Countries().at(in_iCancellingCountryID - 1).Name() + L"): " +
+                 GString(l_Request.m_iQtyWanted) + L" units of " +
+                 l_pDesign->Name(),
+                 __FUNCTION__, __LINE__);
 
    // Decrease population if we just ship some infantry
    SP2::GUnitDesign* l_pUnitToShipDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(l_Request.m_iDesignID);
@@ -3628,8 +3712,9 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
             l_pRegion->TelecomLevel( l_pRegion->TelecomLevel() * 0.9f );
         }
 
-        /*g_Joshua.Log(L"DZDEBUG: Removed " + GString::FormatNumber(static_cast<REAL64>(l_iRegionCasualtiesTotal), L",", L".", L"", L"", 3, 0) + L" population " +
-                     L"from region " + g_ServerDAL.GetString(l_pRegion->NameId()));*/
+        GDZDebug::Log(L"Removed " +
+                      GString::FormatNumber(static_cast<REAL64>(l_iRegionCasualtiesTotal), L",", L".", L"", L"", 3, 0) + L" population " +                      L"from region " + g_ServerDAL.GetString(l_pRegion->NameId()),
+                      __FUNCTION__, __LINE__);
    }
 
 	for(set<UINT32>::const_iterator l_Itr = l_vCountriesHit.begin();

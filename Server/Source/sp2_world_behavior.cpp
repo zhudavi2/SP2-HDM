@@ -1867,16 +1867,17 @@ bool GWorldBehavior::VerifyEconomicFailure(INT16 in_iCountryID)
    REAL64 l_fRevenues = g_ServerDCL.GetRevenuesForEconomicFailure(in_iCountryID);
    if(l_fDebtExpenses > l_fRevenues)
    {
-      // If we don't check for non-zero revenues, then countries will eventually flood the logs when they collapse quickly due to
-      // having no GDP
-      if(l_fRevenues >= 1)
-      {
-        g_Joshua.Log(L"The economy of country ID " + GString(in_iCountryID) + L", " +
-            g_ServerDAL.GetString(l_pData->NameID()) + L", " +
-            L"has failed with debt " +
-            GString::FormatNumber(l_pData->BudgetExpenseDebt()*10, L",", L".", L"$", L"", 3));
-      }
-      return true;
+        // If we don't check for non-zero revenues, then countries will eventually flood the logs when they collapse quickly due to
+        // having no GDP
+        if(l_pData->GDPValue() >= 1 && l_pData->BudgetRevenues() >= 1)
+        {
+            g_Joshua.Log(L"The economy of " + l_pData->Name() +
+                         L"has failed with GDP " +
+                         GString::FormatNumber(l_pData->GDPValue(), L",", L".", L"$", L"", 3));
+                         L" and debt " +
+                         GString::FormatNumber(l_pData->BudgetExpenseDebt(), L",", L".", L"$", L"", 3));
+        }
+        return true;
    }
    else
       return false;

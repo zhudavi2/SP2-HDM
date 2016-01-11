@@ -11,6 +11,7 @@ using namespace SDK::EHE;
 #include "include/sp2_ai.h"
 #include "include/sp2_advisor.h"
 #include "include/sp2_advisor_event_handler.h"
+#include "include/sp2_dzdebug.h"
 #include "include/sp2_ehe_plan.h"
 #include "include/sp2_combat_planner.h"
 #include "include/sp2_unit_group_ex.h"

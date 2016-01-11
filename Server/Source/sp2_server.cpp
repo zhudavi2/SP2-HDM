@@ -377,6 +377,12 @@ SDK::GAME_MSG GServer::Initialize()
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
       g_Joshua.RegisterConsoleCommand(
+         "set_admin_player",
+         L"S",
+         L"Set server admin player by player ID",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
          "print_players",
          L"",
          L"List all current players",
@@ -1435,15 +1441,19 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    }
    else if(in_sCommand == "set_admin_country")
    {
-       // Set admin by country ID
        INT32 l_iNewAdminCountryID      = in_vArgs[0].ToINT32();
        SDK::GPlayer* l_pNewAdminPlayer = g_Joshua.ActivePlayerByModID(l_iNewAdminCountryID);
-       if(l_pNewAdminPlayer != NULL)
-       {
-           g_Joshua.AdminPlayerID(l_pNewAdminPlayer->Id());
-           return L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
-                  m_DAL.CountryData(l_iNewAdminCountryID)->Name();
-       }
+       if(l_pNewAdminPlayer != NULL && ChangeAdminPlayer(l_pNewAdminPlayer))
+            return L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
+                   m_DAL.CountryData(l_iNewAdminCountryID)->Name();
+   }
+   else if(in_sCommand == "set_admin_player")
+   {
+       INT32 l_iNewAdminID             = in_vArgs[0].ToINT32();
+       SDK::GPlayer* l_pNewAdminPlayer = g_Joshua.ActivePlayer(l_iNewAdminID);
+       if(l_pNewAdminPlayer != NULL && ChangeAdminPlayer(l_pNewAdminPlayer))
+            return L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
+                   m_DAL.CountryData(l_pNewAdminPlayer->ModID())->Name();
    }
    else if(in_sCommand == "print_players")
    {
@@ -1457,14 +1467,12 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
 			   l_pPlayer->ModID() > 0)
             {
                 const INT32 l_iCountryID = l_pPlayer->ModID();
-                l_sPlayersList += L"Player ID " + GString(l_pPlayer->Id()) + L": " +
-                                  L"Name " + l_pPlayer->Name() + L"; " +
-                                  L"country ID " + GString(l_iCountryID) + "; " +
-                                  L"country name " + m_Countries.at(l_iCountryID - 1).Name() +
-                                  L"\n";
+                g_Joshua.Log(L"Player ID " + GString(l_pPlayer->Id()) + L": " +
+                             L"Name " + l_pPlayer->Name() + L"; " +
+                             L"country ID " + GString(l_iCountryID) + "; " +
+                             L"country name " + m_Countries.at(l_iCountryID - 1).Name());
             }
 		}
-        return l_sPlayersList;
    }
 #ifdef GOLEM_DEBUG
    else if(in_sCommand == L"build")
@@ -1664,6 +1672,21 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    }
 #endif //#define GOLEM_DEBUG
    return L"";
+}
+
+bool GServer::ChangeAdminPlayer(SDK::GPlayer* in_pPlayer)
+{
+    gassert(in_pPlayer != NULL,"Intended admin player is NULL");
+
+    bool l_bAdminPlayerChanged = false;
+    if(g_Joshua.AdminPlayerID() != in_pPlayer->Id())
+    {
+        g_Joshua.AdminPlayerID(in_pPlayer->Id());
+        SendPlayersList();
+        l_bAdminPlayerChanged = true;
+    }
+
+    return l_bAdminPlayerChanged;
 }
 
 /*!

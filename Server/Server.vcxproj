@@ -94,7 +94,12 @@
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\includes\RGAPI\public;$(SolutionDir)..\includes\RGAPI\external\zlib;$(SolutionDir)..\includes\RGAPI\core;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(SolutionName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">$(SolutionName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">$(SolutionName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionName)</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionName)</TargetName>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">$(SolutionDir)..\includes\RGAPI\public;$(SolutionDir)..\includes\RGAPI\external\zlib;$(SolutionDir)..\includes\RGAPI\core;$(VCInstallDir)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,6 +137,15 @@
       <ResourceOutputFileName>
       </ResourceOutputFileName>
     </ResourceCompile>
+    <CustomBuildStep>
+      <Command>copy Server.dll "D:/SteamLibrary/SteamApps/common/SuperPower 2/MODS/SP2-HDM"</Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "D:\\SteamLibrary\\SteamApps\\common\\SuperPower 2\\MODS\\SP2-HDM"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -173,6 +187,15 @@
       <ResourceOutputFileName>
       </ResourceOutputFileName>
     </ResourceCompile>
+    <CustomBuildStep>
+      <Command>copy Server.dll "D:/SteamLibrary/SteamApps/common/SuperPower 2/MODS/SP2-HDM"</Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "D:\\SteamLibrary\\SteamApps\\common\\SuperPower 2\\MODS\\SP2-HDM"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_In_Release|Win32'">
     <ClCompile>
@@ -180,7 +203,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\..\..\SDK\include;..\common_lib\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\includes\SDK\;..\includes\common_lib\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SERVER_EXPORTS;INCLUDE_DATABASE;SP2_SERVER;GOLEM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -194,11 +217,11 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Ginger_SDK.lib;unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)Server.dll</OutputFile>
       <Version>
       </Version>
-      <AdditionalLibraryDirectories>..\..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -212,6 +235,16 @@
       <ResourceOutputFileName>
       </ResourceOutputFileName>
     </ResourceCompile>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "D:\\SteamLibrary\\SteamApps\\common\\SuperPower 2\\MODS\\SP2-HDM"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_No_Assert|Win32'">
     <ClCompile>
@@ -249,6 +282,26 @@
       <ResourceOutputFileName>
       </ResourceOutputFileName>
     </ResourceCompile>
+    <CustomBuildStep>
+      <Command>copy Server.dll "D:/SteamLibrary/SteamApps/common/SuperPower 2/MODS/SP2-HDM"</Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "D:\\SteamLibrary\\SteamApps\\common\\SuperPower 2\\MODS\\SP2-HDM"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
+    <CustomBuildStep>
+      <Command>copy Server.dll "D:/SteamLibrary/SteamApps/common/SuperPower 2/MODS/SP2-HDM"</Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "D:\\SteamLibrary\\SteamApps\\common\\SuperPower 2\\MODS\\SP2-HDM"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\sp2_advisor.cpp" />
@@ -377,6 +430,7 @@
     <ClInclude Include="Include\sp2_country_data_holder.h" />
     <ClInclude Include="Include\sp2_data_access_layer.h" />
     <ClInclude Include="Include\sp2_data_control_layer.h" />
+    <ClInclude Include="Include\sp2_dzdebug.h" />
     <ClInclude Include="Include\sp2_economic_event_handler.h" />
     <ClInclude Include="Include\sp2_ehe_constants.h" />
     <ClInclude Include="Include\sp2_ehe_plan.h" />

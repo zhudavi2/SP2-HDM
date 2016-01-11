@@ -3684,10 +3684,12 @@ bool GDataAccessLayerServer::CountryCanAssignCovertCellToTarget(UINT32 in_iSourc
             }
         }
 
-        /*g_Joshua.Log(L"DZDEBUG: Country ID " + GString(in_iSource) +
-                     L" trying to assign a cell to country ID " + GString(in_iTarget) + L"; " +
-                     L"already has " + GString(l_iNumberCellsAlreadyInIntendedCountry) + L" cells in that country. " +
-                     L"CanMove " + GString(l_bCanMove));*/
+        GDZDebug::Log(L"Country ID " + GString(in_iSource) + L", " + g_SP2Server->Countries().at(in_iSource - 1).Name() + ", " +
+                      L"trying to assign a cell to " +
+                      L"country ID " + GString(in_iTarget) + L", " + g_SP2Server->Countries().at(in_iTarget - 1).Name() + "; " +
+                      L"already has " + GString(l_iNumberCellsAlreadyInIntendedCountry) + L" cells in that country. " +
+                      L"CanMove " + GString(l_bCanMove),
+                      __FUNCTION__, __LINE__);
     }
 
     return l_bCanMove;
@@ -3746,7 +3748,8 @@ void GDataAccessLayerServer::ChangeCountryName(UINT32 in_iCountryID, const GStri
         {
             if(!m_pCountryValidityArray[i])
             {
-                //g_Joshua.Log(L"DZDEBUG: Resending news that country ID " + GString(i) + L" has been conquered");
+                GDZDebug::Log(L"Resending news that " + m_pCountryData[i].Name() + L" has been conquered",
+                              __FUNCTION__, __LINE__);
                 SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GConquerCountry);
                 SP2::Event::GConquerCountry* l_ConquerEvent = (SP2::Event::GConquerCountry*) (l_Event.get() );
                 l_ConquerEvent->m_iConqeredID = i;

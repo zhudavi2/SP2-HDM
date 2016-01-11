@@ -153,7 +153,10 @@ bool SP2::GEconomicEventHandler::HandleUpdateResources(SDK::GGameEventSPtr in_Ev
                       l_pData->ResourceMeetConsumption(l_eResourceID, false);
                       g_ServerDCL.ChangeResourceImportDesired(l_iCountryId, l_eResourceID, 0);
                       g_ServerDCL.ChangeResourceExportDesired(l_iCountryId, l_eResourceID, l_pData->ResourceProduction(l_eResourceID));
-                      //g_Joshua.Log(L"DZDEBUG: " + g_ServerDAL.GetString(g_ServerDAL.StringIdResource(l_eResourceID)) + L" resource, exporting " + GString::FormatNumber(l_pData->ResourceExportDesired(l_eResourceID)/1000000, L" ", L".", L"$", L"M"));
+                      GDZDebug::Log(g_ServerDAL.GetString(g_ServerDAL.StringIdResource(l_eResourceID)) + L" resource, " +
+                                    L"exporting " +
+                                    GString::FormatNumber(l_pData->ResourceExportDesired(l_eResourceID)/1000000, L" ", L".", L"$", L"M"),
+                                    __FUNCTION__, __LINE__);
                   }
                   else if(l_iGlobalTaxBoxValue == g_SP2Server->GlobalTaxSpecial(EGlobalTaxSpecialType::MeetDomestic))
                   {

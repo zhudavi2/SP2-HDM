@@ -263,6 +263,9 @@ namespace SP2
 
       //! Server message helper to keep track of players who have joined
       set<INT32>    m_PlayerIDs;
+
+      //! Helper for changing the admin player; returns true if successful
+      bool ChangeAdminPlayer(SDK::GPlayer* in_pPlayer);
    };
 
 }

@@ -186,15 +186,10 @@ namespace Hector
    * Assert MACRO
    **/
 #ifdef GOLEM_DEBUG
-#  ifdef _DEBUG
-#     define gassertline(expr, msgbef, linen, msgaft)\
-   _ASSERT_BASE(expr, #msgbef #linen #msgaft)
-#     define gassert(expr, msg)\
-         gassertline(expr, #expr "\n\n" __FILE__ " ", __LINE__, " : " #msg)
-#  else
-   void GOLEM_DEBUG_Assert(void* in_Expr,char* filename,int linenum, GString in_sMsg);
-#  define gassert(expr,msg) GOLEM_DEBUG_Assert((void*)(expr),__FILE__,__LINE__,msg)
-#  endif
+#  define gassertline(expr, msgbef, linen, msgaft)\
+_ASSERT_BASE(expr, #msgbef #linen #msgaft)
+#  define gassert(expr, msg)\
+      gassertline(expr, #expr "\n\n" __FILE__ " ", __LINE__, " : " #msg)
 #else  
 #  define gassert(expr, msg)
 #endif

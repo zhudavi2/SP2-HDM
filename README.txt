@@ -106,24 +106,8 @@ Other changes:
 - Minimum possible birth and death rates have been lowered slightly.
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
-Known issues:
-- There's a possible issue where if a country is occupied for a long time, releasing all its regions would make the country extremely rich in resources momentarily. (Existed in SP2 V1.5.1.)
-- Some people have reported that in a multiplayer game, if your in-game nickname that you chose in the Multiplayer Lobby window is different from your nickname on your Game Options > Player screen (or sp2_cfg_client.xml), then if you change your country's name, your in-game nickname may also automatically change to your Options menu nickname. I'm currently investigating; for now, if confusion is a concern, it's recommended that your Game Options nickname is the same as or similar to the nickname that you choose in the Multiplayer Lobby. (Existed in V3, maybe V2.)
-- After a country is conquered, it may still appear to suffer from covert actions for a while. (Existed in SP2 V1.5.1.)
-
-Future changes and "thoughts" in no particular order of priority:
-- Have LE, MYS, and EYS affect more than just the HDI. For example, all 3 could have some effect on birth and death rates, and MYS and EYS could affect resource growth.
-- Have resource sector taxes apply to all domestic production of resources, not just imports and exports.
-- Have immigration and emigration rates depend on more than just political factors.
-- Have interest rate have a larger effect on inflation rate.
-- Have wars and occupation directly and negatively affect LE, MYS, and EYS.
-- Find out some other way to show LE, MYS, and EYS to the player.
-- If your country isn't meeting your domestic consumption of food-related resources, then it should have detrimental effects on your LE.
-- Have the foreign covert cell limit apply to AI countries.
-- Modify how the AI handles its military. For example, it could try to increase its own covert action success rates by moving more cells into the target country, or it could be more aggressive in building up its military.
-- Modify how the AI handles its covert actions. When it prepares a mission against a target country, but the target is conquered before the mission is execued, then it shouldn't go about blindly executing the mission against the conquering country.
-- Change the method of changing a country's name to be more intuitive.
-- General AI improvements in light of the new SP2-HDM features.
+Known issues and possible future changes:
+- Please see https://github.com/zhudavi2/SP2-HDM/issues.
 
 Credits:
 - Fenix for code suggestions and support.
