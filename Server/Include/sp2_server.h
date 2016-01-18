@@ -118,6 +118,7 @@ namespace SP2
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
+      inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
       inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
       inline REAL32  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
@@ -240,6 +241,7 @@ namespace SP2
       void           LoadSP2HDMConfigXML();
 
       bool                                    m_bAllowAIAssumeDebt;
+      bool                                    m_bAllowDefenderAttackAttackerTerritory;
       REAL32                                  m_fDedicatedServerAutosavePeriod;
       bool                                    m_bDedicatedServerAutosaveToJoshuaFolder;
       REAL64                                  m_fTimeOfLastAutosave;

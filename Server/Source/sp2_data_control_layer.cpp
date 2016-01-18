@@ -6604,7 +6604,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
         {
             //More covert cells in the target country should result in a better success rate
             GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_iCellOwnerID);
-            const vector<GCovertActionCell> l_vCells = l_pCountryData->CovertActionCells();
+            const vector<GCovertActionCell>& l_vCells = l_pCountryData->CovertActionCells();
             REAL32 l_fTotalTrainingOfAdditionalCells = 0.f;
             for (vector<GCovertActionCell>::const_iterator l_CellIt = l_vCells.cbegin();
                  l_CellIt < l_vCells.cend();

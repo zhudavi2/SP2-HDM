@@ -1903,8 +1903,65 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
          SDK::GWayPoint* l_pPath = NULL;
          if(!l_bImpossible)
          {
-            // Find requested path
-            l_pPath = m_PathFinder.Path(l_iStartRegion, l_iDestRegion);
+            const UINT8* const l_pStatuses = g_ServerDAL.CountryDiplomaticStatuses(l_iOwner);
+
+            bool l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
+
+            if(!m_bMovingNavalUnit)
+            {
+                const GCountryData* const l_pOwnerCountry = g_ServerDAL.CountryData(l_iOwner);
+
+                const GRegion* const l_pStartRegion = g_ServerDAL.GetGRegion(m_vRegionGraph[l_iStartRegion].m_iRegionId);
+
+                const GRegion* const l_pDestRegion = g_ServerDAL.GetGRegion(m_vRegionGraph[l_iDestRegion].m_iRegionId);
+                const ENTITY_ID l_iDestOwner = l_pDestRegion->OwnerId();
+                const GCountryData* const l_pDestOwnerCountry = g_ServerDAL.CountryData(l_iDestOwner);
+                const ENTITY_ID l_iDestMilitaryOwner = l_pDestRegion->OwnerMilitaryId();
+
+                GDZDebug::Log(l_pOwnerCountry->Name() + L" is trying to move ground units " +
+                              L"from region " + g_ServerDAL.GetString(l_pStartRegion->NameId()) + L" " +
+                              L"to region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
+                              L"of " + l_pDestOwnerCountry->Name() + L", " +
+                              L"controlled militarily by " + g_ServerDAL.CountryData(l_iDestMilitaryOwner)->Name(),
+                              __FUNCTION__, __LINE__);
+
+                // If the setting dictates it, never allow movement into an attacking country,
+                // unless there's a war in which we're attacking them
+                if(!g_SP2Server->AllowDefenderAttackAttackerTerritory() &&
+                   l_pStatuses[l_iDestOwner] == EDiplomaticStatus::Hostile &&
+                   l_iDestOwner == l_iDestMilitaryOwner)
+                {
+                    l_bAllowMovementBasedOnDefenderAttackingAttacker = false;
+
+                    const hash_map<UINT32,GWar>& l_mWars = g_ServerDAL.CurrentWars();
+                    for(hash_map<UINT32,GWar>::const_iterator l_It = l_mWars.cbegin();
+                        l_It != l_mWars.cend();
+                        ++l_It)
+                    {
+                        const GWar& l_War = l_It->second;
+                        const set<ENTITY_ID>& l_vAttackingSide = l_War.AttackingSide();
+                        const set<ENTITY_ID>& l_vDefendingSide = l_War.DefendingSide();
+                        if(l_vAttackingSide.find(l_iOwner) != l_vAttackingSide.cend() &&
+                           l_vDefendingSide.find(l_iDestOwner) != l_vDefendingSide.cend())
+                        {
+                             GDZDebug::Log(l_pOwnerCountry->Name() + L" is on the attacking side and " +
+                                           l_pDestOwnerCountry->Name() + L" is on the defending side of " +
+                                           L"a war between " + g_ServerDAL.CountryData(l_War.MasterAttacking())->Name() + L" and " +
+                                           g_ServerDAL.CountryData(l_War.MasterDefending())->Name(),
+                                           __FUNCTION__, __LINE__);
+                            l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if(l_bAllowMovementBasedOnDefenderAttackingAttacker)
+            {
+                // Find requested path
+                l_pPath = m_PathFinder.Path(l_iStartRegion, l_iDestRegion);
+            }
+
             if(l_pPath)
             {
                GGroupMove l_UnitMove;
@@ -1948,7 +2005,6 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                }
 
                const vector<GRegionControl>& l_vRegions = g_ServerDAL.RegionControlArray();
-               const UINT8* l_pStatuses = g_ServerDAL.CountryDiplomaticStatuses(l_iOwner);
                bool l_bPathShortened = false;
 
                // If our start and dest point dont have same owner and destination is in hostile territory

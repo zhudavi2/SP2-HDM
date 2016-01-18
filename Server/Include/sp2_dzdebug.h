@@ -22,7 +22,10 @@ namespace SP2
         {
             if(m_bLoggingEnabled)
             {
-                g_Joshua.Log(L"(DZDEBUG) " + in_sFunc + L": " + GString(in_iLine) + L" - " + in_sMsg);
+                g_Joshua.Log(L"(DZDEBUG) " +
+                             (in_sFunc.empty() ? L"" : (in_sFunc + L": ")) +
+                             ((in_iLine == 0) ? L"" : (GString(in_iLine) + L" ")) +
+                             L"- " + in_sMsg);
             }
         }
 

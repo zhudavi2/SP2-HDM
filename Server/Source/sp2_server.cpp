@@ -254,6 +254,7 @@ SDK::GAME_MSG GServer::Initialize()
 
    {
         // Default values
+        m_bAllowDefenderAttackAttackerTerritory  = true;
         m_bAllowAIAssumeDebt                     = true;
         m_bDedicatedServerAutosaveToJoshuaFolder = false;
         m_fDedicatedServerAutosavePeriod         = 0.f;
@@ -2526,6 +2527,11 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_bAllowAIAssumeDebt = (elementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowAIAssumeDebt: " + GString(m_bAllowAIAssumeDebt));
+                    }
+                    else if(elementName == L"allowDefenderAttackAttackerTerritory")
+                    {
+                        m_bAllowDefenderAttackAttackerTerritory = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"allowDefenderAttackAttackerTerritory: " + GString(m_bAllowDefenderAttackAttackerTerritory));
                     }
                     else if(elementName == L"dedicatedServerAutosavePeriod")
                     {

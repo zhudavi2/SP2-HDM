@@ -1872,8 +1872,8 @@ bool GWorldBehavior::VerifyEconomicFailure(INT16 in_iCountryID)
         if(l_pData->GDPValue() >= 1 && l_pData->BudgetRevenues() >= 1)
         {
             g_Joshua.Log(L"The economy of " + l_pData->Name() +
-                         L"has failed with GDP " +
-                         GString::FormatNumber(l_pData->GDPValue(), L",", L".", L"$", L"", 3));
+                         L" has failed with GDP " +
+                         GString::FormatNumber(l_pData->GDPValue(), L",", L".", L"$", L"", 3) +
                          L" and debt " +
                          GString::FormatNumber(l_pData->BudgetExpenseDebt(), L",", L".", L"$", L"", 3));
         }
