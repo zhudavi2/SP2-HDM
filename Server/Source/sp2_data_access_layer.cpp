@@ -3684,80 +3684,13 @@ bool GDataAccessLayerServer::CountryCanAssignCovertCellToTarget(UINT32 in_iSourc
             }
         }
 
-        GDZDebug::Log(L"Country ID " + GString(in_iSource) + L", " + g_SP2Server->Countries().at(in_iSource - 1).Name() + ", " +
-                      L"trying to assign a cell to " +
-                      L"country ID " + GString(in_iTarget) + L", " + g_SP2Server->Countries().at(in_iTarget - 1).Name() + "; " +
+        GDZDebug::Log(g_ServerDAL.CountryData(in_iSource)->NameAndIDForLog() + L", trying to assign a cell to " +
+                      g_ServerDAL.CountryData(in_iTarget)->NameAndIDForLog() + "; " +
                       L"already has " + GString(l_iNumberCellsAlreadyInIntendedCountry) + L" cells in that country. " +
                       L"CanMove " + GString(l_bCanMove),
+                      EDZDebugLogCategory::Covert,
                       __FUNCTION__, __LINE__);
     }
 
     return l_bCanMove;
-}
-
-void GDataAccessLayerServer::ChangeCountryName(UINT32 in_iCountryID, const GString& in_sNewName)
-{
-    gassert(in_iCountryID >= 1,"Invalid country ID, name change won't work");
-
-    //See if the new country's name is taken already. If yes, then the name change will not occur
-    bool l_bNameTakenAlready = false;
-    for(vector<GCountry>::const_iterator l_CountryIt = g_SP2Server->Countries().cbegin();
-        l_CountryIt != g_SP2Server->Countries().cend();
-        ++l_CountryIt)
-    {
-        if(l_CountryIt->Name() == in_sNewName)
-            l_bNameTakenAlready = true;
-    }
-
-    if(!l_bNameTakenAlready)
-    {
-        //Change the country's name
-        //g_SP2Server->Countries() is 0-based
-        GCountries& l_vCountries = g_SP2Server->Countries();
-        GCountry& l_Country = l_vCountries.at(in_iCountryID - 1);
-
-        const GString l_sOldName = l_Country.Name();
-
-        m_pCountryData[in_iCountryID].Name(in_sNewName);
-        l_Country.Name(in_sNewName);
-
-        SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayerByModID(in_iCountryID);
-        g_Joshua.Log(L"Country ID " + GString(in_iCountryID) +
-                     ((l_pPlayer != NULL) ?
-                      (L", played by player ID " + GString(l_pPlayer->Id()) + L", " + l_pPlayer->Name() + L", ") :
-                      L" ") +
-                     L"has changed its name from " +
-                     l_sOldName + L" to " + in_sNewName);
-
-        {
-            SDK::GGameEventSPtr l_ReceiveCountryListEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
-            l_ReceiveCountryListEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
-            l_ReceiveCountryListEvent->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
-
-            Event::GReceiveCountryList* l_pCntrListEvent = (Event::GReceiveCountryList*) l_ReceiveCountryListEvent.get();
-            l_pCntrListEvent->m_vCountries = g_SP2Server->Countries();
-
-            g_Joshua.RaiseEvent(l_ReceiveCountryListEvent);
-        }
-
-        //Resend all news of countries being conquered
-        //Libraries automatically change all GCountry objects to active for GReceiveCountryList event, so we need to correct for that
-        for(INT32 i = 1;
-            i < NbCountry();
-            i++)
-        {
-            if(!m_pCountryValidityArray[i])
-            {
-                GDZDebug::Log(L"Resending news that " + m_pCountryData[i].Name() + L" has been conquered",
-                              __FUNCTION__, __LINE__);
-                SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GConquerCountry);
-                SP2::Event::GConquerCountry* l_ConquerEvent = (SP2::Event::GConquerCountry*) (l_Event.get() );
-                l_ConquerEvent->m_iConqeredID = i;
-                l_ConquerEvent->m_iConqueringID = 0;
-                l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
-                l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
-                g_Joshua.RaiseEvent(l_Event);
-            }
-        }
-    }
 }

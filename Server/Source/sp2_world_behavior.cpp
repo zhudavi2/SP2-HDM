@@ -110,7 +110,7 @@ bool GWorldBehavior::Reset()
 	m_fLastBudgetIteration = 0.f;
 	m_QuickRandom.Seed(GetTickCount() );
 
-    m_iHumanDevLogStartingCountryID = 0;
+    m_iHDILogStartingCountryID = 0;
 
 	return true;
 }
@@ -1271,7 +1271,7 @@ bool GWorldBehavior::Iterate_Human_Development()
     REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, l_fMeanYearsSchooling, l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita());
 	m_CountryData->HumanDevelopment(l_fNewHDLevel);
 
-    if(g_SP2Server->ShowingHDIComponents())
+    if(g_SP2Server->ShowHDIComponents())
     {
         m_CountryData->ArableLandLevel(l_fNewHDLevel);
         m_CountryData->ForestLandLevel(l_fLifeExpectancy / 100.f);
@@ -1279,23 +1279,26 @@ bool GWorldBehavior::Iterate_Human_Development()
         m_CountryData->NotUsedLandLevel(l_fExpectedYearsSchooling / 100.f);
     }
 
-    /*if((static_cast<INT32>(g_Joshua.GameTime()) % 365 == 0) && (m_iHumanDevLogStartingCountryID == 0))
-        m_iHumanDevLogStartingCountryID = m_CountryData->CountryID();
-
-    if(m_iHumanDevLogStartingCountryID != 0)
     {
-        g_Joshua.Log(
-            L"Country ID " + GString(m_CountryData->CountryID()) + L", " +
-            g_ServerDAL.GetString(m_CountryData->NameID()) + L": " +
-            L"LE " + GString::FormatNumber(m_CountryData->LifeExpectancy(), 1) + L"; " +
-            L"MYS " + GString::FormatNumber(m_CountryData->MeanYearsSchooling(), 1) + L"; " +
-            L"EYS " + GString::FormatNumber(m_CountryData->ExpectedYearsSchooling(), 1) + L"; " +
-            L"GDP per capita " + GString::FormatNumber(m_CountryData->GDPPerCapita(), L",", L".", L"$", L"", 3) + L"; " +
-            L"HDI " + GString::FormatNumber(m_CountryData->HumanDevelopment(), 3));
+        //Logging
+        if((static_cast<INT32>(g_Joshua.GameTime()) % 180 == 0) && (m_iHDILogStartingCountryID == 0))
+            m_iHDILogStartingCountryID = m_CountryData->CountryID();
 
-        if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHumanDevLogStartingCountryID) //We're finished logging
-            m_iHumanDevLogStartingCountryID = 0;
-    }*/
+        if(m_iHDILogStartingCountryID != 0)
+        {
+            GDZDebug::Log(m_CountryData->NameAndIDForLog() + L": " +
+                          L"LE " + GString::FormatNumber(m_CountryData->LifeExpectancy(), 1) + L"; " +
+                          L"MYS " + GString::FormatNumber(m_CountryData->MeanYearsSchooling(), 1) + L"; " +
+                          L"EYS " + GString::FormatNumber(m_CountryData->ExpectedYearsSchooling(), 1) + L"; " +
+                          L"GDP per capita " + GString::FormatNumber(m_CountryData->GDPPerCapita(), L",", L".", L"$", L"", 3) + L"; " +
+                          L"HDI " + GString::FormatNumber(m_CountryData->HumanDevelopment(), 3),
+                          EDZDebugLogCategory::HDI,
+                          __FUNCTION__, __LINE__);
+
+            if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHDILogStartingCountryID) //We're finished logging
+                m_iHDILogStartingCountryID = 0;
+        }
+    }
 
 	return true;
 }

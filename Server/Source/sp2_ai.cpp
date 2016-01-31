@@ -1646,12 +1646,12 @@ UINT32 GAI::BuildOrBuyUnits(UINT32 in_iCountry, REAL32 in_fStrength, EUnitCatego
 	const UINT32 c_iNbGroundsByStrength = 10;
 
     // Have countries with higher revenue, build or buy more
-    in_fStrength *= logf(max(1.f, static_cast<REAL32>(g_ServerDAL.CountryData(in_iCountry)->BudgetRevenues()))) + 1.f;
-    GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                  g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
-                  L"wants to build or buy " +
+    const GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountry);
+    in_fStrength *= static_cast<REAL32>(log(max(1.0, l_pCountryData->BudgetRevenues())) + 1.0);
+    GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L"wants to build or buy " +
                   ((EUnitCategory::Infantry <= in_Category && in_Category <= EUnitCategory::Nuclear) ? g_ServerDAL.GetString(c_iUnitCategoryStringID[in_Category]) : (L"category " + GString(in_Category))) + L" units " +
                   L"with strength " + GString(in_fStrength),
+                  EDZDebugLogCategory::ObtainUnits,
                   __FUNCTION__, __LINE__);
 
 	if(in_Category == EUnitCategory::Air)
@@ -1722,15 +1722,16 @@ UINT32 GAI::ExecuteBuildUnits(UINT32                                    in_iCoun
 										UINT8*                                    in_Research,
 										const multimap<REAL32,SP2::GUnitDesign*>& in_mPossibleDesigns)
 {
+    const GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountry);
 	bool l_bBuySuccesful = false;
 
 	if(in_mPossibleDesigns.size() > 0)
 	{
 		//Does a better design exist on the market? If so, buy it.
-        GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                      g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+        GDZDebug::Log(l_pCountryData->NameAndIDForLog() +
                       L"will try to buy its " + GString(in_iDesired) + L" " +
                       g_ServerDAL.GetString(c_iUnitCategoryStringID[in_eCategory]) + L" units",
+                      EDZDebugLogCategory::ObtainUnits,
                       __FUNCTION__, __LINE__);
 		l_bBuySuccesful = BuyUnits(in_iCountry,in_eUnitType,in_iDesired,-(in_mPossibleDesigns.begin()->first));		
 	}
@@ -1784,19 +1785,19 @@ UINT32 GAI::ExecuteBuildUnits(UINT32                                    in_iCoun
 							SP2::GUnitDesign* l_pNewDesign = GAI::CreateNewOptimalDesign(in_iCountry,in_eCategory,in_eUnitType);
 							if(l_pNewDesign != NULL)
 							{
-                                GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                                              g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                                GDZDebug::Log(l_pCountryData->NameAndIDForLog() +
                                               L"has created a new design, " + l_pNewDesign->Name() + L", " +
                                               L"for its " + GString(in_iDesired) + L" " +
                                               g_ServerDAL.GetString(c_iUnitCategoryStringID[in_eCategory]) + L" units",
+                                              EDZDebugLogCategory::ObtainUnits,
                                               __FUNCTION__, __LINE__);
 
                                 if(l_pNewDesign->Cost() <= in_fMaximumCostByUnit)
                                 {                        
 								    //Build that unit
-                                    GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                                                  g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                                    GDZDebug::Log(l_pCountryData->NameAndIDForLog() +
                                                   L"will build its new design " + l_pNewDesign->Name(),
+                                                  EDZDebugLogCategory::ObtainUnits,
                                                   __FUNCTION__, __LINE__);
 								    return g_ServerDCL.BuildUnits(in_iCountry,in_iCountry,l_pNewDesign->Id(),in_iDesired,0,EUnitProductionPriority::Normal);
                                 }
@@ -1804,9 +1805,9 @@ UINT32 GAI::ExecuteBuildUnits(UINT32                                    in_iCoun
 						}
 
 					}
-                    GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                                  g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                    GDZDebug::Log(l_pCountryData->NameAndIDForLog() +
                                   L"will build its existing design " + l_pUnitDesign->Name(),
+                                  EDZDebugLogCategory::ObtainUnits,
                                   __FUNCTION__, __LINE__);
 					return g_ServerDCL.BuildUnits(in_iCountry,in_iCountry,l_pUnitDesign->Id(),in_iDesired,0,EUnitProductionPriority::Normal);
 				}
@@ -1819,10 +1820,10 @@ UINT32 GAI::ExecuteBuildUnits(UINT32                                    in_iCoun
 			if(l_pNewDesign && l_pNewDesign->Cost() <= in_fMaximumCostByUnit)
 			{
 				//Build that unit
-                GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                              g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+                GDZDebug::Log(l_pCountryData->NameAndIDForLog() +
                               L"will build its new " + g_ServerDAL.GetString(c_iUnitTypeStringID[in_eUnitType]) +
                               L" design " + l_pNewDesign->Name(),
+                              EDZDebugLogCategory::ObtainUnits,
                               __FUNCTION__, __LINE__);
 				return g_ServerDCL.BuildUnits(in_iCountry,in_iCountry,l_pNewDesign->Id(),in_iDesired,0,EUnitProductionPriority::Normal);
 			}			
@@ -1833,10 +1834,10 @@ UINT32 GAI::ExecuteBuildUnits(UINT32                                    in_iCoun
 		//We did buy unit. Go home!
 		return UINT_MAX;
 	}
-    GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                  g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+    GDZDebug::Log(l_pCountryData->NameAndIDForLog() +
                   L"did not build or buy " + GString(in_iDesired) + L" " +
                   g_ServerDAL.GetString(c_iUnitCategoryStringID[in_eCategory]) + L" units",
+                  EDZDebugLogCategory::ObtainUnits,
                   __FUNCTION__, __LINE__);
 	return UINT_MAX;
 }
@@ -2091,11 +2092,11 @@ bool GAI::BuyUnits(UINT32 in_iCountry, EUnitType::Enum in_eUnitType, UINT32 in_i
 		if(l_fTotalAmountOfSale > l_fMaxAmountToSpend)
 			continue;
 
-        GDZDebug::Log(L"Country ID " + GString(in_iCountry) + L", " +
-                      g_SP2Server->Countries().at(in_iCountry - 1).Name() + L", " +
+        GDZDebug::Log(l_pCountryData->NameAndIDForLog() +
                       L"will buy its " + GString(in_iDesired) + L" " + l_pDesign->Name() +
                       L" from country ID " + GString(l_pDesign->DesignerID()) + L", " +
-                      g_SP2Server->Countries().at(l_pDesign->DesignerID() - 1).Name(),
+                      g_ServerDAL.CountryData(l_pDesign->DesignerID())->NameAndIDForLog(),
+                      EDZDebugLogCategory::ObtainUnits,
                       __FUNCTION__, __LINE__);
 		g_ServerDCL.BuildUnits(l_pDesign->DesignerID(),in_iCountry,l_pDesign->Id(),in_iDesired,0,EUnitProductionPriority::Normal);
 		return true;		

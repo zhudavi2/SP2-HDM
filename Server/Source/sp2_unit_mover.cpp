@@ -911,6 +911,8 @@ bool GUnitMover::Iterate()
    }
 
    // Check each unprotected move for combat opportunities & region ownership change
+   const REAL32 l_fCombatThresholdSquare = g_SP2Server->CombatThresholdSquare();
+
    for(UINT32 i = 0;i < l_vUnprotectedMoves.size();i ++)
    {
       m_pArena = NULL;
@@ -934,7 +936,7 @@ bool GUnitMover::Iterate()
             {
                // Make sure units are close enough to create a combat
                const GVector2D<REAL32>& l_CompareGroupPos = l_pCompareGroup->Position();
-               if(l_GroupPos.DistanceSquared(l_CompareGroupPos) <= c_fCombatThresholdSquare)
+               if(l_GroupPos.DistanceSquared(l_CompareGroupPos) <= l_fCombatThresholdSquare)
                {
                   // Make sure groups are hostile each other
                   if(g_ServerDAL.DiplomaticStatus(l_pGroup->OwnerId(), l_pCompareGroup->OwnerId() ) == EDiplomaticStatus::Hostile)
@@ -970,7 +972,7 @@ bool GUnitMover::Iterate()
                // Make sure units are close enough to creatpe a combat
                const GVector2D<REAL32>& l_CompareGroupPos = l_pCompareGroup->Position();
                if( (l_pCompareGroup != l_pGroup) && 
-                  (l_GroupPos.DistanceSquared(l_CompareGroupPos) <= c_fCombatThresholdSquare) )
+                  (l_GroupPos.DistanceSquared(l_CompareGroupPos) <= l_fCombatThresholdSquare) )
                {
                   // Make sure groups are hostile each other
                   if(g_ServerDAL.DiplomaticStatus(l_pGroup->OwnerId(), l_pCompareGroup->OwnerId() ) == EDiplomaticStatus::Hostile)
@@ -1046,7 +1048,7 @@ bool GUnitMover::Iterate()
                {
                   // Make sure units are close enough to create a combat
                   const GVector2D<REAL32>& l_CompareGroupPos = l_pCompareGroup->Position();
-                  if(l_ArenaPos.DistanceSquared(l_CompareGroupPos) <= c_fCombatThresholdSquare)
+                  if(l_ArenaPos.DistanceSquared(l_CompareGroupPos) <= l_fCombatThresholdSquare)
                   {
                      // Make sure groups are hostile each other
                      if(g_ServerDAL.DiplomaticStatus(l_pGroup->OwnerId(), l_pCompareGroup->OwnerId() ) == EDiplomaticStatus::Hostile)
@@ -1077,7 +1079,7 @@ bool GUnitMover::Iterate()
                // Make sure units are close enough to join a combat
                const GVector2D<REAL32>& l_CompareGroupPos = l_pCompareGroup->Position();
                if( (l_pCompareGroup->Status() < EMilitaryStatus::CanJoinCombat) && 
-                   (l_ArenaPos.DistanceSquared(l_CompareGroupPos) <= c_fCombatThresholdSquare) )
+                   (l_ArenaPos.DistanceSquared(l_CompareGroupPos) <= l_fCombatThresholdSquare) )
                {
                   // Make sure groups are hostile each other
                   if(g_ServerDAL.DiplomaticStatus(l_pGroup->OwnerId(), l_pCompareGroup->OwnerId() ) == EDiplomaticStatus::Hostile)
@@ -1607,7 +1609,7 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
       {
          //Movement is in the water, check for close units and declare war to all
          //Neutral units that are close to that.
-         g_ServerDCL.DeclareWarToNeutralUnitsWithinRange(l_iOwner,in_Dest,c_fCombatThresholdSquare);
+         g_ServerDCL.DeclareWarToNeutralUnitsWithinRange(l_iOwner,in_Dest,g_SP2Server->CombatThresholdSquare());
          
       }
    }
@@ -1900,67 +1902,40 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
             }
          }
 
+         const GCountryData* const l_pOwnerCountry = g_ServerDAL.CountryData(l_iOwner);
+
+         // These could change if the path gets shortened
+         const GRegion* l_pDestRegion = g_ServerDAL.GetGRegion(m_vRegionGraph[l_iDestRegion].m_iRegionId);
+         ENTITY_ID l_iDestOwner = l_pDestRegion->OwnerId();
+         const GCountryData* l_pDestOwnerCountry = g_ServerDAL.CountryData(l_iDestOwner);
+         ENTITY_ID l_iDestMilitaryOwner = l_pDestRegion->OwnerMilitaryId();
+
+         // For debugging
+         const ENTITY_ID l_iOriginalDestMilitaryOwner = l_iDestMilitaryOwner;
+
          SDK::GWayPoint* l_pPath = NULL;
          if(!l_bImpossible)
          {
             const UINT8* const l_pStatuses = g_ServerDAL.CountryDiplomaticStatuses(l_iOwner);
 
-            bool l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
-
             if(!m_bMovingNavalUnit)
             {
-                const GCountryData* const l_pOwnerCountry = g_ServerDAL.CountryData(l_iOwner);
-
                 const GRegion* const l_pStartRegion = g_ServerDAL.GetGRegion(m_vRegionGraph[l_iStartRegion].m_iRegionId);
 
-                const GRegion* const l_pDestRegion = g_ServerDAL.GetGRegion(m_vRegionGraph[l_iDestRegion].m_iRegionId);
-                const ENTITY_ID l_iDestOwner = l_pDestRegion->OwnerId();
-                const GCountryData* const l_pDestOwnerCountry = g_ServerDAL.CountryData(l_iDestOwner);
-                const ENTITY_ID l_iDestMilitaryOwner = l_pDestRegion->OwnerMilitaryId();
-
-                GDZDebug::Log(l_pOwnerCountry->Name() + L" is trying to move ground units " +
-                              L"from region " + g_ServerDAL.GetString(l_pStartRegion->NameId()) + L" " +
-                              L"to region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
-                              L"of " + l_pDestOwnerCountry->Name() + L", " +
-                              L"controlled militarily by " + g_ServerDAL.CountryData(l_iDestMilitaryOwner)->Name(),
-                              __FUNCTION__, __LINE__);
-
-                // If the setting dictates it, never allow movement into an attacking country,
-                // unless there's a war in which we're attacking them
-                if(!g_SP2Server->AllowDefenderAttackAttackerTerritory() &&
-                   l_pStatuses[l_iDestOwner] == EDiplomaticStatus::Hostile &&
-                   l_iDestOwner == l_iDestMilitaryOwner)
+                if(l_iOwner != l_iDestMilitaryOwner)
                 {
-                    l_bAllowMovementBasedOnDefenderAttackingAttacker = false;
-
-                    const hash_map<UINT32,GWar>& l_mWars = g_ServerDAL.CurrentWars();
-                    for(hash_map<UINT32,GWar>::const_iterator l_It = l_mWars.cbegin();
-                        l_It != l_mWars.cend();
-                        ++l_It)
-                    {
-                        const GWar& l_War = l_It->second;
-                        const set<ENTITY_ID>& l_vAttackingSide = l_War.AttackingSide();
-                        const set<ENTITY_ID>& l_vDefendingSide = l_War.DefendingSide();
-                        if(l_vAttackingSide.find(l_iOwner) != l_vAttackingSide.cend() &&
-                           l_vDefendingSide.find(l_iDestOwner) != l_vDefendingSide.cend())
-                        {
-                             GDZDebug::Log(l_pOwnerCountry->Name() + L" is on the attacking side and " +
-                                           l_pDestOwnerCountry->Name() + L" is on the defending side of " +
-                                           L"a war between " + g_ServerDAL.CountryData(l_War.MasterAttacking())->Name() + L" and " +
-                                           g_ServerDAL.CountryData(l_War.MasterDefending())->Name(),
-                                           __FUNCTION__, __LINE__);
-                            l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
-                            break;
-                        }
-                    }
+                    GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" is trying to move ground units " +
+                                  L"from region " + g_ServerDAL.GetString(l_pStartRegion->NameId()) + L" " +
+                                  L"to region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
+                                  L"of " + l_pDestOwnerCountry->NameAndIDForLog() + L", " +
+                                  L"controlled militarily by " + g_ServerDAL.CountryData(l_iDestMilitaryOwner)->NameAndIDForLog(),
+                                  EDZDebugLogCategory::UnitMovement,
+                                  __FUNCTION__, __LINE__);
                 }
             }
 
-            if(l_bAllowMovementBasedOnDefenderAttackingAttacker)
-            {
-                // Find requested path
-                l_pPath = m_PathFinder.Path(l_iStartRegion, l_iDestRegion);
-            }
+            // Find requested path
+            l_pPath = m_PathFinder.Path(l_iStartRegion, l_iDestRegion);
 
             if(l_pPath)
             {
@@ -2018,274 +1993,337 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                {
                   UINT32 l_iOriginalPOwner = l_vRegions[m_vRegionGraph[l_iStartRegion].m_iRegionId].m_iPolitical;
 
-                  for(UINT32 i = 0;i < l_vVertexPath.size();i ++)
+                  for(UINT32 i = 0;i < l_vVertexPath.size() - 1;i ++)
                   {
                      // Check if this waypoint is hostile.  If it is we'll resize the vertex path,
                      //  fix l_iNbPoints and raise a flag to indicate path has been shortened
-                     if( (l_vRegions[l_vVertexPath[i].m_pVertex->m_iRegionId].m_iMilitary != l_iOriginalPOwner) &&
-                         (l_pStatuses[l_vRegions[l_vVertexPath[i].m_pVertex->m_iRegionId].m_iMilitary] == EDiplomaticStatus::Hostile) )
+                     const UINT32 l_iVertexRegionId = l_vVertexPath[i].m_pVertex->m_iRegionId;
+                     const GRegionControl& l_RegionControl = l_vRegions[l_iVertexRegionId];
+                     l_iDestMilitaryOwner = l_RegionControl.m_iMilitary;
+                     if( (l_iDestMilitaryOwner != l_iOriginalPOwner) &&
+                         (l_pStatuses[l_iDestMilitaryOwner] == EDiplomaticStatus::Hostile) )
                      {
                         l_vVertexPath.resize(i + 1);
                         l_iNbPoints = i + 1;
                         l_bPathShortened = true;
+
+                        l_pDestRegion = g_ServerDAL.GetGRegion(l_iVertexRegionId);
+                        l_iDestOwner = l_RegionControl.m_iPolitical;
+                        l_pDestOwnerCountry = g_ServerDAL.CountryData(l_iDestOwner);
+                        
+                        GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" cannot directly move to the desired region, " +
+                                      L"because region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
+                                      L"of " + l_pDestOwnerCountry->NameAndIDForLog() + L", " +
+                                      L"controlled militarily by " + g_ServerDAL.CountryData(l_iDestMilitaryOwner)->NameAndIDForLog() + L", " +
+                                      L"is in the way",
+                                      EDZDebugLogCategory::UnitMovement,
+                                      __FUNCTION__, __LINE__);
+
                         break;
                      }
                   }
               }
 
-               REAL32 l_fStopProtection = 0;
-               REAL32 l_fStartProtection = 0;
+              gassert(l_bPathShortened || l_iOriginalDestMilitaryOwner == l_iDestMilitaryOwner,
+                      "Path wasn't shortened, but the destination region is different");
 
-               // Locate ending move protection point
-               UINT32 l_iEndProtectionID = 0xFFFFFFFF;
+              // If the setting dictates it, never allow movement into an attacking country,
+              // unless there's a war in which we're attacking them
+              bool l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
+              if(!g_SP2Server->AllowDefenderAttackAttackerTerritory() &&
+                 l_pStatuses[l_iDestOwner] == EDiplomaticStatus::Hostile &&
+                 l_iDestOwner == l_iDestMilitaryOwner)
+              {
+                  l_bAllowMovementBasedOnDefenderAttackingAttacker = false;
 
-               if(m_pCountryTypes[l_iTargetID] == ERegionType::Enemy )
-               {
-                  for(INT32 p = l_iNbPoints - 1;p >= 0;p --)
+                  const hash_map<UINT32,GWar>& l_mWars = g_ServerDAL.CurrentWars();
+                  for(hash_map<UINT32,GWar>::const_iterator l_It = l_mWars.cbegin();
+                      l_It != l_mWars.cend();
+                      ++l_It)
                   {
-                     if(g_ServerDAL.RegionControl(l_vVertexPath[p].m_pVertex->m_iRegionId).m_iMilitary != l_iTargetID)
-                     {
-                        break;
-                     }
-                     l_iEndProtectionID = p;
+                      const GWar& l_War = l_It->second;
+                      const set<ENTITY_ID>& l_vAttackingSide = l_War.AttackingSide();
+                      const set<ENTITY_ID>& l_vDefendingSide = l_War.DefendingSide();
+                      if(l_vAttackingSide.find(l_iOwner) != l_vAttackingSide.cend() &&
+                         l_vDefendingSide.find(l_iDestOwner) != l_vDefendingSide.cend())
+                      {
+                             GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" is on the attacking side and " +
+                                           l_pDestOwnerCountry->NameAndIDForLog() + L" is on the defending side of " +
+                                           L"a war between " + g_ServerDAL.CountryData(l_War.MasterAttacking())->Name() + L" and " +
+                                           g_ServerDAL.CountryData(l_War.MasterDefending())->Name(),
+                                           EDZDebugLogCategory::UnitMovement | EDZDebugLogCategory::War,
+                                           __FUNCTION__, __LINE__);
+                            l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
+                            break;
+                      }
                   }
-               }
+              }
 
+              if(l_bAllowMovementBasedOnDefenderAttackingAttacker)
+              {
+                  REAL32 l_fStopProtection = 0;
+                  REAL32 l_fStartProtection = 0;
 
-               // Locate starting move protection point
-               UINT32 l_iStartProtectionID = 0xFFFFFFFF;
+                  // Locate ending move protection point
+                  UINT32 l_iEndProtectionID = 0xFFFFFFFF;
 
-               if(l_iEndProtectionID > 0)
-               {
-                  if(m_pCountryTypes[l_iSourceID] == ERegionType::Enemy)
+                  if(m_pCountryTypes[l_iTargetID] == ERegionType::Enemy )
                   {
-                     UINT32 l_iMaxID = min(l_iNbPoints - 1, l_iEndProtectionID);
-                     for(UINT32 p = 1;p <= l_iMaxID;p ++)
-                     {
-                        l_iStartProtectionID = p;
-                        if(g_ServerDAL.RegionControl(l_vVertexPath[p].m_pVertex->m_iRegionId).m_iMilitary != l_iSourceID)
-                        {
-                           break;
-                        }
-                     }
-                  }
-               }
-               else
-               {
-                  l_iEndProtectionID = 0xFFFFFFFE;
-                  l_fStopProtection = 0;
-               }
-
-               if(l_iStartProtectionID == 0xFFFFFFFF)
-               {
-                  l_fStartProtection = 0;
-               }
-
-               // Create unit path (3rd dimension is distance to the next point!!!)
-               vector<pair<GVector3D<REAL32>, UINT32> > l_PathPoints;
-               UINT32 l_iTotalNbPoints = max(2, l_iNbPoints);
-               l_PathPoints.resize(l_iTotalNbPoints);
-
-               // Update first and last point
-               l_PathPoints.front().first = l_pUnitGroup->Position();
-               l_PathPoints.front().second = m_vRegionGraph[l_iStartRegion].m_iRegionId;
-
-               // If the path was shortened to prevent exploring deep territory, we must not set the
-               //  last point to our destination but to the last vertex of our vertex path
-               if(l_bPathShortened)
-               {
-                  l_PathPoints.back().first = l_vVertexPath[l_vVertexPath.size() - 1].m_pVertex->m_Center;
-                  l_PathPoints.back().second = l_vVertexPath[l_vVertexPath.size() - 1].m_pVertex->m_iRegionId;
-               }
-               else
-               {
-                  // If it wasn't shortened we set our last pt to the destination
-                  l_PathPoints.back().first = in_Dest;
-                  l_PathPoints.back().second = l_iTargetRegionID;
-               }
-
-               // Set distances of first point
-               if(l_vVertexPath.size() > 1)
-               {
-                  // Set first point distance, modulated by penalty between first waypoints
-   	            REAL32 l_fRealDistance = 
-                     (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
-                        l_vVertexPath[0].m_pVertex->m_Center, 
-                        l_vVertexPath[1].m_pVertex->m_Center);
-   	            REAL32 l_fElevatedDistance = l_vVertexPath[0].m_fDistanceWithElevation;
-                  REAL32 l_fElevationPenalty = l_fElevatedDistance / l_fRealDistance;
-                  gassert(_isnan(l_fElevationPenalty) == false,"Elevation penalty will be too much");
-
-                  l_PathPoints.front().first.z = 
-                     (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
-                        l_PathPoints.front().first, 
-                        l_vVertexPath[1].m_pVertex->m_Center) * 
-                     l_fElevationPenalty;
-               }
-               else
-               {
-                  // Path connects directly to end point, no penalty
-                  l_PathPoints.front().first.z = 
-                     (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
-                        l_PathPoints.front().first, 
-                        l_PathPoints.back().first);
-               }
-
-               // Fill remaining points
-               for(UINT32 p = 1;p < l_iNbPoints - 1;p ++)
-               {
-                  l_PathPoints[p].first = l_vVertexPath[p].m_pVertex->m_Center;
-                  l_PathPoints[p].second = l_vVertexPath[p].m_pVertex->m_iRegionId;
-
-                  l_PathPoints[p].first.z = l_vVertexPath[p].m_fDistanceWithElevation;
-               }
-
-               // Compute penalty for last edge in the path (edge to the destination point)
-               if(l_vVertexPath.size() > 1)
-               {
-                  // Set last distance, modulated by penalty between last waypoints
-   	            REAL32 l_fRealDistance = 
-                     (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
-                        l_vVertexPath[l_iNbPoints - 1].m_pVertex->m_Center, 
-                        l_vVertexPath[l_iNbPoints - 2].m_pVertex->m_Center);
-   	            REAL32 l_fElevatedDistance = l_vVertexPath[l_iNbPoints - 2].m_fDistanceWithElevation;
-                  REAL32 l_fElevationPenalty = l_fElevatedDistance / l_fRealDistance;
-
-                  l_PathPoints[l_iNbPoints - 2].first.z = 
-                     (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
-                        l_PathPoints.back().first, 
-                        l_vVertexPath[l_iNbPoints - 2].m_pVertex->m_Center) * 
-                     l_fElevationPenalty;
-               }
-               else
-               {
-                  // Path connects directly to end point, its already computed
-               }
-
-               // Now, convert each path element that crosses the -180/180 longitude boundary
-               // in 3 path elemnts:
-               //   - One from start point to the boundary
-               //   - One from boundary to inverse sign of boundary
-               //   - One from last boundary to end point
-               // Ex.: A path from -170 to 160 is converted to:
-               //   - -170 to -180
-               //   - -180 to 180
-               //   - 180 to 160
-               vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_It = l_PathPoints.begin();
-               GVector3D<REAL32>* l_pLastPos = &(l_It->first);
-               ++ l_It;
-               while(l_It != l_PathPoints.end() )
-               {
-                  GVector3D<REAL32>* l_pCurPos = &(l_It->first);
-
-                  // Test current path segment
-                  if(fabsf(l_pCurPos->x - l_pLastPos->x) > 180.f)
-                  {
-                     // Split path in three
-                     l_It = l_PathPoints.insert(l_It, *l_It);
-                     l_It = l_PathPoints.insert(l_It, *l_It);
-                     vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_PrevIt = l_It - 1;
-                     vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_NextIt = l_It + 1;
-                     vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_LastIt = l_NextIt + 1;
-
-                     l_pLastPos = &(l_PrevIt->first);
-                     l_pCurPos = &(l_LastIt->first);
-
-                     REAL32 l_fDeltaX;
-
-                     // Update middle point longitude
-                     if(l_pLastPos->x > l_pCurPos->x)
-                     {
-                        l_It->first.x = 180.f;
-                        l_NextIt->first.x = -180.f;
-                        l_fDeltaX = 360.f - (l_pLastPos->x - l_pCurPos->x);
-                     }
-                     else
-                     {
-                        l_It->first.x = -180.f;
-                        l_NextIt->first.x = 180.f;
-                        l_fDeltaX = -(360.f - (l_pCurPos->x - l_pLastPos->x) );
-                     }
-
-                     // Compute middle point latitude
-                     l_It->first.y = l_pLastPos->y +
-                                    (l_pLastPos->x - l_It->first.x) * 
-                                    (l_pLastPos->y - l_pCurPos->y) / l_fDeltaX;
-                     l_NextIt->first.y = l_It->first.y;
-
-                     // Update distances
-                     REAL32 l_fOriginalEdgeDistance = sqrtf(l_fDeltaX * l_fDeltaX + 
-                        (l_pLastPos->y - l_pCurPos->y) * (l_pLastPos->y - l_pCurPos->y) );
-                     REAL32 l_fFirstEdgeDistance = sqrtf(
-                        (l_pLastPos->x - l_It->first.x) * (l_pLastPos->x - l_It->first.x) + 
-                        (l_pLastPos->y - l_It->first.y) * (l_pLastPos->y - l_It->first.y) );
-                     REAL32 l_fDistancesRatio = l_fFirstEdgeDistance / l_fOriginalEdgeDistance;
-
-                     REAL32 l_fOriginalElevatedDistance = l_PrevIt->first.z;
-
-                     l_PrevIt->first.z = l_fOriginalElevatedDistance * l_fDistancesRatio;
-                     l_It->first.z = 0.f;
-                     l_NextIt->first.z = l_fOriginalElevatedDistance - l_PrevIt->first.z;
-
-                     l_It = l_LastIt;
+                      for(INT32 p = l_iNbPoints - 1;p >= 0;p --)
+                      {
+                          if(g_ServerDAL.RegionControl(l_vVertexPath[p].m_pVertex->m_iRegionId).m_iMilitary != l_iTargetID)
+                          {
+                              break;
+                          }
+                          l_iEndProtectionID = p;
+                      }
                   }
 
-                  // Go to next path segment
-                  l_pLastPos = l_pCurPos;
+
+                  // Locate starting move protection point
+                  UINT32 l_iStartProtectionID = 0xFFFFFFFF;
+
+                  if(l_iEndProtectionID > 0)
+                  {
+                      if(m_pCountryTypes[l_iSourceID] == ERegionType::Enemy)
+                      {
+                          UINT32 l_iMaxID = min(l_iNbPoints - 1, l_iEndProtectionID);
+                          for(UINT32 p = 1;p <= l_iMaxID;p ++)
+                          {
+                              l_iStartProtectionID = p;
+                              if(g_ServerDAL.RegionControl(l_vVertexPath[p].m_pVertex->m_iRegionId).m_iMilitary != l_iSourceID)
+                              {
+                                  break;
+                              }
+                          }
+                      }
+                  }
+                  else
+                  {
+                      l_iEndProtectionID = 0xFFFFFFFE;
+                      l_fStopProtection = 0;
+                  }
+
+                  if(l_iStartProtectionID == 0xFFFFFFFF)
+                  {
+                      l_fStartProtection = 0;
+                  }
+
+                  // Create unit path (3rd dimension is distance to the next point!!!)
+                  vector<pair<GVector3D<REAL32>, UINT32> > l_PathPoints;
+                  UINT32 l_iTotalNbPoints = max(2, l_iNbPoints);
+                  l_PathPoints.resize(l_iTotalNbPoints);
+
+                  // Update first and last point
+                  l_PathPoints.front().first = l_pUnitGroup->Position();
+                  l_PathPoints.front().second = m_vRegionGraph[l_iStartRegion].m_iRegionId;
+
+                  // If the path was shortened to prevent exploring deep territory, we must not set the
+                  //  last point to our destination but to the last vertex of our vertex path
+                  if(l_bPathShortened)
+                  {
+                      l_PathPoints.back().first = l_vVertexPath[l_vVertexPath.size() - 1].m_pVertex->m_Center;
+                      l_PathPoints.back().second = l_vVertexPath[l_vVertexPath.size() - 1].m_pVertex->m_iRegionId;
+                  }
+                  else
+                  {
+                      // If it wasn't shortened we set our last pt to the destination
+                      l_PathPoints.back().first = in_Dest;
+                      l_PathPoints.back().second = l_iTargetRegionID;
+                  }
+
+                  // Set distances of first point
+                  if(l_vVertexPath.size() > 1)
+                  {
+                      // Set first point distance, modulated by penalty between first waypoints
+                      REAL32 l_fRealDistance = 
+                          (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
+                          l_vVertexPath[0].m_pVertex->m_Center, 
+                          l_vVertexPath[1].m_pVertex->m_Center);
+                      REAL32 l_fElevatedDistance = l_vVertexPath[0].m_fDistanceWithElevation;
+                      REAL32 l_fElevationPenalty = l_fElevatedDistance / l_fRealDistance;
+                      gassert(_isnan(l_fElevationPenalty) == false,"Elevation penalty will be too much");
+
+                      l_PathPoints.front().first.z = 
+                          (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
+                          l_PathPoints.front().first, 
+                          l_vVertexPath[1].m_pVertex->m_Center) * 
+                          l_fElevationPenalty;
+                  }
+                  else
+                  {
+                      // Path connects directly to end point, no penalty
+                      l_PathPoints.front().first.z = 
+                          (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
+                          l_PathPoints.front().first, 
+                          l_PathPoints.back().first);
+                  }
+
+                  // Fill remaining points
+                  for(UINT32 p = 1;p < l_iNbPoints - 1;p ++)
+                  {
+                      l_PathPoints[p].first = l_vVertexPath[p].m_pVertex->m_Center;
+                      l_PathPoints[p].second = l_vVertexPath[p].m_pVertex->m_iRegionId;
+
+                      l_PathPoints[p].first.z = l_vVertexPath[p].m_fDistanceWithElevation;
+                  }
+
+                  // Compute penalty for last edge in the path (edge to the destination point)
+                  if(l_vVertexPath.size() > 1)
+                  {
+                      // Set last distance, modulated by penalty between last waypoints
+                      REAL32 l_fRealDistance = 
+                          (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
+                          l_vVertexPath[l_iNbPoints - 1].m_pVertex->m_Center, 
+                          l_vVertexPath[l_iNbPoints - 2].m_pVertex->m_Center);
+                      REAL32 l_fElevatedDistance = l_vVertexPath[l_iNbPoints - 2].m_fDistanceWithElevation;
+                      REAL32 l_fElevationPenalty = l_fElevatedDistance / l_fRealDistance;
+
+                      l_PathPoints[l_iNbPoints - 2].first.z = 
+                          (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
+                          l_PathPoints.back().first, 
+                          l_vVertexPath[l_iNbPoints - 2].m_pVertex->m_Center) * 
+                          l_fElevationPenalty;
+                  }
+                  else
+                  {
+                      // Path connects directly to end point, its already computed
+                  }
+
+                  // Now, convert each path element that crosses the -180/180 longitude boundary
+                  // in 3 path elemnts:
+                  //   - One from start point to the boundary
+                  //   - One from boundary to inverse sign of boundary
+                  //   - One from last boundary to end point
+                  // Ex.: A path from -170 to 160 is converted to:
+                  //   - -170 to -180
+                  //   - -180 to 180
+                  //   - 180 to 160
+                  vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_It = l_PathPoints.begin();
+                  GVector3D<REAL32>* l_pLastPos = &(l_It->first);
                   ++ l_It;
-               }
-
-               // Add distance to the path
-               SP2::GUnitGroupEx* l_pSP2Group = (SP2::GUnitGroupEx*) l_pUnitGroup;
-               CancelMovement(l_pSP2Group);
-               l_pSP2Group->Path().Reset(l_PathPoints.size() );
-               REAL32 l_fLastEdgeDist = l_PathPoints.front().first.z;
-               REAL32 l_fCurDist = 0;
-               l_pSP2Group->Path().AddPoint(0, l_PathPoints.front().first, l_PathPoints.front().second);
-               for(UINT32 i = 1;i < l_PathPoints.size();i ++)
-               {
-   	            REAL32 l_fDistance = l_fLastEdgeDist;
-                  l_pSP2Group->Path().AddPoint(l_fCurDist + l_fDistance, l_PathPoints[i].first, l_PathPoints[i].second);
-                  if(i == l_iStartProtectionID + 1)
+                  while(l_It != l_PathPoints.end() )
                   {
-                     l_fStartProtection = l_fCurDist + l_fDistance * 0.5f;
+                      GVector3D<REAL32>* l_pCurPos = &(l_It->first);
+
+                      // Test current path segment
+                      if(fabsf(l_pCurPos->x - l_pLastPos->x) > 180.f)
+                      {
+                          // Split path in three
+                          l_It = l_PathPoints.insert(l_It, *l_It);
+                          l_It = l_PathPoints.insert(l_It, *l_It);
+                          vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_PrevIt = l_It - 1;
+                          vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_NextIt = l_It + 1;
+                          vector<pair<GVector3D<REAL32>, UINT32> >::iterator l_LastIt = l_NextIt + 1;
+
+                          l_pLastPos = &(l_PrevIt->first);
+                          l_pCurPos = &(l_LastIt->first);
+
+                          REAL32 l_fDeltaX;
+
+                          // Update middle point longitude
+                          if(l_pLastPos->x > l_pCurPos->x)
+                          {
+                              l_It->first.x = 180.f;
+                              l_NextIt->first.x = -180.f;
+                              l_fDeltaX = 360.f - (l_pLastPos->x - l_pCurPos->x);
+                          }
+                          else
+                          {
+                              l_It->first.x = -180.f;
+                              l_NextIt->first.x = 180.f;
+                              l_fDeltaX = -(360.f - (l_pCurPos->x - l_pLastPos->x) );
+                          }
+
+                          // Compute middle point latitude
+                          l_It->first.y = l_pLastPos->y +
+                              (l_pLastPos->x - l_It->first.x) * 
+                              (l_pLastPos->y - l_pCurPos->y) / l_fDeltaX;
+                          l_NextIt->first.y = l_It->first.y;
+
+                          // Update distances
+                          REAL32 l_fOriginalEdgeDistance = sqrtf(l_fDeltaX * l_fDeltaX + 
+                              (l_pLastPos->y - l_pCurPos->y) * (l_pLastPos->y - l_pCurPos->y) );
+                          REAL32 l_fFirstEdgeDistance = sqrtf(
+                              (l_pLastPos->x - l_It->first.x) * (l_pLastPos->x - l_It->first.x) + 
+                              (l_pLastPos->y - l_It->first.y) * (l_pLastPos->y - l_It->first.y) );
+                          REAL32 l_fDistancesRatio = l_fFirstEdgeDistance / l_fOriginalEdgeDistance;
+
+                          REAL32 l_fOriginalElevatedDistance = l_PrevIt->first.z;
+
+                          l_PrevIt->first.z = l_fOriginalElevatedDistance * l_fDistancesRatio;
+                          l_It->first.z = 0.f;
+                          l_NextIt->first.z = l_fOriginalElevatedDistance - l_PrevIt->first.z;
+
+                          l_It = l_LastIt;
+                      }
+
+                      // Go to next path segment
+                      l_pLastPos = l_pCurPos;
+                      ++ l_It;
                   }
-                  if(i == l_iEndProtectionID + 1)
+
+                  // Add distance to the path
+                  SP2::GUnitGroupEx* l_pSP2Group = (SP2::GUnitGroupEx*) l_pUnitGroup;
+                  CancelMovement(l_pSP2Group);
+                  l_pSP2Group->Path().Reset(l_PathPoints.size() );
+                  REAL32 l_fLastEdgeDist = l_PathPoints.front().first.z;
+                  REAL32 l_fCurDist = 0;
+                  l_pSP2Group->Path().AddPoint(0, l_PathPoints.front().first, l_PathPoints.front().second);
+                  for(UINT32 i = 1;i < l_PathPoints.size();i ++)
                   {
-                     l_fStopProtection = l_fCurDist + l_fDistance * 0.5f;
+                      REAL32 l_fDistance = l_fLastEdgeDist;
+                      l_pSP2Group->Path().AddPoint(l_fCurDist + l_fDistance, l_PathPoints[i].first, l_PathPoints[i].second);
+                      if(i == l_iStartProtectionID + 1)
+                      {
+                          l_fStartProtection = l_fCurDist + l_fDistance * 0.5f;
+                      }
+                      if(i == l_iEndProtectionID + 1)
+                      {
+                          l_fStopProtection = l_fCurDist + l_fDistance * 0.5f;
+                      }
+                      l_fCurDist += l_fDistance;
+                      l_fLastEdgeDist = l_PathPoints[i].first.z;
                   }
-                  l_fCurDist += l_fDistance;
-                  l_fLastEdgeDist = l_PathPoints[i].first.z;
-               }
 
-               if(l_iEndProtectionID == 0xFFFFFFFF)
-               {
-                  l_fStopProtection = l_fCurDist;
-               }
-
-               l_pSP2Group->Path().SetupProtection(l_fStartProtection, l_fStopProtection);
-
-               l_UnitMove.m_Action = in_Action;
-               l_UnitMove.m_iDestRegion = l_iTargetRegionID;
-
-               // If unit is already moving, immediately update its path
-               if(l_pSP2Group->Status() == EMilitaryStatus::Moving)
-               {
-                  ChangeGroupPath(l_pSP2Group, l_UnitMove, l_fStartTime);
-               }
-               else
-               {
-                  // Change status of unit to ready
-                  ChangeUnitState(l_pUnitGroup, EMilitaryStatus::Ready, true);
-
-                  if(l_pSP2Group->Status() == EMilitaryStatus::Ready)
+                  if(l_iEndProtectionID == 0xFFFFFFFF)
                   {
-                     ChangeToMovingStatus(l_pSP2Group, l_fStartTime);
+                      l_fStopProtection = l_fCurDist;
                   }
 
-                  // Remember to move unit after unit status changed to moving
-                  m_GroupsToMove[l_pUnitGroup->Id() ] = l_UnitMove;
-               }
+                  l_pSP2Group->Path().SetupProtection(l_fStartProtection, l_fStopProtection);
+
+                  l_UnitMove.m_Action = in_Action;
+                  l_UnitMove.m_iDestRegion = l_iTargetRegionID;
+
+                  // If unit is already moving, immediately update its path
+                  if(l_pSP2Group->Status() == EMilitaryStatus::Moving)
+                  {
+                      ChangeGroupPath(l_pSP2Group, l_UnitMove, l_fStartTime);
+                  }
+                  else
+                  {
+                      // Change status of unit to ready
+                      ChangeUnitState(l_pUnitGroup, EMilitaryStatus::Ready, true);
+
+                      if(l_pSP2Group->Status() == EMilitaryStatus::Ready)
+                      {
+                          ChangeToMovingStatus(l_pSP2Group, l_fStartTime);
+                      }
+
+                      // Remember to move unit after unit status changed to moving
+                      m_GroupsToMove[l_pUnitGroup->Id() ] = l_UnitMove;
+                  }
+              }
+              else
+              {
+                  GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" cannot move to territory of " +
+                                l_pDestOwnerCountry->NameAndIDForLog() + L" due to lack of sufficient war status",
+                                EDZDebugLogCategory::UnitMovement,
+                                __FUNCTION__, __LINE__);
+
+                  m_pRefusedMoveEvent->m_vRefusedMoves.push_back(make_pair(l_pUnitGroup->Id(), ERefusedMoveReason::NoMilitarySupport) );
+              }
             }
             else
             {

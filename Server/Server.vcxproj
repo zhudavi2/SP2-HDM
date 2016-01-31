@@ -377,6 +377,7 @@
     <ClCompile Include="Source\sp2_declare_war.cpp" />
     <ClCompile Include="Source\sp2_decrease_status_rel_lang.cpp" />
     <ClCompile Include="Source\sp2_disband_nuke.cpp" />
+    <ClCompile Include="Source\sp2_dzdebug.cpp" />
     <ClCompile Include="Source\sp2_economic_aid.cpp" />
     <ClCompile Include="Source\sp2_economic_embargo.cpp" />
     <ClCompile Include="Source\sp2_economic_partnership.cpp" />

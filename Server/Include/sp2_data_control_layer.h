@@ -577,6 +577,9 @@ namespace SP2
  
       //! split the nuclear missiles from the in_pUnitSrc between the in_pUnitSrc and in_pUnitDest
       void GiveMissilesFromUnit(GUnit* in_pUnitSrc, GUnit* in_pUnitDest, REAL32 in_fRatioToGive);
+
+      //! Helper method to change a country's name
+      void ChangeCountryName(ENTITY_ID in_iCountryID, const GString& in_sNewName);
    };
 };
 

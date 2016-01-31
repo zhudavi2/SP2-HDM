@@ -119,17 +119,20 @@ namespace SP2
 
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
+      inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
+      inline bool    DisbandAMDSOnOccupy() const { return m_bDisbandAMDSOnOccupy; }
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
       inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
       inline REAL32  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
       inline INT32   MaximumCellsInForeignCountry() const { return m_iMaximumCellsInForeignCountry; }
       inline GString Message() const { return m_sMessage; }
+      inline REAL32  MilitaryUpkeepPercentages(EUnitCategory::Enum in_eUnitCategory) const { return m_mMilitaryUpkeepPercentages.at(in_eUnitCategory); }
       inline bool    NavalRuleEnabled() const { return m_bNavalRuleEnabled; }
       inline REAL32  NuclearMissileRangePercentage() const { return m_fNuclearMissileRangePercentage; }
       inline REAL32  OccupiedRegionPercentageForNuclear() const { return m_fOccupiedRegionPercentageForNuclear; }
       inline REAL32  ProductionLossOnAnnex() const { return m_fProductionLossOnAnnex; }
       inline REAL32  ResourceTaxLimit() const { return m_fResourceTaxLimit; }
-      inline bool    ShowingHDIComponents() const { return m_bShowingHDIComponents; }
+      inline bool    ShowHDIComponents() const { return m_bShowHDIComponents; }
       inline REAL32  StabilityAnarchyLowerLimit() const { return m_fStabilityAnarchyLowerLimit; }
       inline REAL32  StabilityAnarchyUpperLimit() const { return m_fStabilityAnarchyUpperLimit; }
 
@@ -242,8 +245,10 @@ namespace SP2
 
       bool                                    m_bAllowAIAssumeDebt;
       bool                                    m_bAllowDefenderAttackAttackerTerritory;
+      REAL32                                  m_fCombatThresholdSquare;
       REAL32                                  m_fDedicatedServerAutosavePeriod;
       bool                                    m_bDedicatedServerAutosaveToJoshuaFolder;
+      bool                                    m_bDisbandAMDSOnOccupy;
       REAL64                                  m_fTimeOfLastAutosave;
 
       REAL32                                  m_fGlobalTaxLimit;
@@ -254,12 +259,13 @@ namespace SP2
       map<EGovernmentType::Enum, REAL32>      m_IncomeTaxLimits;
       INT32                                   m_iMaximumCellsInForeignCountry;
       GString                                 m_sMessage;
+      map<EUnitCategory::Enum, REAL32>        m_mMilitaryUpkeepPercentages;
       bool                                    m_bNavalRuleEnabled;
       REAL32                                  m_fNuclearMissileRangePercentage;
       REAL32                                  m_fOccupiedRegionPercentageForNuclear;
       REAL32                                  m_fProductionLossOnAnnex;
       REAL32                                  m_fResourceTaxLimit;
-      bool                                    m_bShowingHDIComponents;
+      bool                                    m_bShowHDIComponents;
       REAL32                                  m_fStabilityAnarchyLowerLimit;
       REAL32                                  m_fStabilityAnarchyUpperLimit;
 

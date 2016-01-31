@@ -256,8 +256,10 @@ SDK::GAME_MSG GServer::Initialize()
         // Default values
         m_bAllowDefenderAttackAttackerTerritory  = true;
         m_bAllowAIAssumeDebt                     = true;
+        m_fCombatThresholdSquare                 = 0.7f*0.7f;
         m_bDedicatedServerAutosaveToJoshuaFolder = false;
         m_fDedicatedServerAutosavePeriod         = 0.f;
+        m_bDisbandAMDSOnOccupy                   = false;
         m_fTimeOfLastAutosave                    = 0;
 
         m_fGlobalTaxLimit                        = 1.f;
@@ -271,11 +273,15 @@ SDK::GAME_MSG GServer::Initialize()
             m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
 
         m_iMaximumCellsInForeignCountry = 0;
+
+        for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::ItemCount; i++)
+            m_mMilitaryUpkeepPercentages[static_cast<EUnitCategory::Enum>(i)] = 1.f;
+
         m_bNavalRuleEnabled     = true;
         m_fNuclearMissileRangePercentage = 1.f;
         m_fOccupiedRegionPercentageForNuclear = 0.f;
         m_fResourceTaxLimit     = 1.f;
-        m_bShowingHDIComponents = false;
+        m_bShowHDIComponents = false;
         m_fStabilityAnarchyLowerLimit = c_fStabilityAnarchyLowerLimit;
         m_fStabilityAnarchyUpperLimit = c_fStabilityAnarchyHigherLimit;
 
@@ -373,13 +379,13 @@ SDK::GAME_MSG GServer::Initialize()
 
       g_Joshua.RegisterConsoleCommand(
          "set_admin_country",
-         L"S",
+         L"I",
          L"Set server admin player by country ID",
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
       g_Joshua.RegisterConsoleCommand(
          "set_admin_player",
-         L"S",
+         L"I",
          L"Set server admin player by player ID",
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
@@ -493,6 +499,27 @@ SDK::GAME_MSG GServer::Initialize()
          L"givemoney",
          L"II",
          L"give money to accelerate testing country, money amount",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+         this);
+
+      g_Joshua.RegisterConsoleCommand(
+         L"build_amds",
+         L"I",
+         L"force country to build AMDS",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+         this);
+
+      g_Joshua.RegisterConsoleCommand(
+         L"print_amds",
+         L"I",
+         L"print country's AMDS status",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+         this);
+
+      g_Joshua.RegisterConsoleCommand(
+         L"force_occupy",
+         L"II",
+         L"All second country's regions will become occupied by first country.",
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
@@ -1444,17 +1471,13 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    {
        INT32 l_iNewAdminCountryID      = in_vArgs[0].ToINT32();
        SDK::GPlayer* l_pNewAdminPlayer = g_Joshua.ActivePlayerByModID(l_iNewAdminCountryID);
-       if(l_pNewAdminPlayer != NULL && ChangeAdminPlayer(l_pNewAdminPlayer))
-            return L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
-                   m_DAL.CountryData(l_iNewAdminCountryID)->Name();
+       ChangeAdminPlayer(l_pNewAdminPlayer);
    }
    else if(in_sCommand == "set_admin_player")
    {
        INT32 l_iNewAdminID             = in_vArgs[0].ToINT32();
        SDK::GPlayer* l_pNewAdminPlayer = g_Joshua.ActivePlayer(l_iNewAdminID);
-       if(l_pNewAdminPlayer != NULL && ChangeAdminPlayer(l_pNewAdminPlayer))
-            return L"Admin player changed to " + l_pNewAdminPlayer->Name() + L", " +
-                   m_DAL.CountryData(l_pNewAdminPlayer->ModID())->Name();
+       ChangeAdminPlayer(l_pNewAdminPlayer);
    }
    else if(in_sCommand == "print_players")
    {
@@ -1464,14 +1487,13 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
            ++l_HumanPlayersIt)
 		{
 			SDK::GPlayer* l_pPlayer = l_HumanPlayersIt->second;
+            const ENTITY_ID l_iCountryID = l_pPlayer->ModID();
             if(l_pPlayer->PlayerStatus() == SDK::PLAYER_STATUS_ACTIVE && 
-			   l_pPlayer->ModID() > 0)
+			   l_iCountryID > 0)
             {
-                const INT32 l_iCountryID = l_pPlayer->ModID();
                 g_Joshua.Log(L"Player ID " + GString(l_pPlayer->Id()) + L": " +
                              L"Name " + l_pPlayer->Name() + L"; " +
-                             L"country ID " + GString(l_iCountryID) + "; " +
-                             L"country name " + m_Countries.at(l_iCountryID - 1).Name());
+                             m_DAL.CountryData(l_iCountryID)->NameAndIDForLog());
             }
 		}
    }
@@ -1617,9 +1639,21 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    else if(in_sCommand == "print_relations")
    {
       UINT32 l_iCountry = in_vArgs[0].ToINT32();
+      g_Joshua.Log(g_ServerDAL.CountryData(l_iCountry)->NameAndIDForLog() + L": ");
+
+      multimap<REAL32, ENTITY_ID> l_mRelationsMap;
       for(UINT32 i=1; i<= (UINT32)g_ServerDAL.NbCountry(); i++)
       {
-         g_Joshua.Log(GString(g_ServerDAL.RelationBetweenCountries(l_iCountry,i)));
+         l_mRelationsMap.insert(make_pair<REAL32, ENTITY_ID>(g_ServerDAL.RelationBetweenCountries(l_iCountry,i), i));
+      }
+
+      for(multimap<REAL32, ENTITY_ID>::const_reverse_iterator l_Rit = l_mRelationsMap.crbegin();
+          l_Rit != l_mRelationsMap.crend();
+          ++l_Rit)
+      {
+         if(l_Rit->second != l_iCountry)
+            g_Joshua.Log(g_ServerDAL.CountryData(l_Rit->second)->NameAndIDForLog() + L": " +
+                         GString::FormatNumber(l_Rit->first, 1));
       }
    }
    else if(in_sCommand == "sell_units")
@@ -1671,20 +1705,47 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
       }	
       g_Joshua.Log(L"*** End Selling units ***");
    }
+   else if(in_sCommand == L"build_amds")
+   {
+      ENTITY_ID l_iCountry = in_vArgs[0].ToINT32();
+      m_DCL.StartAMDSResearch(l_iCountry);
+   }
+   else if(in_sCommand == L"print_amds")
+   {
+      ENTITY_ID l_iCountry = in_vArgs[0].ToINT32();
+      const GCountryData* l_pCountryData = m_DAL.CountryData(l_iCountry);
+      return l_pCountryData->NameAndIDForLog() + L": " +
+             L"AMDS level " + GString::FormatNumber(l_pCountryData->AMDSLevel(), 3);
+   }
+   else if(in_sCommand == L"force_occupy")
+   {
+      const ENTITY_ID l_iOccupier = in_vArgs[0].ToINT32();
+      const ENTITY_ID l_iTarget   = in_vArgs[1].ToINT32();
+
+      const set<UINT32>& l_vPoliticalRegions = m_DAL.CountryPoliticalControl(l_iTarget);
+      for(set<UINT32>::const_iterator l_It = l_vPoliticalRegions.begin();
+          l_It != l_vPoliticalRegions.end();
+          ++l_It)
+      {
+          m_DCL.ChangeRegionMilitaryControl(*l_It, l_iOccupier, false);
+      }
+   }
 #endif //#define GOLEM_DEBUG
    return L"";
 }
 
 bool GServer::ChangeAdminPlayer(SDK::GPlayer* in_pPlayer)
 {
-    gassert(in_pPlayer != NULL,"Intended admin player is NULL");
-
     bool l_bAdminPlayerChanged = false;
-    if(g_Joshua.AdminPlayerID() != in_pPlayer->Id())
+
+    if(in_pPlayer != NULL && g_Joshua.AdminPlayerID() != in_pPlayer->Id())
     {
         g_Joshua.AdminPlayerID(in_pPlayer->Id());
         SendPlayersList();
         l_bAdminPlayerChanged = true;
+
+        g_Joshua.Log(L"Admin player changed to " + in_pPlayer->Name() + L", " +
+                     m_DAL.CountryData(in_pPlayer->ModID())->Name());
     }
 
     return l_bAdminPlayerChanged;
@@ -2533,6 +2594,12 @@ void GServer::LoadSP2HDMConfigXML()
                         m_bAllowDefenderAttackAttackerTerritory = (elementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowDefenderAttackAttackerTerritory: " + GString(m_bAllowDefenderAttackAttackerTerritory));
                     }
+                    else if(elementName == L"combatRangeDegrees")
+                    {
+                        const REAL32 l_fCombatRangeDegrees = elementValue.ToREAL32();
+                        m_fCombatThresholdSquare = l_fCombatRangeDegrees*l_fCombatRangeDegrees;
+                        g_Joshua.Log(L"combatRangeDegrees: " + GString::FormatNumber(l_fCombatRangeDegrees, 2));
+                    }
                     else if(elementName == L"dedicatedServerAutosavePeriod")
                     {
                         m_fDedicatedServerAutosavePeriod = elementValue.ToREAL32();
@@ -2542,6 +2609,11 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_bDedicatedServerAutosaveToJoshuaFolder = (elementValue.ToINT32() != 0);
                         g_Joshua.Log(L"dedicatedServerAutosaveToJoshuaFolder: " + GString(m_bDedicatedServerAutosaveToJoshuaFolder));
+                    }
+                    else if(elementName == L"disbandAMDSOnOccupy")
+                    {
+                        m_bDisbandAMDSOnOccupy = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"disbandAMDSOnOccupy: " + GString(m_bDisbandAMDSOnOccupy));
                     }
                     else if(elementName == L"globalTaxLimit")
 		            {
@@ -2606,6 +2678,30 @@ void GServer::LoadSP2HDMConfigXML()
                         m_sMessage = elementValue;
                         g_Joshua.Log(L"message: " + m_sMessage);
                     }
+                    else if(elementName == L"militaryUpkeepPercentages")
+                    {
+                        for(UINT32 j=0; j<objectNode->NbChilds(); j++)
+	                    {
+                            const GTreeNode<GXMLNode>* const l_CategoryNode = objectNode->Child(j);
+
+		                    const GString l_sName = l_CategoryNode->Data().m_sName;
+                            EUnitCategory::Enum l_eUnitCategory = EUnitCategory::ItemCount;
+                            if(l_sName == L"inf")
+                                l_eUnitCategory = EUnitCategory::Infantry;
+                            else if(l_sName == L"gro")
+                                l_eUnitCategory = EUnitCategory::Ground;
+                            else if(l_sName == L"air")
+                                l_eUnitCategory = EUnitCategory::Air;
+                            else if(l_sName == L"nav")
+                                l_eUnitCategory = EUnitCategory::Naval;
+                            else if(l_sName == L"nuc")
+                                l_eUnitCategory = EUnitCategory::Nuclear;
+
+                            m_mMilitaryUpkeepPercentages[l_eUnitCategory] = l_CategoryNode->Data().m_value.ToREAL32() / 100.f;
+                            g_Joshua.Log(L"militaryUpkeepPercentages[" + l_sName + L"]: " +
+                                         GString::FormatNumber(m_mMilitaryUpkeepPercentages[l_eUnitCategory], 3));
+                        }
+                    }
 		            else if(elementName == L"navalRuleEnabled")
 		            {
                         m_bNavalRuleEnabled = (elementValue.ToINT32() != 0);
@@ -2631,10 +2727,10 @@ void GServer::LoadSP2HDMConfigXML()
                         m_fResourceTaxLimit = elementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"resourceTaxLimit: " + GString::FormatNumber(m_fResourceTaxLimit, 3));
                     }
-                    else if(elementName == L"showingHDIComponents")
+                    else if(elementName == L"showHDIComponents")
                     {
-                        m_bShowingHDIComponents = (elementValue.ToINT32() != 0);
-                        g_Joshua.Log(L"showingHDIComponents: " + GString(m_bShowingHDIComponents));
+                        m_bShowHDIComponents = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"showHDIComponents: " + GString(m_bShowHDIComponents));
                     }
                     else if(elementName == L"stabilityAnarchyLowerLimit")
                     {

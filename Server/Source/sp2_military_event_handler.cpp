@@ -271,7 +271,7 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
    //Handle name change
    static const GString l_sChangeNamePrefix("NAME ");
    if(l_pEvent->m_sName.find(l_sChangeNamePrefix) == 0)
-       g_ServerDAL.ChangeCountryName(l_iCurPlayerID, l_pEvent->m_sName.substr(l_sChangeNamePrefix.length()));
+       g_ServerDCL.ChangeCountryName(l_iCurPlayerID, l_pEvent->m_sName.substr(l_sChangeNamePrefix.length()));
    else
    {
        //Regular cell creation

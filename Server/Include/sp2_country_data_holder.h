@@ -134,8 +134,12 @@ namespace SP2
 
       static REAL32 FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita);
 
-      GString   Name() const;
-      void      Name(const GString& in_sName);
+      inline GString Name() const { return m_sName; }
+      inline void    Name(const GString& in_sName) { m_sName = in_sName; }
+
+      inline GString NameAndIDForLog() const { return m_sName + L" (" + GString(m_iCountryID) + L")"; }
+
+      INT32 NumberOfPoliticallyControlledRegions() const;
 
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);

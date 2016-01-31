@@ -121,7 +121,7 @@ void GCountryData::SynchronizeWithRegions()
 	{
 		l_pRegion = g_ServerDAL.GetGRegion(*l_RegionItr);
 
-        if(!g_SP2Server->ShowingHDIComponents())
+        if(!g_SP2Server->ShowHDIComponents())
         {
 		    l_fArableLand += l_pRegion->ArableLand();
 		    l_fParksLand += l_pRegion->ParksLand();
@@ -200,7 +200,7 @@ void GCountryData::SynchronizeWithRegions()
 
 	m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
 
-    if(!g_SP2Server->ShowingHDIComponents())
+    if(!g_SP2Server->ShowHDIComponents())
     {
 	    if(m_fAreaLandTotal != 0.0f)
 	    {
@@ -542,7 +542,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
         m_fMeanYearsSchooling = l_fHIEIMean * 15;
         m_fExpectedYearsSchooling = l_fHIEIMean * 18;
 
-        if(g_SP2Server->ShowingHDIComponents())
+        if(g_SP2Server->ShowHDIComponents())
         {
             m_fArableLandLevel = m_fHumanDevelopment;
             m_fForestLandLevel = m_fLifeExpectancy / 100.f;
@@ -553,7 +553,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
         //Log out some country data right as the game starts.
         REAL64 l_fGDPPerCapita = (m_iPopulation > 0) ? (m_fGDPValueBase / m_iPopulation) : 0;
         g_Joshua.Log(
-            L"Country ID " + GString(m_iCountryID) + L", " + m_sName + L": " +
+            NameAndIDForLog() + L": " +
             L"Population " + GString::FormatNumber(static_cast<REAL64>(m_iPopulation), L",", L".", L"", L"", 3, 0) + L"; " +
             L"GDP " + GString::FormatNumber(m_fGDPValueBase, L",", L".", L"$", L"", 3) + L"; " +
             L"LE " + GString::FormatNumber(m_fLifeExpectancy, 1) + L"; " +
@@ -1913,14 +1913,19 @@ REAL32 GCountryData::FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_f
     return powf(l_fHI * l_fEI * GCountryData::FindIncomeIndex(in_fGDPPerCapita), 1.f/3.f);
 }
 
-GString GCountryData::Name() const
+INT32 GCountryData::NumberOfPoliticallyControlledRegions() const
 {
-    return m_sName;
-}
+    INT32 l_iNumberOfPoliticallyControlledRegions = 0;
 
-void GCountryData::Name(const GString& in_sName)
-{
-    m_sName = in_sName;
+    const set<UINT32>& l_vPoliticalRegions = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
+    for(set<UINT32>::const_iterator l_It = l_vPoliticalRegions.cbegin();
+        l_It != l_vPoliticalRegions.cend();
+        ++l_It)
+    {
+        l_iNumberOfPoliticallyControlledRegions += (g_ServerDAL.RegionControl(*l_It).m_iMilitary == m_iCountryID);
+    }
+
+    return l_iNumberOfPoliticallyControlledRegions;
 }
 
 bool GCountryData::OnSave(GIBuffer& io_Buffer)

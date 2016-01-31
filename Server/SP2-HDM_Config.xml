@@ -10,6 +10,11 @@
   Region liberation and naval bombardment are still allowed.
   Allowed values are 0 and 1. Default is 1. -->
   <allowDefenderAttackAttackerTerritory>1</allowDefenderAttackAttackerTerritory>
+  
+  <!-- Hostile military units in the same region must be at most this far from each other, in
+  approximate degrees of latitude/longitude, in order to automatically engage in combat.
+  Default is 0.70. -->
+  <combatRangeDegrees>0.70</combatRangeDegrees>
 
   <!-- For dedicated servers, the game autosaves every time this number of
   minutes have passed.
@@ -20,8 +25,13 @@
   <!-- For dedicated servers, if set to 1, the game autosaves its save file to
   the same folder as joshua.exe, instead of the "save" folder.
   It's not recommended to set this on a non-dedicated server.
-  Default is 0. -->
+  Allowed values are 0 and 1. Default is 0. -->
   <dedicatedServerAutosaveToJoshuaFolder>0</dedicatedServerAutosaveToJoshuaFolder>
+  
+  <!-- Set to 1 to automatically cancel AMDS research or disband a completed AMDS for a country when
+  it becomes fully occupied.
+  Allowed values are 0 and 1. Default is 0. -->
+  <disbandAMDSOnOccupy>0</disbandAMDSOnOccupy>
   
   <!-- Maximum Global Tax for resources.
   Entering into the Global Tax box anything more than this value, but less than
@@ -74,6 +84,16 @@
   Default is "Welcome to SuperPower 2 Human Development Mod!". -->
   <message>Welcome to SuperPower 2 Human Development Mod!</message>
   
+  <!-- Military unit upkeep as a percentage of normal, per unit category.
+  Defaults are 100 for all categories. -->
+  <militaryUpkeepPercentages>
+    <inf>100</inf>
+    <gro>100</gro>
+    <air>100</air>
+    <nav>100</nav>
+    <nuc>100</nuc>
+  </militaryUpkeepPercentages>
+  
   <!-- Set to 0 if you want to disable the "Naval Rule", which forces you to
   have a navy in order to attack an overseas enemy, among other features.
   Allowed values are 0 and 1. Default is 1. -->
@@ -104,7 +124,7 @@
   NATIONAL PARKS 1.2% (Means MYS 1.2 years)
   UNUSABLE       12.3% (Means EYS 12.3 years)
   Allowed values are 0 and 1. Default is 0. -->
-  <showingHDIComponents>0</showingHDIComponents>
+  <showHDIComponents>0</showHDIComponents>
   
   <!-- A country will enter Anarchy when its expected (not actual) stability
   drops to this value.
