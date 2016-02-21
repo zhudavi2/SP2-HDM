@@ -11,5 +11,4 @@
 
 #include "golem_pch.hpp"
 
-UINT32 GDZDebug::m_iEnabledLogCategories = EDZDebugLogCategory::UnitMovement |
-                                           EDZDebugLogCategory::War;
+UINT32 GDZDebug::m_iEnabledLogCategories = 0;

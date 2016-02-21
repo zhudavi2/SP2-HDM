@@ -2440,15 +2440,29 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
 
     if(l_pDesign->Type()->Category() == EUnitCategory::Infantry)
     {
+        //Try removing population from country
+        //Check available manpower
         const INT64 l_iMiliManpowerAvailable = l_pDestinationCountryData->MiliManpowerAvailable();
         GDZDebug::Log(l_pDestinationCountryData->NameAndIDForLog() +
-                      L"is requesting " + GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
+                      L" is requesting " + GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
                       L" infantry; has " + GString::FormatNumber(static_cast<REAL64>(l_iMiliManpowerAvailable), L",", L".", L"", L"", 3, 0) +
                       L" people available",
                       EDZDebugLogCategory::ObtainUnits,
                       __FUNCTION__, __LINE__);
 
         in_iQty = min(static_cast<UINT32>(l_iMiliManpowerAvailable), in_iQty);
+        if(in_iQty == 0)
+            return 0;
+
+        //Check if we actually succeed in removing population
+        GDZDebug::Log(L"Will try to remove " +
+                      GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
+                      L" people from " + l_pDestinationCountryData->NameAndIDForLog() +
+                      L" due to enrolling infantry",
+                      EDZDebugLogCategory::ObtainUnits,
+                      __FUNCTION__, __LINE__);
+        const INT64 l_iRemovedPeople = g_ServerDCL.RemovePopulationFromCountry(in_iDestinationCountryID,in_iQty,true);
+        in_iQty = min(static_cast<UINT32>(l_iRemovedPeople), in_iQty);
         if(in_iQty == 0)
             return 0;
     }
@@ -2513,26 +2527,14 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
                                       in_iQty*l_pDesign->Cost() );
    }
 
-   //If it is infantry, remove population from country
-   SP2::GUnitDesign* l_pUnitToShipDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(in_iDesignID);
-   if(l_pUnitToShipDesign->Type()->Category() == EUnitCategory::Infantry)
-   {
-      GDZDebug::Log(l_pDestinationCountryData->NameAndIDForLog() +
-                    L"will have " + GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
-                    L" people removed due to enrolling infantry",
-                    EDZDebugLogCategory::ObtainUnits,
-                    __FUNCTION__, __LINE__);
-      g_ServerDCL.RemovePopulationFromCountry(in_iDestinationCountryID,in_iQty,true);
-   }
-
  
    REAL32 l_fTechLevelFromDesign = 0;
    REAL32 l_fCountryTechLevel = 0;
    GCountryData *l_pCountryData = g_ServerDAL.CountryData(in_iBuildingCountryID);
-   REAL32 *l_techValue = l_pCountryData->ResearchInfo()->m_fMaxValues[l_pUnitToShipDesign->Type()->Category()];
+   REAL32 *l_techValue = l_pCountryData->ResearchInfo()->m_fMaxValues[l_pDesign->Type()->Category()];
 
 
-   if(l_pUnitToShipDesign->Type()->Category() == EUnitCategory::Infantry)
+   if(l_pDesign->Type()->Category() == EUnitCategory::Infantry)
    {
       l_fCountryTechLevel = 1;
       l_fTechLevelFromDesign = 1;
@@ -2543,75 +2545,75 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
 
       
 
-      if( l_pUnitToShipDesign->GunDamage() > 0)
+      if( l_pDesign->GunDamage() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->GunDamage();
+         l_fTechLevelFromDesign += l_pDesign->GunDamage();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::GunDamage];
       }
-      if( l_pUnitToShipDesign->GunPrecision() > 0)
+      if( l_pDesign->GunPrecision() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->GunPrecision();
+         l_fTechLevelFromDesign += l_pDesign->GunPrecision();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::GunPrecision];
       }
 
-      if( l_pUnitToShipDesign->GunRange() > 0)
+      if( l_pDesign->GunRange() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->GunRange();
+         l_fTechLevelFromDesign += l_pDesign->GunRange();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::GunRange];
       }
 
-      if( l_pUnitToShipDesign->MissileDamage() > 0)
+      if( l_pDesign->MissileDamage() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->MissileDamage();
+         l_fTechLevelFromDesign += l_pDesign->MissileDamage();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::MissileDamage];
       }
 
-      if( l_pUnitToShipDesign->MissilePayload() > 0)
+      if( l_pDesign->MissilePayload() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->MissilePayload();
+         l_fTechLevelFromDesign += l_pDesign->MissilePayload();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::MissilePayload];
       }
 
-      if( l_pUnitToShipDesign->MissilePrecision() > 0)
+      if( l_pDesign->MissilePrecision() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->MissilePrecision();
+         l_fTechLevelFromDesign += l_pDesign->MissilePrecision();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::MissilePrecision];
       }
 
-      if( l_pUnitToShipDesign->MissileRange() > 0)
+      if( l_pDesign->MissileRange() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->MissileRange();
+         l_fTechLevelFromDesign += l_pDesign->MissileRange();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::MissileRange];
       }
 
 
-      if( l_pUnitToShipDesign->Sensors() > 0)
+      if( l_pDesign->Sensors() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->Sensors();
+         l_fTechLevelFromDesign += l_pDesign->Sensors();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::Sensors];
       }
 
-      if( l_pUnitToShipDesign->SpeedAndManeuverability() > 0)
+      if( l_pDesign->SpeedAndManeuverability() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->SpeedAndManeuverability();
+         l_fTechLevelFromDesign += l_pDesign->SpeedAndManeuverability();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::Speed];
       }
 
-      if( l_pUnitToShipDesign->Stealth() > 0)
+      if( l_pDesign->Stealth() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->Stealth();
+         l_fTechLevelFromDesign += l_pDesign->Stealth();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::Stealth];
       }
 
-      if( l_pUnitToShipDesign->Armor() > 0)
+      if( l_pDesign->Armor() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->Armor();
+         l_fTechLevelFromDesign += l_pDesign->Armor();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::Armor];
       }
 
-      if( l_pUnitToShipDesign->CounterMesures() > 0)
+      if( l_pDesign->CounterMesures() > 0)
       {
-         l_fTechLevelFromDesign += l_pUnitToShipDesign->CounterMesures();
+         l_fTechLevelFromDesign += l_pDesign->CounterMesures();
          l_fCountryTechLevel    += l_techValue[EUnitDesignCharacteristics::CounterMesures];
       }
    }
@@ -2695,11 +2697,12 @@ bool GDataControlLayer::CancelUnitProduction(UINT32 in_iBuildingCountryID,
    SP2::GUnitDesign* l_pDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(l_Request.m_iDesignID);
 
    gassert(l_pDesign != NULL,"Trying to cancel a unit with invalid design");
+
+   const GCountryData* const l_pCancellingCountry = g_ServerDAL.CountryData(in_iCancellingCountryID);
+
    GDZDebug::Log(L"Cancelling units in production: Request ID " + GString(in_iProductionRequestID) + L": " +
-                 L"Built by country ID " + GString(in_iBuildingCountryID) + L" " +
-                 L"(" + g_SP2Server->Countries().at(in_iBuildingCountryID - 1).Name() + L") and destined for " +
-                 L"country ID " + GString(in_iCancellingCountryID) + L" " +
-                 L"(" + g_SP2Server->Countries().at(in_iCancellingCountryID - 1).Name() + L"): " +
+                 L"Built by " + g_ServerDAL.CountryData(in_iBuildingCountryID)->NameAndIDForLog() + L" " +
+                 L"and destined for " + l_pCancellingCountry->NameAndIDForLog() + L": " +
                  GString(l_Request.m_iQtyWanted) + L" units of " +
                  l_pDesign->Name(),
                  EDZDebugLogCategory::ObtainUnits,
@@ -2708,7 +2711,14 @@ bool GDataControlLayer::CancelUnitProduction(UINT32 in_iBuildingCountryID,
    // Decrease population if we just ship some infantry
    SP2::GUnitDesign* l_pUnitToShipDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(l_Request.m_iDesignID);
    if(l_pUnitToShipDesign->Type()->Category() == EUnitCategory::Infantry)
-      g_ServerDCL.AddPopulationAfterDisbandInfantry(l_Request.m_iDestinationCountryID,(UINT32)(l_Request.m_iQtyWanted - l_Request.m_iQtyShipped));
+   {
+      const UINT32 l_iPopulationToAdd = l_Request.m_iQtyWanted - l_Request.m_iQtyShipped;
+      g_ServerDCL.AddPopulationAfterDisbandInfantry(l_Request.m_iDestinationCountryID,(UINT32)(l_iPopulationToAdd));
+      GDZDebug::Log(l_pCancellingCountry->NameAndIDForLog() + L" will gain " +
+                    GString(l_iPopulationToAdd) + L" population",
+                    EDZDebugLogCategory::ObtainUnits,
+                    __FUNCTION__, __LINE__);
+   }
 
 
 
@@ -5494,20 +5504,21 @@ bool GDataControlLayer::AddPopulationAfterDisbandInfantry(UINT32 in_iCountryID, 
 	return true;
 }
 
-bool GDataControlLayer::RemovePopulationFromCountry(UINT32 in_iCountryID, INT64 in_iNbPopulation, bool in_bEnroll)
+INT64 GDataControlLayer::RemovePopulationFromCountry(UINT32 in_iCountryID, INT64 in_iNbPopulation, bool in_bEnroll)
 {
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
 	if(in_bEnroll && l_pCountryData->MiliManpowerAvailable() < in_iNbPopulation)
-		return false;
+		return 0;
 
 	INT64 l_iTotalPopulation = l_pCountryData->Population();
 	if(in_iNbPopulation > l_iTotalPopulation)
-		return false;
+		return 0;
 
 	if(l_iTotalPopulation == 0)
-		return true;	
+		return 0;	
 
 	//Go through the regions, and remove population
+    INT64 l_iRemovedPeople = 0;
 	const set<UINT32>& l_vRegions = g_ServerDAL.CountryPoliticalControl(in_iCountryID);
 	for(set<UINT32>::const_iterator it = l_vRegions.begin();
 		 it != l_vRegions.end(); it++)
@@ -5517,11 +5528,12 @@ bool GDataControlLayer::RemovePopulationFromCountry(UINT32 in_iCountryID, INT64 
 		if(l_iTotalPopulation > 0)
 			l_iPeopleRemovedFromThatRegion = (INT64)(((REAL32)l_pRegion->Population() / (REAL32)l_iTotalPopulation) * (REAL32)in_iNbPopulation);
 		RemovePopulationFromRegion(*it,l_iPeopleRemovedFromThatRegion,in_bEnroll);
+        l_iRemovedPeople += l_iPeopleRemovedFromThatRegion;
 	}
 
 	g_ServerDAL.AddCountryToSynchronize(in_iCountryID);
 
-	return true;
+	return l_iRemovedPeople;
 }
 
 bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in_iNbPopulation, bool in_bEnroll)
@@ -5551,6 +5563,11 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 	}
 
 	l_pCountryData->MiliManpowerAvailable(l_pCountryData->MiliManpowerAvailable() - l_iNbOfEnrollToRemove);
+    GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": " +
+                  L"Removing " + GString::FormatNumber(static_cast<REAL64>(in_iNbPopulation), L",", L".", L"", L"", 3, 0) + L" population; " +
+                  L"new manpower available " + GString::FormatNumber(static_cast<REAL64>(l_pCountryData->MiliManpowerAvailable()), L",", L".", L"", L"", 3, 0),
+                  EDZDebugLogCategory::ObtainUnits,
+                  __FUNCTION__, __LINE__);
 
 	//military manpower available portion done
 

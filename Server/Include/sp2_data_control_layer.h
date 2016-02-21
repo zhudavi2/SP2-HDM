@@ -352,13 +352,13 @@ namespace SP2
 		//! Add production from a country. It will add production in every regions of that country
 		void AddProductionToCountry(UINT32 in_iCountryID, REAL64 in_fGainOfProduction, EResources::Enum in_iResource);
 
-		//! Removes x number of person from a country. Return true if success
+		//! Removes x number of person from a country. Return number of people actually removed
 		/*!
 		*	@param in_iCountryID: ID to remove population from
 		*	@param in_iNbPopulation: number of person to remove
 		*	@param in_bEnroll: true if we are removing for infantry, false otherwise
 		**/
-		bool RemovePopulationFromCountry(UINT32 in_iCountryID, INT64 in_iNbPopulation, bool in_bEnroll = false);
+		INT64 RemovePopulationFromCountry(UINT32 in_iCountryID, INT64 in_iNbPopulation, bool in_bEnroll = false);
 
 		//! Removes x number of person from a region. Return true if success
 		/*!
