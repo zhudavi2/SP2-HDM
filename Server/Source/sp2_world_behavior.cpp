@@ -2146,6 +2146,9 @@ void GWorldBehavior::IterateNuclearResearchLevel(REAL64 in_fGameTime)
 		GCountryData* l_pCountryData = g_ServerDAL.CountryData(i);
 		if(!l_pCountryData->Activated())
 			continue;
+        if(g_SP2Server->DisableNuclearOnOccupy()                       &&
+           l_pCountryData->NumberOfPoliticallyControlledRegions() == 0)
+            continue;
 		REAL32 l_fLevel = l_pCountryData->NuclearReady();
 		if(l_fLevel >= 0.f && l_fLevel < 1.f)
 		{

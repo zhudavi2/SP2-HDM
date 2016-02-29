@@ -28,6 +28,12 @@
   Allowed values are 0 and 1. Default is 0. -->
   <dedicatedServerAutosaveToJoshuaFolder>0</dedicatedServerAutosaveToJoshuaFolder>
   
+  <!-- Set to 1 to automatically lower a country's nuclear tech levels, and halt further nuclear
+  research, for a country when
+  it becomes fully occupied.
+  Allowed values are 0 and 1. Default is 0. -->
+  <disableNuclearOnOccupy>0</disableNuclearOnOccupy>
+  
   <!-- Set to 1 to automatically cancel AMDS research or disband a completed AMDS for a country when
   it becomes fully occupied.
   Allowed values are 0 and 1. Default is 0. -->

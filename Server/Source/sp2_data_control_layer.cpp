@@ -212,7 +212,8 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
 
    if(l_CurrentControl.m_iPolitical == l_CurrentControl.m_iMilitary)
    {
-	   GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_CurrentControl.m_iMilitary);
+       const auto l_iCountryID = l_CurrentControl.m_iMilitary;
+	   GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_iCountryID);
       assert(l_pCountryData);
 
 		if(l_pCountryData->Population() > 0)
@@ -249,9 +250,71 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
              l_pCountryData->NuclearMissilesSet(ENuclearMissileType::Standard,     l_vEmptyList);
              l_pCountryData->NuclearMissilesSet(ENuclearMissileType::OnSubmarines, l_vEmptyList);
 
-             // cancel or disband AMDS
+             if(g_SP2Server->DisableNuclearOnOccupy() &&
+                l_pCountryData->NuclearReady() >= 0.f)
+             {
+                 auto& l_UnitManager = g_Joshua.UnitManager();
+
+                 // Cancel nuclear units in production
+                 const auto& l_vTargetProductionQueue = m_UnitProductor.m_vProductionQueues.at(l_iCountryID - 1).m_ActiveQueue;
+                 map<UINT32, ENTITY_ID> l_mRequestsToCancel;
+                 for(auto l_RequestIt = l_vTargetProductionQueue.cbegin();
+                     l_RequestIt != l_vTargetProductionQueue.cend();
+                     ++l_RequestIt)
+                 {
+                     const auto l_pDesign = dynamic_cast<GUnitDesign*>(l_UnitManager.UnitDesign(l_RequestIt->m_iDesignID));
+                     if(l_pDesign->Type()->Category() == EUnitCategory::Nuclear)
+                         l_mRequestsToCancel[l_RequestIt->m_iID] = l_RequestIt->m_iDestinationCountryID;
+                 }
+
+                 GDZDebug::Log(L"Number of requests to cancel: " +
+                               GString(l_mRequestsToCancel.size()),
+                               EDZDebugLogCategory::Nuclear,
+                               __FUNCTION__, __LINE__);
+                 for(auto it = l_mRequestsToCancel.cbegin();
+                     it != l_mRequestsToCancel.cend();
+                     ++it)
+                 {
+                     const auto l_iRequestID = it->first;
+                     const auto l_iDestinationID = it->second;
+                     GDZDebug::Log(L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
+                                   L"Built by " + l_pCountryData->NameAndIDForLog() +
+                                   L" and destined for " + g_ServerDAL.CountryData(l_iDestinationID)->NameAndIDForLog(),
+                                   EDZDebugLogCategory::Nuclear | EDZDebugLogCategory::ObtainUnits,
+                                   __FUNCTION__, __LINE__);
+                     CancelUnitProduction(l_iCountryID, l_iDestinationID, l_iRequestID);
+                 }
+
+                 // Drop nuclear tech by 1
+                 REAL32* const l_pNuclearValues = l_pCountryData->ResearchInfo()->m_fMaxValues[EUnitCategory::Nuclear];
+                 REAL32 l_fHighestTechLevel = 0.f;
+                 for(INT32 i = EUnitDesignCharacteristics::MissileRange;
+                     i <= EUnitDesignCharacteristics::MissileDamage;
+                     i++)
+                 {
+                     GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": " +
+                         g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" " + GString(l_pNuclearValues[i]),
+                         EDZDebugLogCategory::Nuclear,
+                         __FUNCTION__, __LINE__);
+                     l_pNuclearValues[i] = max(0.f, l_pNuclearValues[i] - 1.f);
+                     l_fHighestTechLevel = max(l_pNuclearValues[i], l_fHighestTechLevel);
+                 }
+
+                 // If all nuclear research would go below 0, then require country to restart nuclear research
+                 if(fabs(l_fHighestTechLevel) <= 0.0000005f)
+                 {
+                     GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": " +
+                                   L"Removing nuclear readiness",
+                                   EDZDebugLogCategory::Nuclear,
+                                   __FUNCTION__, __LINE__);
+
+                     l_pCountryData->NuclearReady(-1.f);
+                 }
+             }
+
+             // Cancel or disband AMDS
              if(g_SP2Server->DisbandAMDSOnOccupy())
-                l_pCountryData->AMDSLevel(0);
+                 l_pCountryData->AMDSLevel(0);
          }
       }
    }
@@ -2420,6 +2483,7 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
    // Can we really start the production ?
    if(!l_pDestinationCountryData->Activated()                       ||
       !g_ServerDAL.CountryData(in_iBuildingCountryID)->Activated()  ||
+      (l_pDestinationCountryData->NumberOfPoliticallyControlledRegions() == 0) ||
       ((!g_ServerDAL.GameOptions().NuclearAllowed()) && 
        (l_pDesign->Type()->Category() == SP2::EUnitCategory::Nuclear)))
    {
@@ -3064,7 +3128,44 @@ void GDataControlLayer::IterateResearch(REAL64 in_fClock)
 			   }
 		   }
 		   //Update the other research
+
+           //Keep track of nuclear research for logging purposes
+         REAL32* const l_pNuclearValues = l_pCountryData->ResearchInfo()->m_fMaxValues[EUnitCategory::Nuclear];
+         const vector<REAL32> l_vOldNuclearValues(l_pNuclearValues, l_pNuclearValues + EUnitDesignCharacteristics::ItemCount);
+
+         if(l_pCountryData->NuclearReady() >= 0.f)
+         {
+             GString l_sOldNuclearValuesString;
+             for(INT32 i = EUnitDesignCharacteristics::MissileRange; i <= EUnitDesignCharacteristics::MissileDamage; i++)
+             {
+                 l_sOldNuclearValuesString += GString(l_vOldNuclearValues[i]) +
+                                              (i < EUnitDesignCharacteristics::MissileDamage ? L", " : L"");
+             }
+
+             /*GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": "
+                           L"NuclearReady " + GString(l_pCountryData->NuclearReady()) + L"; " +
+                           L"nuclear values " + l_sOldNuclearValuesString,
+                           EDZDebugLogCategory::Nuclear,
+                           __FUNCTION__, __LINE__);*/
+         }
+
          ((SP2::GResearchInformation*)l_pCountryData->ResearchInfo())->Update(in_fClock,l_pCountryData->BudgetExpenseResearch(), l_vBonusToResearch[i]);
+
+         if(l_pCountryData->NuclearReady() >= 0.f)
+         {
+             for(INT32 i = EUnitDesignCharacteristics::MissileRange; i <= EUnitDesignCharacteristics::MissileDamage; i++)
+             {
+                 if(g_SP2Server->DisableNuclearOnOccupy()                       &&
+                    l_pCountryData->NumberOfPoliticallyControlledRegions() == 0)
+                 {
+                     GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" is fully occupied; " +
+                                   L"halting nuclear " + g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" research",
+                                   EDZDebugLogCategory::Nuclear,
+                                   __FUNCTION__, __LINE__);
+                     l_pNuclearValues[i] = l_vOldNuclearValues[i];
+                 }
+             }
+         }
       }
 	}
 
@@ -8469,11 +8570,26 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
 
 	REAL32 l_fNuclearLevel = l_pCountryData->NuclearReady();
+    GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" will start nuclear research " +
+                  L"with current nuclear level " + GString(l_fNuclearLevel),
+                  EDZDebugLogCategory::Nuclear,
+                  __FUNCTION__, __LINE__);
+
 	if(l_fNuclearLevel >= 0.f)
 	{
 		//Nuclear research has already been started
 		return;
 	}
+
+    if(g_SP2Server->DisableNuclearOnOccupy()                        &&
+       l_pCountryData->NumberOfPoliticallyControlledRegions() == 0)
+    {
+        //Nuclear research cannot be started when fully occupied, and we're configured to disable nuclear research on occupy
+        GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" can't start nuclear research due to being fully occupied",
+                      EDZDebugLogCategory::Nuclear,
+                      __FUNCTION__, __LINE__);
+        return;
+    }
 
 	//Take money from country
 	TakeMoney(in_iCountryID,SP2::c_fNuclearResearchCost);
@@ -8491,6 +8607,10 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
 
 	//Start research
 	l_pCountryData->NuclearReady(0.f);
+
+    GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" has started nuclear research",
+                  EDZDebugLogCategory::Nuclear,
+                  __FUNCTION__, __LINE__);
 }
 
 

@@ -120,6 +120,7 @@ namespace SP2
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
+      inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
       inline bool    DisbandAMDSOnOccupy() const { return m_bDisbandAMDSOnOccupy; }
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
       inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
@@ -248,6 +249,7 @@ namespace SP2
       REAL32                                  m_fCombatThresholdSquare;
       REAL32                                  m_fDedicatedServerAutosavePeriod;
       bool                                    m_bDedicatedServerAutosaveToJoshuaFolder;
+      bool                                    m_bDisableNuclearOnOccupy;
       bool                                    m_bDisbandAMDSOnOccupy;
       REAL64                                  m_fTimeOfLastAutosave;
 

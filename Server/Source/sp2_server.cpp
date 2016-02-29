@@ -67,7 +67,7 @@ SDK::GAME_MSG GServer::Initialize()
 
    // Initialize Mode
    // JMercier : This will be changed later by reading a xml file or a menu.
-   ModName(L"Human Development Mod V5 Feb 23 2016");
+   ModName(L"Human Development Mod V5 Feb 28 2016");
 
    GDALInterface::Instance = &m_DAL;
    GDCLInterface::Instance = &m_DCL;
@@ -259,6 +259,7 @@ SDK::GAME_MSG GServer::Initialize()
         m_fCombatThresholdSquare                 = 0.7f*0.7f;
         m_bDedicatedServerAutosaveToJoshuaFolder = false;
         m_fDedicatedServerAutosavePeriod         = 0.f;
+        m_bDisableNuclearOnOccupy                = false;
         m_bDisbandAMDSOnOccupy                   = false;
         m_fTimeOfLastAutosave                    = 0;
 
@@ -277,13 +278,13 @@ SDK::GAME_MSG GServer::Initialize()
         for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::ItemCount; i++)
             m_mMilitaryUpkeepPercentages[static_cast<EUnitCategory::Enum>(i)] = 1.f;
 
-        m_bNavalRuleEnabled     = true;
-        m_fNuclearMissileRangePercentage = 1.f;
+        m_bNavalRuleEnabled                   = true;
+        m_fNuclearMissileRangePercentage      = 1.f;
         m_fOccupiedRegionPercentageForNuclear = 0.f;
-        m_fResourceTaxLimit     = 1.f;
-        m_bShowHDIComponents = false;
-        m_fStabilityAnarchyLowerLimit = c_fStabilityAnarchyLowerLimit;
-        m_fStabilityAnarchyUpperLimit = c_fStabilityAnarchyHigherLimit;
+        m_fResourceTaxLimit                   = 1.f;
+        m_bShowHDIComponents                  = false;
+        m_fStabilityAnarchyLowerLimit         = c_fStabilityAnarchyLowerLimit;
+        m_fStabilityAnarchyUpperLimit         = c_fStabilityAnarchyHigherLimit;
 
         // Load the SP2-HDM_Config.xml
         LoadSP2HDMConfigXML();
@@ -518,11 +519,24 @@ SDK::GAME_MSG GServer::Initialize()
 
       g_Joshua.RegisterConsoleCommand(
          L"force_occupy",
-         L"II",
-         L"All second country's regions will become occupied by first country.",
+         L"III",
+         L"All second country's regions will become occupied by first country, test conquer",
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
+      g_Joshua.RegisterConsoleCommand(
+         L"research_nuclear",
+         L"I",
+         L"force country to start nuclear research",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+         this);
+
+      g_Joshua.RegisterConsoleCommand(
+         L"print_nuclear_research",
+         L"I",
+         L"print country's general nuclear research level, and range, precision, and damage research levels",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+         this);
    } 
 #endif
 
@@ -1721,14 +1735,33 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    {
       const ENTITY_ID l_iOccupier = in_vArgs[0].ToINT32();
       const ENTITY_ID l_iTarget   = in_vArgs[1].ToINT32();
+      const bool l_bTestConquer   = in_vArgs[2].ToINT32();
 
       const set<UINT32>& l_vPoliticalRegions = m_DAL.CountryPoliticalControl(l_iTarget);
       for(set<UINT32>::const_iterator l_It = l_vPoliticalRegions.begin();
           l_It != l_vPoliticalRegions.end();
           ++l_It)
       {
-          m_DCL.ChangeRegionMilitaryControl(*l_It, l_iOccupier, false);
+          if(g_ServerDAL.RegionControlArray()[*l_It].m_iMilitary != l_iOccupier)
+              m_DCL.ChangeRegionMilitaryControl(*l_It, l_iOccupier, l_bTestConquer);
       }
+   }
+   else if(in_sCommand == L"research_nuclear")
+   {
+      const ENTITY_ID l_iCountry = in_vArgs[0].ToINT32();
+      m_DCL.StartNuclearResearch(l_iCountry);
+   }
+   else if(in_sCommand == L"print_nuclear_research")
+   {
+      const ENTITY_ID l_iCountry = in_vArgs[0].ToINT32();
+      const GCountryData* const l_pCountryData = m_DAL.CountryData(l_iCountry);
+      GString l_sNuclearResearchString(l_pCountryData->NameAndIDForLog() + L": " + GString(l_pCountryData->NuclearReady()));
+      for(INT32 i = EUnitDesignCharacteristics::MissileRange; i <= EUnitDesignCharacteristics::MissileDamage; i++)
+      {
+          const EUnitDesignCharacteristics::Enum l_eResearchCategory = static_cast<EUnitDesignCharacteristics::Enum>(i);
+          l_sNuclearResearchString += L" " + GString(l_pCountryData->ResearchInfo()->m_fMaxValues[EUnitCategory::Nuclear][l_eResearchCategory]);
+      }
+      return l_sNuclearResearchString;
    }
 #endif //#define GOLEM_DEBUG
    return L"";
@@ -2609,6 +2642,11 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_bDedicatedServerAutosaveToJoshuaFolder = (elementValue.ToINT32() != 0);
                         g_Joshua.Log(L"dedicatedServerAutosaveToJoshuaFolder: " + GString(m_bDedicatedServerAutosaveToJoshuaFolder));
+                    }
+                    else if(elementName == L"disableNuclearOnOccupy")
+                    {
+                        m_bDisableNuclearOnOccupy = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"disableNuclearOnOccupy: " + GString(m_bDisableNuclearOnOccupy));
                     }
                     else if(elementName == L"disbandAMDSOnOccupy")
                     {
