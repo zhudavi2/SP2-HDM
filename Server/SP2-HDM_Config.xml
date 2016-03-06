@@ -7,7 +7,7 @@
   <!-- Setting to 0 disallows a country on the defending side of a war from occupying the home
   territory of a country on the attacking side, unless the occupying country is also currently in an
   offensive war against the owning country.
-  Region liberation and naval bombardment are still allowed.
+  Region liberation is still allowed.
   Allowed values are 0 and 1. Default is 1. -->
   <allowDefenderAttackAttackerTerritory>1</allowDefenderAttackAttackerTerritory>
   

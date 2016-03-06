@@ -1923,6 +1923,8 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                 {
                     GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" is trying to move ground units " +
                                   L"from region " + g_ServerDAL.GetString(l_pStartRegion->NameId()) + L" " +
+                                  L"of " + g_ServerDAL.CountryData(l_iSourcePoliticalID)->NameAndIDForLog() + L", " +
+                                  L"controlled militarily by " + g_ServerDAL.CountryData(l_iSourceID)->NameAndIDForLog() + L", " +
                                   L"to region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
                                   L"of " + l_pDestOwnerCountry->NameAndIDForLog() + L", " +
                                   L"controlled militarily by " + g_ServerDAL.CountryData(l_iDestMilitaryOwner)->NameAndIDForLog(),
@@ -1990,15 +1992,16 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                {
                   UINT32 l_iOriginalPOwner = l_vRegions[m_vRegionGraph[l_iStartRegion].m_iRegionId].m_iPolitical;
 
-                  for(UINT32 i = 0;i < l_vVertexPath.size() - 1;i ++)
+                  for(UINT32 i = 1;i < l_vVertexPath.size() - 1;i ++)
                   {
                      // Check if this waypoint is hostile.  If it is we'll resize the vertex path,
                      //  fix l_iNbPoints and raise a flag to indicate path has been shortened
                      const UINT32 l_iVertexRegionId = l_vVertexPath[i].m_pVertex->m_iRegionId;
                      const GRegionControl& l_RegionControl = l_vRegions[l_iVertexRegionId];
-                     l_iDestMilitaryOwner = l_RegionControl.m_iMilitary;
-                     if( (l_iDestMilitaryOwner != l_iOriginalPOwner) &&
-                         (l_pStatuses[l_iDestMilitaryOwner] == EDiplomaticStatus::Hostile) )
+                     const auto l_iTempDestMilitaryOwner = l_RegionControl.m_iMilitary;
+                     if( (l_iTempDestMilitaryOwner != 0) &&
+                         (l_iTempDestMilitaryOwner != l_iOriginalPOwner) &&
+                         (l_pStatuses[l_iTempDestMilitaryOwner] == EDiplomaticStatus::Hostile) )
                      {
                         l_vVertexPath.resize(i + 1);
                         l_iNbPoints = i + 1;
@@ -2007,11 +2010,11 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                         l_pDestRegion = g_ServerDAL.GetGRegion(l_iVertexRegionId);
                         l_iDestOwner = l_RegionControl.m_iPolitical;
                         l_pDestOwnerCountry = g_ServerDAL.CountryData(l_iDestOwner);
+                        l_iDestMilitaryOwner = l_iTempDestMilitaryOwner;
                         
-                        GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" cannot directly move to the desired region, " +
-                                      L"because region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
+                        GDZDebug::Log(L"Region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
                                       L"of " + l_pDestOwnerCountry->NameAndIDForLog() + L", " +
-                                      L"controlled militarily by " + g_ServerDAL.CountryData(l_iDestMilitaryOwner)->NameAndIDForLog() + L", " +
+                                      L"controlled militarily by " + g_ServerDAL.CountryData(l_iTempDestMilitaryOwner)->NameAndIDForLog() + L", " +
                                       L"is in the way",
                                       EDZDebugLogCategory::UnitMovement,
                                       __FUNCTION__, __LINE__);
@@ -2044,14 +2047,14 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                       if(l_vAttackingSide.find(l_iOwner) != l_vAttackingSide.cend() &&
                          l_vDefendingSide.find(l_iDestOwner) != l_vDefendingSide.cend())
                       {
-                             GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" is on the attacking side and " +
-                                           l_pDestOwnerCountry->NameAndIDForLog() + L" is on the defending side of " +
-                                           L"a war between " + g_ServerDAL.CountryData(l_War.MasterAttacking())->Name() + L" and " +
-                                           g_ServerDAL.CountryData(l_War.MasterDefending())->Name(),
-                                           EDZDebugLogCategory::UnitMovement | EDZDebugLogCategory::War,
-                                           __FUNCTION__, __LINE__);
-                            l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
-                            break;
+                          GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" is on the attacking side and " +
+                                        l_pDestOwnerCountry->NameAndIDForLog() + L" is on the defending side of " +
+                                        L"a war between " + g_ServerDAL.CountryData(l_War.MasterAttacking())->NameAndIDForLog() + L" and " +
+                                        g_ServerDAL.CountryData(l_War.MasterDefending())->NameAndIDForLog(),
+                                        EDZDebugLogCategory::UnitMovement | EDZDebugLogCategory::War,
+                                        __FUNCTION__, __LINE__);
+                          l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
+                          break;
                       }
                   }
               }
