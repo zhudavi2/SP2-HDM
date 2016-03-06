@@ -1,4 +1,4 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V5
+SuperPower 2 Human Development Modification (SP2-HDM) V6
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -13,7 +13,8 @@ Internal political sphere changes:
 - Maximum possible immigration rate has been raised to equal the maximum emigration rate.
 
 Internal military sphere changes:
-- (V5) Military units that are hostile against each other will start battling each other from a farther distance; this negates the tactic of excessively splitting one's military units to make it artificially difficult for hostile units to engage in battle. Thanks to Fenix for the code suggestion.
+- (V6) When a country declares war on another country, and both countries are in the same Weapons Trade treaty, then the declarer will now automatically leave the treaty.
+- (V6) When a country declares war on another country, any military units in progress, that the declarer requested from the other country or vice versa, are now automatically cancelled.
 - (V5) Nuclear strikes against civilians now affect regional populations that are not attached to any specific cities. This effectively increases the amount of people that nuclear strikes can kill at once. Thanks to Fenix for the suggestion.
 - (V5) Nuclear strikes against civilians now affect telecom development level as well as that of infrastructure.
 - (V5) Changed how the game determines whether a covert mission succeeds, whether or not the true perpetrator would be found out, and whether or not the executing cell would be captured in case of mission failure. Previously, the outcome of a mission would always be the same as long as all the mission details (e.g., type, cell training level, complexity, etc.) and the in-game date and time of mission execution were the same.
@@ -43,6 +44,11 @@ UI changes:
 
 Configurable settings:
 - SP2-HDM_Config.xml is the configuration XML file.
+- (V6) Control whether to disallow a country on the defending side of a war from occupying the home territory of a country on the attacking side, unless the occupying country is also currently in an offensive war against the owning country.
+- (V6) Approximate maximum distance, in degrees of latitude and longitude, that must lie between hostile units in order for them to engage in battle; this negates the tactic of excessively splitting one's military units to make it artificially difficult for hostile units to engage in battle. Thanks to Fenix for the code suggestion.
+- (V6) Control disablement of AMDS research, and disbanding any existing AMDS, when a country becomes fully occupied.
+- (V6) Control upkeep fee, as a percentage of default, for each military unit category (e.g., Infantry, Ground, Air, etc.).
+- (V6) Control disablement nuclear research, and reduction of existing nuclear tech levels, upon full military occupation. If the country doesn't already have all nuclear tech levels at 1 or greater, then it will have to restart nuclear research from the beginning.
 - (V5) Number of covert cells that a human player may assign to any one foreign country. Thanks to Fenix for the suggestion. The limit does not apply to AI-controlled countries.
 - (V5) Control whether an AI should always refuse to assume a human player's debt.
 - (V5) Effective damage radius of nuclear missiles.
@@ -63,12 +69,13 @@ Experimental changes:
 - (V1) You can change your country's name. Just create a new covert cell with the name, "NAME", followed by a space, followed by your desired new name; a new covert cell won't actually be created when doing this. For example, if you type "NAME New Name" in the covert cell name blank and click "Confirm", then instead of creating a new covert cell, your country's name will be changed to "New Name". However, the new name will not automatically update in the any in-game windows you have open, unless you close and reopen those windows.
 
 Changes to previous SP2-HDM releases:
+- (V6) When performing covert actions against a target country, the positive effect on success rate of having additional cells in the target country has been lessened, further than it was in V5. Thanks to Fenix for the suggestion.
 - (V5) Fixed an issue in which if a country is conquered, and then another country changes its name, then the conquered country would reappear in country listings.
-- (V5) When performing covert actions against a target country, the positive effect on success rate of having additional cells in the target country has been lessened. Thanks to Fenix for the suggestion.
 - (V5) Fixed a potential issue in which countries with extremely low revenue wouldn't be able to build or buy non-infantry units.
-- (V5) When starting a new game, each country's population will be logged out to the console in addition to all the stats already being logged.
 
 Fixes to SP2 V1.5.1 issues:
+- (V6) Fixed an issue where a player could enroll a large amount of infantry (more than its manpower should make available) and then cancel them, resulting in an artificial population boost. Thanks to Fenix for pointing it out.
+- (V6) Fixed an issue in which a country's nuclear units would not always be automatically disbanded when the country becomes fully occupied.
 - (V5) Fixed at least some instances of the issue in which units that are deployed close to their capital may get stuck in deployment status.
 - (V5) When the game saves, either via the dedicated server autosave feature or the "save" console command, the game will now be saved correctly even if the "save" folder doesn't already exist. Thanks to Fenix for the suggestion.
 - (V5) When a country conquers another country in which the conquering country has covert cells stationed, then the conquering country will have its national security correctly recalculated immediately.
@@ -79,7 +86,9 @@ Fixes to SP2 V1.5.1 issues:
 - A country can no longer (net) export more of a resource than its own production of that resource.
 
 Other changes:
-- (V5) Minor Server.vcxproj file modifications.
+- (V6) Added a console command, print_players, to list all active players. Thanks to Fenix for the suggestion.
+- (V6) Added a console command, set_admin_country, that sets the server's admin player by country ID.
+- (V6) Added a console command, set_admin_player, that sets the server's admin player by player ID.
 - Minimum possible birth and death rates have been lowered slightly.
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
@@ -92,10 +101,13 @@ SDK notes:
 - The "Debug_In_Release" and "Release" build configurations are known to build correctly and produce working DLLs.
 - A Post-Build Event will automatically copy the built DLL to a default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder. 
 - The Release DLL is included with each commit for those interested in testing out the latest changes.
+- Added a new class, GDZDebug, which offers debug logging logic.
+- Changed debug console commands: print_relations
+- New debug console commands: build_amds, print_amds, force_occupy, research_nuclear, print_nuclear_research
 - Please credit the below people and entities, and me, if you release your own work that's based on this mod. Thanks!
 
 Credits:
 - Fenix for code suggestions and support.
-- Radu and Mr Monday for suggestions and support.
+- Illuminati, Mr Monday, Radu, and thereversedguy for suggestions and support.
 - Many more people on the SP2-HDM discussion thread and the SP2 Discussion forum.
 - Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.
