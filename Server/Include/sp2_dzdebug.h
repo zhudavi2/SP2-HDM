@@ -27,6 +27,7 @@ namespace SP2
             Nuclear      = 1 << 7,
             Regions      = 1 << 8,
             Upkeep       = 1 << 9,
+            Player       = 1 << 10,
         };
     }
 

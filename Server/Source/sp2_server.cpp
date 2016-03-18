@@ -257,6 +257,7 @@ SDK::GAME_MSG GServer::Initialize()
         m_bAllowDefenderAttackAttackerTerritory  = true;
         m_bAllowAIAssumeDebt                     = true;
         m_fCombatThresholdSquare                 = 0.7f*0.7f;
+        m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
         m_bDedicatedServerAutosaveToJoshuaFolder = false;
         m_fDedicatedServerAutosavePeriod         = 0.f;
         m_bDisableNuclearOnOccupy                = false;
@@ -2632,6 +2633,11 @@ void GServer::LoadSP2HDMConfigXML()
                         const REAL32 l_fCombatRangeDegrees = elementValue.ToREAL32();
                         m_fCombatThresholdSquare = l_fCombatRangeDegrees*l_fCombatRangeDegrees;
                         g_Joshua.Log(L"combatRangeDegrees: " + GString::FormatNumber(l_fCombatRangeDegrees, 2));
+                    }
+                    else if(elementName == L"countryNameChangeMode")
+                    {
+                        m_iCountryNameChangeMode = elementValue.ToINT32();
+                        g_Joshua.Log(L"countryNameChangeMode: " + GString(m_iCountryNameChangeMode));
                     }
                     else if(elementName == L"dedicatedServerAutosavePeriod")
                     {

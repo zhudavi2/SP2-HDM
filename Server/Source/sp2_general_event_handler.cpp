@@ -417,24 +417,30 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
 
 	gassert(l_player,"GGeneralEventHandler::HandleSetPlayerInfo(): Player should not be NULL");
 
-	bool l_bNameChanged = false;
+    // If the player is active, then only set the name if we're not in
+    // PlayerNameViaCovert mode (player must change name via Covert window)
+    // Always set the player name if the player is not active.
+    if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::PlayerNameViaCovert ||
+       l_player->PlayerStatus() != SDK::PLAYER_STATUS_ACTIVE)
+    {
+        const auto& l_sNewPlayerName = l_pSetPlayerInfo->m_PlayerInfo.PlayerName;
 
-	if(l_player->Name() != l_pSetPlayerInfo->m_PlayerInfo.PlayerName)
-		l_bNameChanged = true;
+        GDZDebug::Log(L"Player ID " + GString(l_player->Id()) + L", " +
+                      l_player->Name() + L", is inactive, or " +
+                      L"country name change mode is allowing player name change via Lobby; " +
+                      L"changing player name to " + l_sNewPlayerName,
+                      EDZDebugLogCategory::Player,
+                      __FUNCTION__, __LINE__);
 
-   // Set PlayerName;
-   l_player->Name(l_pSetPlayerInfo->m_PlayerInfo.PlayerName);
-   l_player->Client()->PlayerName(l_pSetPlayerInfo->m_PlayerInfo.PlayerName);
+        g_ServerDCL.ChangePlayerName(l_player, l_sNewPlayerName);
+    }
 
-   // If we are active, we shouldn't be able to do anything more !
-   if(l_player->PlayerStatus() == SDK::PLAYER_STATUS_ACTIVE)
+    // If we are active, we shouldn't be able to do anything more !
+    if(l_player->PlayerStatus() == SDK::PLAYER_STATUS_ACTIVE)
 	{
-		if(l_bNameChanged)
-		{
-			// Send this new information to all players
-			g_SP2Server->SendPlayersList();
-		}
-      return true;
+        // GDataControlLayer::ChangePlayerName() will have already sent any new
+        // information to all players
+        return true;
 	}
 
    // Make absolutly sure that this country is not taken yet

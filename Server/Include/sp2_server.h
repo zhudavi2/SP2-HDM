@@ -24,6 +24,16 @@ namespace SP2
    class GEconomicEventHandler;
    class GMilitaryEventHandler;
 
+   namespace ECountryNameChangeMode
+   {
+       enum Enum
+       {
+           Off = 0,
+           ViaCovert,
+           PlayerNameViaCovert,
+       };
+   }
+
    namespace EGlobalTaxSpecialType
    {
       enum Enum
@@ -120,6 +130,7 @@ namespace SP2
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
+      inline INT32   CountryNameChangeMode() const { return m_iCountryNameChangeMode; }
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
       inline bool    DisbandAMDSOnOccupy() const { return m_bDisbandAMDSOnOccupy; }
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
@@ -247,6 +258,7 @@ namespace SP2
       bool                                    m_bAllowAIAssumeDebt;
       bool                                    m_bAllowDefenderAttackAttackerTerritory;
       REAL32                                  m_fCombatThresholdSquare;
+      INT32                                   m_iCountryNameChangeMode;
       REAL32                                  m_fDedicatedServerAutosavePeriod;
       bool                                    m_bDedicatedServerAutosaveToJoshuaFolder;
       bool                                    m_bDisableNuclearOnOccupy;

@@ -270,8 +270,13 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
    //Handle name change
    static const GString l_sChangeNamePrefix("NAME ");
-   if(l_pEvent->m_sName.find(l_sChangeNamePrefix) == 0)
-       g_ServerDCL.ChangeCountryName(l_iCurPlayerID, l_pEvent->m_sName.substr(l_sChangeNamePrefix.length()));
+   static const GString l_sChangePlayerNamePrefix(L"PLAYER ");
+
+   const auto& l_sEventName = l_pEvent->m_sName;
+   if(l_sEventName.find(l_sChangeNamePrefix) == 0)
+       g_ServerDCL.ChangeCountryName(l_iCurPlayerID, l_sEventName.substr(l_sChangeNamePrefix.length()));
+   else if(l_sEventName.find(l_sChangePlayerNamePrefix) == 0)
+       g_ServerDCL.ChangePlayerName(l_pPlayer, l_sEventName.substr(l_sChangePlayerNamePrefix.length()));
    else
    {
        //Regular cell creation
@@ -282,9 +287,9 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
        //Create 10 cells at a time if the given name was "MULTIPLE " followed immediately by a whole number
        static const GString l_sMultipleCellsPrefix = L"MULTIPLE ";
-       if(l_pEvent->m_sName.find(l_sMultipleCellsPrefix) == 0)
+       if(l_sEventName.find(l_sMultipleCellsPrefix) == 0)
        {
-           const GString& l_sStartingCellName = l_pEvent->m_sName.substr(l_sMultipleCellsPrefix.length());
+           const GString& l_sStartingCellName = l_sEventName.substr(l_sMultipleCellsPrefix.length());
            l_iStartingCellNumber = l_sStartingCellName.ToINT32();
            gassert(l_iStartingCellNumber >= 1,"Invalid starting cell number for multiple cell creation");
        }
@@ -297,7 +302,7 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
            l_Cell.OwnerID(l_iCurPlayerID);
 
-           const GString& l_sCellName = (l_iStartingCellNumber == -1) ? l_pEvent->m_sName : GString(i);
+           const GString& l_sCellName = (l_iStartingCellNumber == -1) ? l_sEventName : GString(i);
            l_Cell.Name( l_sCellName );
 
            l_Cell.AssignedCountry( g_ServerDAL.CountryCanAssignCovertCellToTarget(l_iCurPlayerID, l_pEvent->m_iAssignedCountryID) ?

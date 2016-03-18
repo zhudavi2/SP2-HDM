@@ -9027,64 +9027,90 @@ void GDataControlLayer::LiberateRegions(UINT32 in_iCountryLiberating,
 
 void GDataControlLayer::ChangeCountryName(ENTITY_ID in_iCountryID, const GString& in_sNewName)
 {
-    gassert(in_iCountryID >= 1,"Invalid country ID, name change won't work");
-
-    //See if the new country's name is taken already. If yes, then the name change will not occur
-    const UINT16 l_iNbCountry = g_ServerDAL.NbCountry();
-    bool l_bNameTakenAlready = false;
-    for(ENTITY_ID i = 1; i < l_iNbCountry; i++)
+    if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::Off &&
+       !in_sNewName.empty())
     {
-        if(g_ServerDAL.CountryData(i)->Name() == in_sNewName)
-            l_bNameTakenAlready = true;
-    }
+        gassert(in_iCountryID >= 1,"Invalid country ID, name change won't work");
 
-    if(!l_bNameTakenAlready)
-    {
-        GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
-        const GString l_sOldName = l_pCountryData->Name();
-
-        //Change GCountryData name to allow saving the new name to save files
-        l_pCountryData->Name(in_sNewName);
-
-        //Change GCountry name to allow client display of the new name
-        //g_SP2Server->Countries() is 0-based
-        g_SP2Server->Countries().at(in_iCountryID - 1).Name(in_sNewName);
-
-        SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayerByModID(in_iCountryID);
-        g_Joshua.Log(L"Country ID " + GString(in_iCountryID) +
-                     ((l_pPlayer != NULL) ?
-                      (L", played by player ID " + GString(l_pPlayer->Id()) + L", " + l_pPlayer->Name() + L", ") :
-                      L" ") +
-                     L"has changed its name from " +
-                     l_sOldName + L" to " + in_sNewName);
-
+        //See if the new country's name is taken already. If yes, then the name change will not occur
+        const UINT16 l_iNbCountry = g_ServerDAL.NbCountry();
+        bool l_bNameTakenAlready = false;
+        for(ENTITY_ID i = 1; i < l_iNbCountry; i++)
         {
-            SDK::GGameEventSPtr l_ReceiveCountryListEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
-            l_ReceiveCountryListEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
-            l_ReceiveCountryListEvent->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
-
-            Event::GReceiveCountryList* l_pCntrListEvent = (Event::GReceiveCountryList*) l_ReceiveCountryListEvent.get();
-            l_pCntrListEvent->m_vCountries = g_SP2Server->Countries();
-
-            g_Joshua.RaiseEvent(l_ReceiveCountryListEvent);
-        }
-
-        g_SP2Server->SendPlayersList();
-
-        //Resend all news of countries being conquered
-        //Libraries automatically change all GCountry objects to active for GReceiveCountryList event, so we need to correct for that
-        for(INT32 i = 1; i < l_iNbCountry; i++)
-        {
-            if(!g_ServerDAL.CountryValidityArray(i))
+            if(g_ServerDAL.CountryData(i)->Name() == in_sNewName)
             {
-                SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GConquerCountry);
-                SP2::Event::GConquerCountry* l_ConquerEvent = (SP2::Event::GConquerCountry*) (l_Event.get() );
-                l_ConquerEvent->m_iConqeredID = i;
-                l_ConquerEvent->m_iConqueringID = 0;
-                l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
-                l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
-                g_Joshua.RaiseEvent(l_Event);
+                l_bNameTakenAlready = true;
+                break;
             }
         }
+
+        if(!l_bNameTakenAlready)
+        {
+            GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
+            const GString l_sOldName = l_pCountryData->Name();
+
+            //Change GCountryData name to allow saving the new name to save files
+            l_pCountryData->Name(in_sNewName);
+
+            //Change GCountry name to allow client display of the new name
+            //g_SP2Server->Countries() is 0-based
+            g_SP2Server->Countries().at(in_iCountryID - 1).Name(in_sNewName);
+
+            SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayerByModID(in_iCountryID);
+            g_Joshua.Log(L"Country ID " + GString(in_iCountryID) +
+                ((l_pPlayer != NULL) ?
+                (L", played by player ID " + GString(l_pPlayer->Id()) + L", " + l_pPlayer->Name() + L", ") :
+            L" ") +
+                L"has changed its name from " +
+                l_sOldName + L" to " + in_sNewName);
+
+            {
+                SDK::GGameEventSPtr l_ReceiveCountryListEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
+                l_ReceiveCountryListEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
+                l_ReceiveCountryListEvent->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
+
+                Event::GReceiveCountryList* l_pCntrListEvent = (Event::GReceiveCountryList*) l_ReceiveCountryListEvent.get();
+                l_pCntrListEvent->m_vCountries = g_SP2Server->Countries();
+
+                g_Joshua.RaiseEvent(l_ReceiveCountryListEvent);
+            }
+
+            //Resend all news of countries being conquered
+            //Libraries automatically change all GCountry objects to active for GReceiveCountryList event, so we need to correct for that
+            for(INT32 i = 1; i < l_iNbCountry; i++)
+            {
+                if(!g_ServerDAL.CountryValidityArray(i))
+                {
+                    SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GConquerCountry);
+                    SP2::Event::GConquerCountry* l_ConquerEvent = (SP2::Event::GConquerCountry*) (l_Event.get() );
+                    l_ConquerEvent->m_iConqeredID = i;
+                    l_ConquerEvent->m_iConqueringID = 0;
+                    l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
+                    l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
+                    g_Joshua.RaiseEvent(l_Event);
+                }
+            }
+        }
+    }
+}
+
+void GDataControlLayer::ChangePlayerName(SDK::GPlayer* in_pPlayer, const GString& in_sNewName)
+{
+    if(!in_sNewName.empty() && in_pPlayer->Name() != in_sNewName)
+    {
+        GDZDebug::Log(L"Player ID " + GString(in_pPlayer->Id()) + L", " +
+                      in_pPlayer->Name() + L", " +
+                      L"is changing name to " +
+                      in_sNewName,
+                      EDZDebugLogCategory::Player,
+                      __FUNCTION__, __LINE__);
+
+        in_pPlayer->Name(in_sNewName);
+
+        //Not sure why GGameClientItf::PlayerName() needs a non-const GString
+        GString l_sNewName(in_sNewName);
+        in_pPlayer->Client()->PlayerName(l_sNewName);
+
+        g_SP2Server->SendPlayersList();
     }
 }
