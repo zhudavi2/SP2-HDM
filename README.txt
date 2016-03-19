@@ -44,6 +44,7 @@ UI changes:
 
 Configurable settings:
 - SP2-HDM_Config.xml is the configuration XML file.
+- (V7) Enable or disable country name changing. However, due to SDK limitations, in order to prevent a country name change from affecting player nicknames, player nicknames can only be changed via the covert window once in the game; this is done in the same way as changing a country name, just with "PLAYER" and a space, followed by the desired name, instead of "NAME" and a space, followed by the desired name.
 - (V6) Control whether to disallow a country on the defending side of a war from occupying the home territory of a country on the attacking side, unless the occupying country is also currently in an offensive war against the owning country.
 - (V6) Approximate maximum distance, in degrees of latitude and longitude, that must lie between hostile units in order for them to engage in battle; this negates the tactic of excessively splitting one's military units to make it artificially difficult for hostile units to engage in battle. Thanks to Fenix for the code suggestion.
 - (V6) Control disablement of AMDS research, and disbanding any existing AMDS, when a country becomes fully occupied.
