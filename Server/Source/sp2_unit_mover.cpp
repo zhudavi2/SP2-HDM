@@ -1910,6 +1910,9 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
          const GCountryData* l_pDestOwnerCountry = g_ServerDAL.CountryData(l_iDestOwner);
          ENTITY_ID l_iDestMilitaryOwner = l_pDestRegion->OwnerMilitaryId();
 
+         //For gassert()
+         const ENTITY_ID l_iOriginalDestMilitaryOwner = l_iDestMilitaryOwner;
+
          SDK::GWayPoint* l_pPath = NULL;
          if(!l_bImpossible)
          {
