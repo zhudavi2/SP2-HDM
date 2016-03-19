@@ -88,6 +88,7 @@ void GDZDebug::Assert(bool in_bExpr,
         vector<GString> l_vAssertMsgs;
         l_vAssertMsgs.push_back(L"----------------------------------------------------------------\n");
         l_vAssertMsgs.push_back(L"ASSERT FAILED  :" + in_sExpr + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT MESSAGE :" + in_sMsg + L"\n");
         l_vAssertMsgs.push_back(L"ASSERT FUNCTION:" + in_sFunc + L"\n");
         l_vAssertMsgs.push_back(L"ASSERT LOCATION:" + in_sFile + L":" + GString(in_iLine) + L"\n");
         l_vAssertMsgs.push_back(L"----------------------------------------------------------------");
