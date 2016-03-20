@@ -3694,3 +3694,9 @@ bool GDataAccessLayerServer::CountryCanAssignCovertCellToTarget(UINT32 in_iSourc
 
     return l_bCanMove;
 }
+
+GString GDataAccessLayerServer::RegionNameAndIDForLog(UINT32 in_iRegionID)
+{
+    return GetString(StringIdRegion(in_iRegionID)) +
+           L" (" + GString(in_iRegionID) + L")";
+}
