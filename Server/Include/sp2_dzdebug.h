@@ -36,6 +36,7 @@ namespace SP2
             Regions      = 1 << 8,
             Upkeep       = 1 << 9,
             Player       = 1 << 10,
+            Population   = 1 << 11,
         };
     }
 

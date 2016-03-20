@@ -501,7 +501,12 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 
 	//Calculate the total population, for debugging purposes
 	l_iTempPopulationAll = in_pRegion->Population15() + in_pRegion->Population1565() + in_pRegion->Population65();	
-
+    /*GDZDEBUGLOG(L"Region " + g_ServerDAL.GetString(in_pRegion->NameId()) + L" of " +
+                m_CountryData->NameAndIDForLog() + L": " +
+                L"Population15() " + GString(in_pRegion->Population15()) + L", " +
+                L"Population1565() " + GString(in_pRegion->Population1565()) + L", " +
+                L"Population65() " + GString(in_pRegion->Population65()),
+                EDZDebugLogCategory::Population);*/
 
 	INT64 l_iNbConverts = 0;
 	INT64 l_iTempConverts = 0;
@@ -568,7 +573,12 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 
 	//Check if our population of languages and religions are equal to the total population
 //	gassert(l_iTempPopulationAll == l_iPopulationLanguage,"Population of language should be equal to total population");
-	gassert(l_iTempPopulationAll == l_iPopulationReligion,"Population of religion should be equal to total population");
+	gassert(l_iTempPopulationAll == l_iPopulationReligion,
+            "Population of religion should be equal to total population: " +
+            g_ServerDAL.GetString(in_pRegion->NameId()) + L" of " +
+            m_CountryData->NameAndIDForLog() + L": " +
+            L"Total population " + GString(l_iTempPopulationAll) + L" vs. " +
+            L"population of all religions " + GString(l_iPopulationReligion));
 
 	return true;
 }
