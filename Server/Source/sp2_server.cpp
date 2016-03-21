@@ -1736,7 +1736,7 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    {
       const ENTITY_ID l_iOccupier = in_vArgs[0].ToINT32();
       const ENTITY_ID l_iTarget   = in_vArgs[1].ToINT32();
-      const bool l_bTestConquer   = in_vArgs[2].ToINT32();
+      const bool l_bTestConquer   = in_vArgs[2].ToINT32() > 0;
 
       const set<UINT32>& l_vPoliticalRegions = m_DAL.CountryPoliticalControl(l_iTarget);
       for(set<UINT32>::const_iterator l_It = l_vPoliticalRegions.begin();

@@ -184,7 +184,7 @@ bool GWorldBehavior::LoadConfigFile(const GString &in_sFilename, const GString &
 
 bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 {	
-    const UINT32 l_iRegionId = in_pRegion->Id();
+    //const UINT32 l_iRegionId = in_pRegion->Id();
     /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
                 m_CountryData->NameAndIDForLog() + L": " +
                 L"Population15() "   + GString(in_pRegion->Population15()) + L", " +
@@ -341,6 +341,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 		l_Itr != l_Religions.end();
 		l_Itr++)
 	{
+        l_iInitialPopulationOfReligions += in_pRegion->ReligionGetPopulation(l_Itr->first);
         /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
         l_iInitialPopulationOfReligions +=
             in_pRegion->ReligionGetPopulation(l_Itr->first);
