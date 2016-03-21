@@ -336,11 +336,15 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 	l_iTempLeftToLeave = l_iLeavingPopulation;
 	in_pRegion->GetReligions(l_Religions);	
 
+    INT64 l_iInitialPopulationOfReligions = 0;
     for(GReligionList::iterator l_Itr = l_Religions.begin();
 		l_Itr != l_Religions.end();
 		l_Itr++)
 	{
         /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
+        l_iInitialPopulationOfReligions +=
+            in_pRegion->ReligionGetPopulation(l_Itr->first);
+            if(m_CountryData->CountryID() == 142)
                     m_CountryData->NameAndIDForLog() + L": Population of " +
                     g_ServerDAL.GetString(g_ServerDAL.StringIdReligion(l_Itr->first)) +
                     L": " +
@@ -348,6 +352,13 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
                     GString(in_pRegion->ReligionGetPopulation(l_Itr->first)),
                     EDZDebugLogCategory::Population);*/
     }
+
+    /*gassert(l_iInitialPopulation == l_iInitialPopulationOfReligions,
+            L"Initial total population of religions should be equal to initial total population: " +
+            g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
+            m_CountryData->NameAndIDForLog() + L": " +
+            L"Total population " + GString(l_iInitialPopulation) + L" vs. " +
+            L"population of religions " + GString(l_iInitialPopulationOfReligions));*/
 
 	INT64 l_iMaxPopulationReligion = -1;
 	INT32 l_iMaxReligion = 0;
@@ -620,12 +631,12 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 
 	//Check if our population of languages and religions are equal to the total population
 //	gassert(l_iTempPopulationAll == l_iPopulationLanguage,"Population of language should be equal to total population");
-	gassert(l_iTempPopulationAll == l_iPopulationReligion,
+	/*gassert(l_iTempPopulationAll == l_iPopulationReligion,
             "Population of religion should be equal to total population: " +
             g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
             m_CountryData->NameAndIDForLog() + L": " +
             L"Total population " + GString(l_iTempPopulationAll) + L" vs. " +
-            L"population of all religions " + GString(l_iPopulationReligion));
+            L"population of all religions " + GString(l_iPopulationReligion));*/
 
 	return true;
 }
