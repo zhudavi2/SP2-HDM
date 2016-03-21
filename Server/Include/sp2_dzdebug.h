@@ -37,6 +37,8 @@ namespace SP2
             Upkeep       = 1 << 9,
             Player       = 1 << 10,
             Population   = 1 << 11,
+            ClientStates = 1 << 12,
+            Treaties     = 1 << 13,
         };
     }
 

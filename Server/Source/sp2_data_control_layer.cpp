@@ -1805,6 +1805,22 @@ bool GDataControlLayer::JoinAWar(UINT32 in_iCountryID, UINT32 in_iWarToJoin, UIN
 
 bool GDataControlLayer::DeclareNewWar(const set<UINT32>& in_AttackingCountries, UINT32 in_iMasterAttacking, UINT32 in_iDefendingCountry)
 {
+    //Add client states to attackers
+    set<ENTITY_ID> l_vAttackers = in_AttackingCountries;
+    for(auto l_It = in_AttackingCountries.cbegin();
+        l_It != in_AttackingCountries.cend();
+        ++l_It)
+    {
+        for(ENTITY_ID i = 0; i < g_ServerDAL.NbCountry(); i++)
+        {
+            if(g_ServerDAL.CountryValidityArray(i)             &&
+               i != in_iDefendingCountry                       &&
+               g_ServerDAL.CountryData(i)->ClientOf() == *l_It &&
+               l_vAttackers.find(i) == l_vAttackers.cend())
+                l_vAttackers.insert(l_vAttackers.cend(), i);
+        }
+    }
+
 	const hash_map<UINT32,GWar>& l_Wars = g_ServerDAL.CurrentWars();
 
 	//Check if an identical war already exist, if so, do not create a new one
@@ -1817,8 +1833,8 @@ bool GDataControlLayer::DeclareNewWar(const set<UINT32>& in_AttackingCountries, 
 		{
 			//compare the members
 			bool l_bAllAttackersAreThere = true;
-			for(set<UINT32>::const_iterator it = in_AttackingCountries.begin(); 
-				it != in_AttackingCountries.end(); it++)
+			for(set<UINT32>::const_iterator it = l_vAttackers.begin(); 
+				it != l_vAttackers.end(); it++)
 			{
 				if(l_CurWar.AttackingSide().count(*it) == 0)
 				{
@@ -1835,11 +1851,11 @@ bool GDataControlLayer::DeclareNewWar(const set<UINT32>& in_AttackingCountries, 
 	//If we are here, no similiar war has been found, so create a new one
 	set<UINT32> l_CountriesAlreadyInSamePosition;
 	GWar l_NewWar;
-	for(set<UINT32>::const_iterator it = in_AttackingCountries.begin(); 
-		 it != in_AttackingCountries.end(); it++)
+	for(set<UINT32>::const_iterator it = l_vAttackers.begin(); 
+		 it != l_vAttackers.end(); it++)
 	{
 		l_NewWar.AddCountryToAttackingSide(*it);		
-		DeclareWar(*it,in_iDefendingCountry,in_AttackingCountries,true, true);		
+		DeclareWar(*it,in_iDefendingCountry,l_vAttackers,true, true);		
 	}	
 	l_NewWar.AddCountryToDefendingSide(in_iDefendingCountry);
 	l_NewWar.MasterAttacking(in_iMasterAttacking);
@@ -1849,6 +1865,16 @@ bool GDataControlLayer::DeclareNewWar(const set<UINT32>& in_AttackingCountries, 
 	l_NewWar.Date(g_ServerDAL.ActualDate());	
    g_ServerDAL.AddWar(l_NewWar);	
 	UINT32 l_iWarID = l_NewWar.ID();
+
+    //Add client states to defenders
+    for(ENTITY_ID i = 1; i <= g_ServerDAL.NbCountry(); i++)
+    {
+        if(g_ServerDAL.CountryValidityArray(i)                            &&
+           i != in_iDefendingCountry                                      &&
+           g_ServerDAL.CountryData(i)->ClientOf() == in_iDefendingCountry &&
+           l_vAttackers.find(i) == l_vAttackers.cend())
+            JoinAWar(i, l_iWarID, 2, !l_NewWar.MasterDefendingWantsPeace());
+    }
 
 	//Alert AI that a war has been declared
 	SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GWarDeclarationNotify);
@@ -4179,6 +4205,9 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
    g_Joshua.Log(L"Country " + GString(in_iCountryCreator) + L" has created treaty: " + l_NewTreaty.Name() + L" With ID: " + GString(l_NewTreaty.ID()));
 #endif
 
+   const bool l_bIsClientStateTreaty = in_iType == ETreatyType::MilitaryAccess &&
+                                       in_sName.find(L"CLIENT") == 0;
+   const ENTITY_ID l_iFutureClientState = l_bIsClientStateTreaty ? *in_vSideB.cbegin() : 0;
 
 	//Then, send the game events
 	for(set<ENTITY_ID>::const_iterator l_Itr = in_vSideA.begin();
@@ -4217,9 +4246,54 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 			*/
 		}
 	}
+
+    bool l_bShouldExecuteClientStateTreaty = l_bIsClientStateTreaty;
+    if(l_bIsClientStateTreaty)
+    {
+        gassert(l_iFutureClientState != 0,"Client state treaty has no candidate country");
+
+        const ENTITY_ID l_iClientOf = *in_vSideA.cbegin();
+        const GCountryData* const l_pClientOfData = g_ServerDAL.CountryData(l_iClientOf);
+        const GCountryData* const l_pClientData = g_ServerDAL.CountryData(l_iFutureClientState);
+
+        //Client-of can't be a client itself
+        l_bShouldExecuteClientStateTreaty = l_pClientOfData->ClientOf() == 0;
+
+        //Client state can't be more economically powerful
+        l_bShouldExecuteClientStateTreaty &= l_pClientData->EconomicRank() < l_pClientOfData->EconomicRank();
+
+        //Client must be occupied sufficiently
+        {
+            const auto& l_vPoliticalRegions = g_ServerDAL.CountryPoliticalControl(l_iFutureClientState);
+            REAL32 l_fPercentageOccupied = 1.f;
+            for(auto l_It = l_vPoliticalRegions.cbegin();
+                l_It != l_vPoliticalRegions.cend();
+                ++l_It)
+            {
+                if(g_ServerDAL.RegionControlArray()[*l_It].m_iMilitary != l_iClientOf)
+                {
+                    l_fPercentageOccupied -= g_ServerDAL.GetGRegion(*l_It)->PercentageValue();
+                    if(l_fPercentageOccupied < 0.8f)
+                    {
+                        l_bShouldExecuteClientStateTreaty = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(l_bShouldExecuteClientStateTreaty)
+        {
+            GTreaty* l_pTreaty = g_ServerDAL.Treaty(l_iTreatyID);
+            l_pTreaty->Private(true);
+
+            l_pTreaty->AddMemberSideB(l_iFutureClientState, true, true);
+        }
+    }
 	
 	//Execute treaty
-	if(!l_NewTreaty.Active() && l_NewTreaty.ShouldBeActive())
+	if(!l_NewTreaty.Active()                                              &&
+       (l_NewTreaty.ShouldBeActive() || l_bShouldExecuteClientStateTreaty))
 	{
 		GTreaty* l_pTreaty = g_ServerDAL.Treaty(l_iTreatyID);
 		l_pTreaty->Active(true);
@@ -4654,6 +4728,37 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 		}
 	   
 		break;
+
+    case ETreatyType::MilitaryAccess:
+    {
+        if(l_pTreaty->Name().find(L"CLIENT") == 0)
+        {
+            gassert(l_vSideA.size() == 1 && l_vSideB.size() == 1,
+                    L"Client state treaty has " + GString(l_vSideA.size()) +
+                    L" members on side A and " +
+                    GString(l_vSideB.size()) + L" on side B");
+
+            const ENTITY_ID l_iClientOf   = *l_vSideA.cbegin();
+            const ENTITY_ID l_iClient     = *l_vSideB.begin();
+            GCountryData*   l_pClientData = g_ServerDAL.CountryData(l_iClient);
+
+            l_pClientData->ClientOf(l_iClientOf);
+            GDZDEBUGLOG(l_pClientData->NameAndIDForLog() +
+                        L" is now a client of " +
+                        g_ServerDAL.CountryData(l_iClientOf)->NameAndIDForLog(),
+                        EDZDebugLogCategory::ClientStates);
+
+            //Client state will start off with same relations
+            for(ENTITY_ID i = 1; i <= g_ServerDAL.NbCountry(); i++)
+            {
+                g_ServerDAL.RelationBetweenCountries(l_iClient, i,
+                                                     g_ServerDAL.RelationBetweenCountries(l_iClientOf, i));
+            }
+
+            SendCountryList();
+        }
+    }
+        break;
 	}
 
 	if(l_vStrings.size())
@@ -9064,16 +9169,7 @@ void GDataControlLayer::ChangeCountryName(ENTITY_ID in_iCountryID, const GString
                 L"has changed its name from " +
                 l_sOldName + L" to " + in_sNewName);
 
-            {
-                SDK::GGameEventSPtr l_ReceiveCountryListEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
-                l_ReceiveCountryListEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
-                l_ReceiveCountryListEvent->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
-
-                Event::GReceiveCountryList* l_pCntrListEvent = (Event::GReceiveCountryList*) l_ReceiveCountryListEvent.get();
-                l_pCntrListEvent->m_vCountries = g_SP2Server->Countries();
-
-                g_Joshua.RaiseEvent(l_ReceiveCountryListEvent);
-            }
+            SendCountryList();
 
             //Resend all news of countries being conquered
             //Libraries automatically change all GCountry objects to active for GReceiveCountryList event, so we need to correct for that
@@ -9113,4 +9209,31 @@ void GDataControlLayer::ChangePlayerName(SDK::GPlayer* in_pPlayer, const GString
 
         g_SP2Server->SendPlayersList();
     }
+}
+
+void GDataControlLayer::SendCountryList(INT32 in_iTarget) const
+{
+    SDK::GGameEventSPtr l_ReceiveCountryListEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
+    l_ReceiveCountryListEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
+    l_ReceiveCountryListEvent->m_iTarget = in_iTarget;
+
+    Event::GReceiveCountryList* l_pCntrListEvent = (Event::GReceiveCountryList*) l_ReceiveCountryListEvent.get();
+    l_pCntrListEvent->m_vCountries = g_SP2Server->Countries();
+
+    //Display client states' names with whom they're a client of
+    //Won't affect their server-side name
+    for(ENTITY_ID i = 0; i < l_pCntrListEvent->m_vCountries.size(); i++)
+    {
+        if(g_ServerDAL.CountryValidityArray(i + 1) &&
+           g_ServerDAL.CountryData(i + 1)->ClientOf() != 0)
+        {
+            GCountry& l_Country = l_pCntrListEvent->m_vCountries[i];
+            GString l_sNewName = l_Country.Name();
+            l_sNewName.append(L", client of " +
+                              g_ServerDAL.CountryData(g_ServerDAL.CountryData(i + 1)->ClientOf())->Name());
+            l_Country.Name(l_sNewName);
+        }
+    }
+
+    g_Joshua.RaiseEvent(l_ReceiveCountryListEvent);
 }

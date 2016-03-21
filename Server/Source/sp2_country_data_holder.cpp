@@ -531,6 +531,8 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 
     m_sName = g_ServerDAL.GetString(m_iNameID);
 
+    m_iClientOf = 0;
+
 	//Fill information that comes from the regions
 	SynchronizeWithRegions();
 

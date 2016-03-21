@@ -830,14 +830,7 @@ void SP2::GGeneralEventHandler::HandleGetCountryParties(SDK::GGameEventSPtr in_E
 
 void SP2::GGeneralEventHandler::HandleRequestCountryList(SDK::GGameEventSPtr in_Event)
 {
-   SDK::GGameEventSPtr l_ResponseEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
-   l_ResponseEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
-   l_ResponseEvent->m_iTarget = in_Event->m_iSource;
-
-   Event::GReceiveCountryList* l_pCntrListEvent = (Event::GReceiveCountryList*) l_ResponseEvent.get();
-   l_pCntrListEvent->m_vCountries = g_SP2Server->Countries();
-
-   g_Joshua.RaiseEvent(l_ResponseEvent);
+    g_ServerDCL.SendCountryList(in_Event->m_iSource);
 }
 
 void SP2::GGeneralEventHandler::HandleFetchCountriesRelations(SDK::GGameEventSPtr in_Event)
