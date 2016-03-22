@@ -141,8 +141,10 @@ namespace SP2
 
       INT32 NumberOfPoliticallyControlledRegions() const;
 
-      inline ENTITY_ID ClientOf() const                  { return m_iClientOf; }
-      inline void      ClientOf(ENTITY_ID in_iCountryID) { m_iClientOf = in_iCountryID; }
+      bool EligibleToBeClientOf(ENTITY_ID in_iMaster) const;
+
+      inline ENTITY_ID Master() const                  { return m_iMaster; }
+      inline void      Master(ENTITY_ID in_iCountryID) { m_iMaster = in_iCountryID; }
 
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
@@ -172,7 +174,7 @@ namespace SP2
 
         GString         m_sName;
 
-        ENTITY_ID       m_iClientOf;
+        ENTITY_ID       m_iMaster;
 
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;

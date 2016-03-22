@@ -531,7 +531,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 
     m_sName = g_ServerDAL.GetString(m_iNameID);
 
-    m_iClientOf = 0;
+    m_iMaster = 0;
 
 	//Fill information that comes from the regions
 	SynchronizeWithRegions();
@@ -1928,6 +1928,52 @@ INT32 GCountryData::NumberOfPoliticallyControlledRegions() const
     }
 
     return l_iNumberOfPoliticallyControlledRegions;
+}
+
+bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
+{
+    const GCountryData* const l_pMasterData = g_ServerDAL.CountryData(in_iMaster);
+    GDZDEBUGLOG(L"Testing if " + NameAndIDForLog() + L" can be a client of " +
+                l_pMasterData->NameAndIDForLog(),
+                EDZDebugLogCategory::ClientStates);
+
+    //Client-of can't be a client itself
+    if(l_pMasterData->Master() != 0)
+        return false;
+
+    //Client state can't be more economically powerful
+    if(EconomicRank() < l_pMasterData->EconomicRank())
+    {
+        GDZDEBUGLOG(NameAndIDForLog() + L" rank: " + GString(EconomicRank()) + L"; " +
+                    l_pMasterData->NameAndIDForLog() + L" rank: " +
+                    GString(l_pMasterData->EconomicRank()),
+                    EDZDebugLogCategory::ClientStates);
+        return false;
+    }
+
+    //Client must be occupied sufficiently
+    const auto& l_vPoliticalRegions = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
+    REAL32 l_fPercentageOccupied = 1.f;
+    for(auto l_It = l_vPoliticalRegions.cbegin();
+        l_It != l_vPoliticalRegions.cend();
+        ++l_It)
+    {
+        if(g_ServerDAL.RegionControlArray()[*l_It].m_iMilitary != in_iMaster)
+        {
+            l_fPercentageOccupied -= g_ServerDAL.GetGRegion(*l_It)->PercentageValue();
+            if(l_fPercentageOccupied < 0.8f)
+            {
+                GDZDEBUGLOG(NameAndIDForLog() + L" percentage occupied: " +
+                            GString(l_fPercentageOccupied),
+                            EDZDebugLogCategory::ClientStates);
+                return false;
+            }
+        }
+    }
+
+    GDZDEBUGLOG(NameAndIDForLog() + L" is eligible",
+                EDZDebugLogCategory::ClientStates);
+    return true;
 }
 
 bool GCountryData::OnSave(GIBuffer& io_Buffer)
