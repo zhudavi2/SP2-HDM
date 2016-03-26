@@ -3730,6 +3730,31 @@ void GWorldBehavior::IterateBudget(REAL64 in_fGameTime)
 		}
 	}
 
+    //Iterate client state tributes
+    for(ENTITY_ID i = 1; i <= l_iNbCountry; i++)
+    {
+        const GCountryData* const l_pClientData = g_ServerDAL.CountryData(i);
+        const auto l_MasterPair = l_pClientData->Master();
+        const ENTITY_ID l_iMaster = l_MasterPair.first;
+        if(l_iMaster != 0)
+        {
+            const GCountryData* const l_pMasterData = g_ServerDAL.CountryData(l_iMaster);
+            gassert(g_ServerDAL.Treaties().count(l_MasterPair.second) == 1,
+                    l_pClientData->NameAndIDForLog() + L" doesn't have a treaty " +
+                    L"for its client status with " +
+                    l_pMasterData->NameAndIDForLog());
+
+            //Diplomacy expense for client, foreign aid revenue for master
+            const REAL64 l_fTribute = l_pClientData->GDPValue() / 10.0 * l_pClientData->HumanDevelopment();
+            GDZDEBUGLOG(l_pClientData->NameAndIDForLog() + L" pays " +
+                        GString::FormatNumber(l_fTribute, L",", L".", L"$", L"", 3) +
+                        L" tribute to " + l_pMasterData->NameAndIDForLog(),
+                        EDZDebugLogCategory::ClientStates);
+            l_vDiplomacyExpenses[i] += l_fTribute;
+            l_vForeignAid[l_iMaster] += l_fTribute;
+        }
+    }
+
 	//Remove money from budget, or add expenses
 	for(UINT32 i=1; i <= l_iNbCountry; i++)
 	{
