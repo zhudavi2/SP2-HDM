@@ -4113,6 +4113,10 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 	//Can't create treaties when in Anarchy
 	if(g_ServerDAL.CountryData(in_iCountryCreator)->GvtType() == EGovernmentType::Anarchy)
 		return 0;
+
+    //Can't create treaties as a client
+    if(g_ServerDAL.CountryData(in_iCountryCreator)->Master().first != 0)
+        return 0;
 	
 	//Can't create an alliance if the condition isn't set at no limit
 	if(in_iType == ETreatyType::Alliance && in_pConditions[ETreatyConditions::RelationsNotAtWar] == EConditionStatus::NoLimit)
