@@ -588,7 +588,7 @@ namespace SP2
       void SendCountryList(INT32 in_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers) const;
 
       //! Make client state; non-const because ChangeRegionMilitaryControl() is non-const
-      void MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClient);
+      void MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClient, UINT32 in_iTreaty, bool in_bLoadingGame = false);
    };
 };
 

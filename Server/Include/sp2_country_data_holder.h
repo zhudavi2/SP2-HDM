@@ -143,8 +143,11 @@ namespace SP2
 
       bool EligibleToBeClientOf(ENTITY_ID in_iMaster) const;
 
-      inline ENTITY_ID Master() const                  { return m_iMaster; }
-      inline void      Master(ENTITY_ID in_iCountryID) { m_iMaster = in_iCountryID; }
+      inline pair<ENTITY_ID, UINT32> Master() const { return m_Master; }
+      inline map<ENTITY_ID, UINT32>  Clients() const { return m_mClients; }
+
+      //! Calculate the optimal GDP, if it had all of its regions
+      REAL64 OptimalGDPValue() const;
 
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
@@ -155,6 +158,10 @@ namespace SP2
 	protected:
 	private:
       
+        inline void Master(ENTITY_ID in_iCountryID, UINT32 in_iTreatyID) { m_Master = pair<ENTITY_ID, UINT32>(in_iCountryID, in_iTreatyID); }
+        void        AddClient(ENTITY_ID in_iCountryID, UINT32 in_iTreatyID);
+        void        RemoveClient(ENTITY_ID in_iCountryID);
+
 		//Resources	data
       REAL32         m_fReloadNuclearSubmarinesClock;
       GAdvisor*      m_pAdvisor;
@@ -174,7 +181,8 @@ namespace SP2
 
         GString         m_sName;
 
-        ENTITY_ID       m_iMaster;
+        pair<ENTITY_ID, UINT32> m_Master;
+        map<ENTITY_ID, UINT32>  m_mClients;
 
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;

@@ -1200,6 +1200,9 @@ bool GDataAccessLayerServer::LoadTreaties()
 		else
 			m_Treaties[l_iTreatyID].Active(false);		
 		m_Treaties[l_iTreatyID].Creator(0);
+
+        GDZDEBUGLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " + l_sName,
+                    EDZDebugLogCategory::Treaties);
 	}
 
 	GSString l_sSelectQueryMember("SELECT treaty_id, country_id, side, activated, original, suspended FROM treaty_member");
@@ -1244,6 +1247,16 @@ bool GDataAccessLayerServer::LoadTreaties()
 		if(l_bSuspended)
 			m_Treaties[l_iTreatyID].SuspendCountry(l_iCountryID);
 	}	
+
+    for(auto it = m_Treaties.cbegin(); it != m_Treaties.cend(); ++it)
+    {
+        if(it->second.Type() == ETreatyType::MilitaryAccess &&
+           it->second.Name().find(L"CLIENT") == 0)
+            g_ServerDCL.MakeClientState(*it->second.MembersSideA(true).cbegin(),
+                                        *it->second.MembersSideB(true).cbegin(),
+                                        it->first,
+                                        true);
+    }
 
 	//Add the treaty conditions
 	GSString l_sSelectQueryCondition("SELECT treaty_id, condition_id, condition_status FROM treaty_condition");
@@ -1817,6 +1830,17 @@ void GDataAccessLayerServer::DestroyCountryEntity(UINT32 in_iCountryID, UINT32 i
       {
          g_ServerDCL.ChangeRegionMilitaryControl(*it, RegionControl(*it).m_iPolitical, false);
       }
+   }
+
+   //No longer a client of its master
+   {
+       gassert(m_pCountryData[in_iCountryID].Clients().size() == 0,
+               m_pCountryData[in_iCountryID].NameAndIDForLog() + L" " +
+               L"should've had its clients removed when it left its treaties");
+
+       const auto l_Master = m_pCountryData[in_iCountryID].Master();
+       if(l_Master.first != 0)
+           g_ServerDCL.LeaveTreaty(l_Master.first, l_Master.second, true);
    }
 
    // Prepare a game event to inform all clients of the country "Disapearance"
@@ -2998,6 +3022,17 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
          UINT32 l_iTreatyID;
          io_Buffer >> l_iTreatyID;
          m_Treaties[l_iTreatyID].Unserialize(io_Buffer);
+
+         GDZDEBUGLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " +
+                     m_Treaties[l_iTreatyID].Name(),
+                     EDZDebugLogCategory::Treaties);
+
+         if(m_Treaties[l_iTreatyID].Type() == ETreatyType::MilitaryAccess &&
+            m_Treaties[l_iTreatyID].Name().find(L"CLIENT") == 0)
+            g_ServerDCL.MakeClientState(*m_Treaties[l_iTreatyID].MembersSideA(true).cbegin(),
+                                        *m_Treaties[l_iTreatyID].MembersSideB(true).cbegin(),
+                                        l_iTreatyID,
+                                        true);
       }
 
       io_Buffer >> m_vCreateNewTreatyEvents;

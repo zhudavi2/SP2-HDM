@@ -531,7 +531,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 
     m_sName = g_ServerDAL.GetString(m_iNameID);
 
-    m_iMaster = 0;
+    m_Master = pair<ENTITY_ID, UINT32>(0, 0);
 
 	//Fill information that comes from the regions
 	SynchronizeWithRegions();
@@ -1937,19 +1937,30 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
                 l_pMasterData->NameAndIDForLog(),
                 EDZDebugLogCategory::ClientStates);
 
-    //Client-of can't be a client itself
-    if(l_pMasterData->Master() != 0)
+    //Master can't be a client itself
+    if(l_pMasterData->Master().first != 0)
         return false;
 
-    //Client state can't be more economically powerful
-    if(EconomicRank() < l_pMasterData->EconomicRank())
-    {
-        GDZDEBUGLOG(NameAndIDForLog() + L" rank: " + GString(EconomicRank()) + L"; " +
-                    l_pMasterData->NameAndIDForLog() + L" rank: " +
-                    GString(l_pMasterData->EconomicRank()),
-                    EDZDebugLogCategory::ClientStates);
+    //Client state can't have an economic score higher than half the master's
+    const REAL64 l_fClientOptimalEconomicScore = OptimalGDPValue() * m_fEconomicHealth;
+    const REAL64 l_fMasterEconomicScore = l_pMasterData->GDPValue() * l_pMasterData->EconomicHealth();
+    GDZDEBUGLOG(NameAndIDForLog() + L" economic score: " +
+                GString::FormatNumber(l_fClientOptimalEconomicScore, L",", L".", L"$", L"") + L"; " +
+                l_pMasterData->NameAndIDForLog() + L" economic score: " +
+                GString::FormatNumber(l_fMasterEconomicScore, L",", L".", L"$", L""),
+                EDZDebugLogCategory::ClientStates);
+    if(l_fMasterEconomicScore / 2.0 < l_fClientOptimalEconomicScore)
         return false;
-    }
+
+    //Client must have less than or equal to 1/10 of master's military strength
+    const REAL32 l_fMasterMilitaryStrength = l_pMasterData->MilitaryStrength();
+    GDZDEBUGLOG(NameAndIDForLog() + L" military: " +
+                GString::FormatNumber(m_fMilitaryStrength, L",", L".", L"$", L"") + L"; " +
+                l_pMasterData->NameAndIDForLog() + L" military: " +
+                GString::FormatNumber(l_fMasterMilitaryStrength, L",", L".", L"$", L""),
+                EDZDebugLogCategory::ClientStates);
+    if(m_fMilitaryStrength > l_fMasterMilitaryStrength / 10.f)
+        return false;
 
     //Client must be occupied sufficiently
     const auto& l_vPoliticalRegions = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
@@ -1974,6 +1985,27 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
     GDZDEBUGLOG(NameAndIDForLog() + L" is eligible",
                 EDZDebugLogCategory::ClientStates);
     return true;
+}
+
+REAL64 GCountryData::OptimalGDPValue() const
+{
+    REAL64 l_fOptimalGDP = 0.f;
+
+    const auto& l_vRegions = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
+	for(auto it = l_vRegions.begin(); it != l_vRegions.end(); it++)
+	{
+		GRegion* l_pRegion = g_ServerDAL.GetGRegion(*it);
+		if(l_pRegion == nullptr)
+			continue;
+
+		for(INT32 i = 0; i < EResources::ItemCount; i++)
+        {
+            auto l_eResource = static_cast<EResources::Enum>(i);
+			l_fOptimalGDP += l_pRegion->ResourceProduction(l_eResource);
+        }
+    }
+
+    return max(l_fOptimalGDP, m_fGDPValue);
 }
 
 bool GCountryData::OnSave(GIBuffer& io_Buffer)
@@ -2557,4 +2589,38 @@ void GCountryData::OnClean()
 	m_ReligionIllegalStatus.clear();
 	m_LanguageOfficialStatus.clear();
 	m_LanguageIllegalStatus.clear();
+}
+
+void GCountryData::AddClient(ENTITY_ID in_iCountryID, UINT32 in_iTreatyID)
+{
+    gassert(m_Master.first == 0,
+            NameAndIDForLog() + L" is already a client and " +
+            L" can't have a client of its own");
+    m_mClients.insert(m_mClients.cend(),
+                      pair<ENTITY_ID, UINT32>(in_iCountryID, in_iTreatyID));
+}
+
+void GCountryData::RemoveClient(ENTITY_ID in_iCountryID)
+{
+    gassert(m_mClients.count(in_iCountryID) == 1,
+            NameAndIDForLog() + L" doesn't have " +
+            g_ServerDAL.CountryData(in_iCountryID)->NameAndIDForLog() +
+            L" as a client");
+
+    //For debugging
+    const UINT32 l_iTreatyID = m_mClients[in_iCountryID];
+
+    m_mClients.erase(in_iCountryID);
+
+    GCountryData* const l_pClient = g_ServerDAL.CountryData(in_iCountryID);
+    const UINT32 l_iClientTreatyID = l_pClient->Master().second;
+    gassert(l_iClientTreatyID == l_iTreatyID,
+            NameAndIDForLog() + L"-" + l_pClient->NameAndIDForLog() + L" " +
+            L"client treaty inconsistency; " +
+            GString(l_iClientTreatyID) + L" client vs. " +
+            GString(l_iTreatyID) + L" master");
+    l_pClient->Master(0, 0);
+
+    //Send country list to update the former client's name
+    g_ServerDCL.SendCountryList();
 }

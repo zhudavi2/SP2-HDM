@@ -2056,15 +2056,34 @@ void GWorldBehavior::BankruptCountry(INT16 in_iCountryID)
    }
 
    // 5. Quit all Economic Aid treaties in which the country pays to help others
+   //    Also free all clients
    const hash_map<UINT32, GTreaty>& l_Treaties = g_ServerDAL.Treaties();
    hash_map<UINT32, GTreaty>::const_iterator l_treatyIt = l_Treaties.begin();
    while(l_treatyIt != l_Treaties.end())
    {
       const GTreaty& l_Treaty = l_treatyIt->second;
-      if(l_Treaty.Type() == ETreatyType::EconomicAid && l_Treaty.CountrySide(in_iCountryID) == 1)
-         g_ServerDCL.LeaveTreaty(in_iCountryID,l_treatyIt->first);
+      if(l_Treaty.CountrySide(in_iCountryID) == 1)
+      {
+          switch(l_Treaty.Type())
+          {
+          case ETreatyType::EconomicAid:
+              g_ServerDCL.LeaveTreaty(in_iCountryID,l_treatyIt->first);
+              break;
+          case ETreatyType::MilitaryAccess:
+              if(l_Treaty.Name().find(L"CLIENT") == 0)
+                  g_ServerDCL.LeaveTreaty(in_iCountryID,l_treatyIt->first,true);
+              break;
+          default:
+              break;
+          }
+      }
+
       l_treatyIt++;
    }
+
+   gassert(l_pCountryData->Clients().size() == 0,
+           L"About-to-be-bankrupt " + l_pCountryData->NameAndIDForLog() +
+           L" still has clients");
 
    // 6. Set the Personal Income Tax to 40%, interest rate to 2%, inflation to 2%
    l_pCountryData->PersonalIncomeTax(0.40f);
