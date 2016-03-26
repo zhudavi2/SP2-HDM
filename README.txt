@@ -1,10 +1,23 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V6
+SuperPower 2 Human Development Modification (SP2-HDM) V8 Preview
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
 - Human development, or human development index (HDI), is now dependent on 4 stats: Life expectancy (in years; LE), mean years of schooling (MYS), expected years of schooling (EYS), and GNI per capita. This is to match the United Nations Development Programme's method of calculating human development, but with a $60,000 maximum GNI per capita for the mod's purposes. Also for the mod's purposes, GDP and GNI are treated as the same thing.
 - LE, MYS, and EYS increase and decrease depending on your country's stability and budgetary spending.
 - The world's average human development is now calculated as if the entire world were one country. This is so that small countries don't meaninglessly skew the world average HDI.
+
+Client state changes:
+- (V8) You may force a country to become your client state by signing a military trespassing treaty with the target country on side B, with the treaty's name starting with the letters "CLIENT". 80% of the target country's population must be living in regions under your military control, and it must be significantly weaker than you are, both economically and militarily. You will lose military control of your client state's regions, but your military will have access to your client state's territory, and vice versa.
+- (V8) Your client state's name will be appended with "client of", followed by your country's name.
+- (V8) Your client state will start off with the same diplomatic relations with the rest of the world as you.
+- (V8) Your client state will immediately exit all of its existing wars, and will automatically join any present or future wars on your side.
+- (V8) Your client state cannot build or buy so military units that it would rival you in military strength.
+- (V8) Your client state will pay a fraction of its GDP as tribute to you; the tribute will be higher if the client state's HDI is high.
+- (V8) Your client state can't create treaties on its own.
+- (V8) You may free your client state by leaving the associated military trespassing treaty.
+- (V8) You may free a client state of another country by occupying enough regions that account for 80% of the client state's population, then signing a free region treaty with the client state, with the treaty's name starting with the letters "CLIENT".
+- (V8) Your client state will be able to unilaterally free itself from you if its military strength exceeds yours (e.g., if you lose so many units that your military strength drops below your client state's).
+- (V8) A country that economically fails, or is conquered, automatically releases its client states.
 
 Internal political sphere changes:
 - (V5) When a country gains a region, it will lose stability based on the ratio of the region's population to the gaining country's population. The stability penalty is lower if the region is gained through trade.
