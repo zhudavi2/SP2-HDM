@@ -1963,24 +1963,12 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
         return false;
 
     //Client must be occupied sufficiently
-    const auto& l_vPoliticalRegions = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
-    REAL32 l_fPercentageOccupied = 1.f;
-    for(auto l_It = l_vPoliticalRegions.cbegin();
-        l_It != l_vPoliticalRegions.cend();
-        ++l_It)
-    {
-        if(g_ServerDAL.RegionControlArray()[*l_It].m_iMilitary != in_iMaster)
-        {
-            l_fPercentageOccupied -= g_ServerDAL.GetGRegion(*l_It)->PercentageValue();
-            if(l_fPercentageOccupied < 0.8f)
-            {
-                GDZDEBUGLOG(NameAndIDForLog() + L" percentage occupied: " +
-                            GString(l_fPercentageOccupied),
-                            EDZDebugLogCategory::ClientStates);
-                return false;
-            }
-        }
-    }
+    const REAL32 l_fPercentageOccupied = PercentageOfPopulationOccupiedByCountry(in_iMaster);
+    GDZDEBUGLOG(NameAndIDForLog() + L" percentage occupied: " +
+                GString(l_fPercentageOccupied * 100.f),
+                EDZDebugLogCategory::ClientStates);
+    if(l_fPercentageOccupied < 0.8f)
+        return false;
 
     GDZDEBUGLOG(NameAndIDForLog() + L" is eligible",
                 EDZDebugLogCategory::ClientStates);
@@ -2621,6 +2609,23 @@ void GCountryData::RemoveClient(ENTITY_ID in_iCountryID)
             GString(l_iTreatyID) + L" master");
     l_pClient->Master(0, 0);
 
+    GDZDEBUGLOG(l_pClient->NameAndIDForLog() + L" is no longer a client of " +
+                NameAndIDForLog(),
+                EDZDebugLogCategory::ClientStates);
+
     //Send country list to update the former client's name
     g_ServerDCL.SendCountryList();
+}
+
+REAL32 GCountryData::PercentageOfPopulationOccupiedByCountry(ENTITY_ID in_iCountryID) const
+{
+    const auto& l_vRegions = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
+    REAL32 l_fPercentageOccupied = 0.f;
+    for(auto it = l_vRegions.cbegin(); it != l_vRegions.cend(); ++it)
+    {
+        l_fPercentageOccupied += g_ServerDAL.RegionControlArray()[*it].m_iMilitary == in_iCountryID ?
+                                 g_ServerDAL.GetGRegion(*it)->PercentageValue() :
+                                 0.f;
+    }
+    return l_fPercentageOccupied;
 }

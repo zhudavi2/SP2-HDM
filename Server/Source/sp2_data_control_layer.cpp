@@ -4410,9 +4410,9 @@ void GDataControlLayer::LeaveTreaty(ENTITY_ID in_iCountry, UINT32 in_iTreatyID, 
 	switch(l_iSide)
 	{
 		case 1:
-			l_pTreaty->RemoveMemberSideA(in_iCountry);
             if(l_bIsClientStateTreaty)
-                g_ServerDAL.CountryData(in_iCountry)->RemoveClient(*l_pTreaty->MembersSideA(true).cbegin());
+                g_ServerDAL.CountryData(in_iCountry)->RemoveClient(*l_pTreaty->MembersSideB(true).cbegin());
+			l_pTreaty->RemoveMemberSideA(in_iCountry);
 			break;
 		case 2:
 			if(!l_pTreaty->SideBCanLeave() && !in_bClearOriginal)
@@ -4429,6 +4429,8 @@ void GDataControlLayer::LeaveTreaty(ENTITY_ID in_iCountry, UINT32 in_iTreatyID, 
                                 EDZDebugLogCategory::ClientStates);
                     return;
                 }
+                else
+                    g_ServerDAL.CountryData(in_iCountry)->RemoveClient(*l_pTreaty->MembersSideB(true).cbegin());
             }
 			l_pTreaty->RemoveMemberSideB(in_iCountry);
 			break;
@@ -4583,6 +4585,24 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 			const vector<GRegionControl>& l_vRegions = g_ServerDAL.RegionControlArray();
 			UINT32 l_iMilitaryControl = *l_vSideA.begin();
 			UINT32 l_iPoliticControl = *l_vSideB.begin();
+            const GCountryData* const l_pPoliticalControlData = g_ServerDAL.CountryData(l_iPoliticControl);
+
+            //If country is sufficiently occupied, and it's a client, then it may be freed from its master
+            const REAL32 l_fPercentageOccupied = l_pTreaty->Name().find(L"CLIENT") == 0 ?
+                                                 l_pPoliticalControlData->PercentageOfPopulationOccupiedByCountry(l_iMilitaryControl) :
+                                                 0.f;
+            if(l_fPercentageOccupied >= 0.8f)
+            {
+                const auto l_MasterPair = l_pPoliticalControlData->Master();
+                if(l_MasterPair.first != 0)
+                {
+                    gassert(g_ServerDAL.Treaty(l_MasterPair.second) != nullptr,
+                            l_pPoliticalControlData->NameAndIDForLog() +
+                            L" is a client but doesn't have an associated treaty");
+                    LeaveTreaty(l_MasterPair.first, l_MasterPair.second, true);
+                }
+            }
+
 			for(UINT32 i=0; i<l_vRegions.size(); i++)
 			{
 				if(l_vRegions[i].m_iMilitary == l_iMilitaryControl &&

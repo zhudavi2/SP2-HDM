@@ -162,6 +162,8 @@ namespace SP2
         void        AddClient(ENTITY_ID in_iCountryID, UINT32 in_iTreatyID);
         void        RemoveClient(ENTITY_ID in_iCountryID);
 
+        REAL32 PercentageOfPopulationOccupiedByCountry(ENTITY_ID in_iCountryID) const;
+
 		//Resources	data
       REAL32         m_fReloadNuclearSubmarinesClock;
       GAdvisor*      m_pAdvisor;
