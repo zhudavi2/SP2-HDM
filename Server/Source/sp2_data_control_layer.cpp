@@ -2446,6 +2446,18 @@ bool GDataControlLayer::BuyUnit(UINT32 in_iBuyingCountryId,UINT32 in_iUnitID,UIN
 
 		if(g_ServerDAL.WeaponTradeEmbargo(l_iSellingCountry,in_iBuyingCountryId))
 			return false;
+
+        // Can't be more than 10% as militarily powerful as master
+        const GCountryData* const l_pBuyingCountryData = g_ServerDAL.CountryData(in_iBuyingCountryId);
+        const auto l_iMaster = l_pBuyingCountryData->Master().first;
+        if(l_iMaster != 0)
+        {
+            const REAL32 l_fFutureClientMilitaryValue = l_pBuyingCountryData->MilitaryStrength() +
+                                                        in_iQty * l_pDesign->Cost();
+            if(l_fFutureClientMilitaryValue >
+                g_ServerDAL.CountryData(l_iMaster)->MilitaryStrength() / 10.f)
+                return false;
+        }
 		
       g_ServerDAL.DirtyCountryUnitsServer(in_iBuyingCountryId);
       g_ServerDAL.DirtyCountryUnitsServer(l_iSellingCountry);
@@ -2537,6 +2549,17 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
        (l_pDesign->Type()->Category() == SP2::EUnitCategory::Nuclear)))
    {
       return 0;
+   }
+
+   // Can't be more than 10% as militarily powerful as master
+   const auto l_iMaster = l_pDestinationCountryData->Master().first;
+   if(l_iMaster != 0)
+   {
+       const REAL32 l_fFutureClientMilitaryValue = l_pDestinationCountryData->MilitaryStrength() +
+                                                   in_iQty * l_pDesign->Cost();
+       if(l_fFutureClientMilitaryValue >
+          g_ServerDAL.CountryData(l_iMaster)->MilitaryStrength() / 10.f)
+           return 0;
    }
 
    // order from another country ?
