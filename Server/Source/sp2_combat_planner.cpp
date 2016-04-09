@@ -446,7 +446,11 @@ UINT32 GCombatPlanner::FindBestAttackers(ENTITY_ID in_iCountryID, UINT32 in_iReg
 #ifdef GOLEM_DEBUG
 
 		const Map::GMultiface* l_pMF = g_ServerDAL.CountryView()->Locate(l_Destination.x, l_Destination.y);
-		gassert(l_pMF,"Region should not be 0");
+		gassert(l_pMF,
+                g_ServerDAL.RegionNameAndIDForLog(in_iRegionID) +
+                L" should contain or be be near point " +
+                L"(" + GString(l_Destination.x) + L", " +
+                GString(l_Destination.y) + L") but can't locate Multiface");
 
 #endif
 		for(set<UINT32>::iterator it = l_GroupsToMove.begin();
