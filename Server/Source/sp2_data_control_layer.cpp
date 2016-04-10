@@ -4122,6 +4122,22 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 	if(in_iType == ETreatyType::Alliance && in_pConditions[ETreatyConditions::RelationsNotAtWar] == EConditionStatus::NoLimit)
 		return 0;
 
+    const bool l_bIsClientStateTreaty = in_iType == ETreatyType::MilitaryAccess &&
+                                        in_sName.find(L"CLIENT") == 0;
+    const GCountryData* l_pClientData = nullptr;
+    const ENTITY_ID l_iMasterID = l_bIsClientStateTreaty ? *in_vSideA.cbegin() : 0;
+
+    //Don't go through with creating a client state treaty if the client isn't eligible
+    if(l_bIsClientStateTreaty)
+    {
+        gassert(in_vSideA.size() == 1 && in_vSideB.size() == 1,
+                "Client state treaty has more than 1 master or client");
+
+        l_pClientData = g_ServerDAL.CountryData(*in_vSideB.cbegin());
+        if(!l_pClientData->EligibleToBeClientOf(l_iMasterID))
+            return 0;
+    }
+
 	//Check if a treaty already exist with that name
 	GString l_sBaseName = in_sName;
 	UINT32 l_iNbTreaties = 1;
@@ -4196,7 +4212,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 
 	GTreaty l_NewTreaty;
 	l_NewTreaty.Type(in_iType);
-	l_NewTreaty.Private(in_bPrivate);
+	l_NewTreaty.Private(in_bPrivate || l_bIsClientStateTreaty);
 	l_NewTreaty.Name(in_sName);	
 	l_NewTreaty.Creator(in_iCountryCreator);
 
@@ -4209,9 +4225,6 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 		else
 			l_NewTreaty.AddMemberSideA(*l_Itr,false,true);
 	}
-
-    const bool l_bIsClientStateTreaty = in_iType == ETreatyType::MilitaryAccess &&
-                                        in_sName.find(L"CLIENT") == 0;
 
 	for(set<ENTITY_ID>::const_iterator l_Itr = in_vSideB.begin();
 		 l_Itr != in_vSideB.end();
@@ -4255,9 +4268,10 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 	UINT32 l_iTreatyID = l_NewTreaty.ID();
 	SetEligibleCountries(l_iTreatyID, true);
 
- #ifdef LOG_DCL
-   g_Joshua.Log(L"Country " + GString(in_iCountryCreator) + L" has created treaty: " + l_NewTreaty.Name() + L" With ID: " + GString(l_NewTreaty.ID()));
-#endif
+    GDZDEBUGLOG(g_ServerDAL.CountryData(in_iCountryCreator)->NameAndIDForLog() +
+                L" has created treaty: " + in_sName +
+                L" with ID: " + GString(l_iTreatyID),
+                EDZDebugLogCategory::Treaties);
 
 	//Then, send the game events
 	for(set<ENTITY_ID>::const_iterator l_Itr = in_vSideA.begin();
@@ -4297,29 +4311,25 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 			*/
 		}
 	}
-
-    bool l_bShouldExecuteClientStateTreaty = l_bIsClientStateTreaty;
-    if(l_bIsClientStateTreaty)
-    {
-        gassert(in_vSideA.size() == 1 && in_vSideB.size() == 1,
-                "Client state treaty has more than 1 master or client");
-
-        const ENTITY_ID l_iClient = *in_vSideB.cbegin();
-        const GCountryData* const l_pClientData = g_ServerDAL.CountryData(l_iClient);
-        if(l_pClientData->EligibleToBeClientOf(*in_vSideA.cbegin()))
-        {
-            GTreaty* l_pTreaty = g_ServerDAL.Treaty(l_iTreatyID);
-            l_pTreaty->Private(true);
-        }
-        else
-            l_bShouldExecuteClientStateTreaty = false;
-    }
 	
 	//Execute treaty
-	if(!l_NewTreaty.Active()                                              &&
-       (l_NewTreaty.ShouldBeActive() || l_bShouldExecuteClientStateTreaty))
+    GDZDEBUGLOG(L"Treaty ID " + GString(l_iTreatyID) + L": " +
+                L"Active " + GString(l_NewTreaty.Active()) + L", " +
+                L"should be active " + GString(l_NewTreaty.ShouldBeActive()),
+                EDZDebugLogCategory::Treaties);
+	if(!l_NewTreaty.Active() && l_NewTreaty.ShouldBeActive())
 	{
+        gassert(l_bIsClientStateTreaty != (l_pClientData == nullptr),
+                "Client treaty doesn't have a client");
+        gassert(l_bIsClientStateTreaty != (l_iMasterID == 0),
+                "Client treaty doesn't have a master, or non-client treaty has master");
+        gassert(!l_bIsClientStateTreaty || l_pClientData->EligibleToBeClientOf(l_iMasterID),
+                "Client treaty with ineligible client went through");
+
 		GTreaty* l_pTreaty = g_ServerDAL.Treaty(l_iTreatyID);
+        gassert(!l_bIsClientStateTreaty || l_pTreaty->Private(),
+                "Non-private client state treaty");
+
 		l_pTreaty->Active(true);
 
 		//Treaty is active, let's notify clients
