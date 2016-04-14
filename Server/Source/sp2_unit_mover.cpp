@@ -1931,7 +1931,7 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                                   L"to region " + g_ServerDAL.GetString(l_pDestRegion->NameId()) + L" " +
                                   L"of " + l_pDestOwnerCountry->NameAndIDForLog() + L", " +
                                   L"controlled militarily by " + g_ServerDAL.CountryData(l_iDestMilitaryOwner)->NameAndIDForLog(),
-                                  EDZDebugLogCategory::UnitMovement,
+                                  EDZLogCat::UnitMovement,
                                   __FUNCTION__, __LINE__);
                 }
             }
@@ -2019,7 +2019,7 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                                       L"of " + l_pDestOwnerCountry->NameAndIDForLog() + L", " +
                                       L"controlled militarily by " + g_ServerDAL.CountryData(l_iTempDestMilitaryOwner)->NameAndIDForLog() + L", " +
                                       L"is in the way",
-                                      EDZDebugLogCategory::UnitMovement,
+                                      EDZLogCat::UnitMovement,
                                       __FUNCTION__, __LINE__);
 
                         break;
@@ -2054,7 +2054,7 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                                         l_pDestOwnerCountry->NameAndIDForLog() + L" is on the defending side of " +
                                         L"a war between " + g_ServerDAL.CountryData(l_War.MasterAttacking())->NameAndIDForLog() + L" and " +
                                         g_ServerDAL.CountryData(l_War.MasterDefending())->NameAndIDForLog(),
-                                        EDZDebugLogCategory::UnitMovement | EDZDebugLogCategory::War,
+                                        EDZLogCat::UnitMovement | EDZLogCat::War,
                                         __FUNCTION__, __LINE__);
                           l_bAllowMovementBasedOnDefenderAttackingAttacker = true;
                           break;
@@ -2322,7 +2322,7 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
               {
                   GDZDebug::Log(l_pOwnerCountry->NameAndIDForLog() + L" cannot move to territory of " +
                                 l_pDestOwnerCountry->NameAndIDForLog() + L" due to lack of sufficient war status",
-                                EDZDebugLogCategory::UnitMovement,
+                                EDZLogCat::UnitMovement,
                                 __FUNCTION__, __LINE__);
 
                   m_pRefusedMoveEvent->m_vRefusedMoves.push_back(make_pair(l_pUnitGroup->Id(), ERefusedMoveReason::NoMilitarySupport) );

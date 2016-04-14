@@ -11,17 +11,17 @@
 #ifndef _GOLEM_SP2_DZDEBUG_H_
 #define _GOLEM_SP2_DZDEBUG_H_
 
-#define GDZDEBUGLOG(msg, logCategories)\
-    GDZDebug::Log((msg), (logCategories), __FUNCSIG__, __LINE__)
+#define GDZLOG(msg, logCategories)\
+    GDZDebug::Log((msg), (logCategories), __FUNCTION__, __LINE__)
 
 #ifdef GOLEM_DEBUG
-#define GDZDEBUGASSERT(expr, msg)\
-    GDZDebug::Assert((expr) ? true : false, (#expr), (msg), __FUNCSIG__, __FILE__, __LINE__)
+#define GDZASSERT(expr, msg)\
+    GDZDebug::Assert((expr) ? true : false, (#expr), (msg), __FUNCTION__, __FILE__, __LINE__)
 #endif
 
 namespace SP2
 {
-    namespace EDZDebugLogCategory
+    namespace EDZLogCat
     {
         enum Enum
         {
@@ -70,7 +70,7 @@ void GDZDebug::Log(const GString& in_sMsg,
 {
     if((in_iLogCategories & GDZDebug::m_iEnabledLogCategories) != 0)
     {
-        g_Joshua.Log(L"(DZDEBUG) " +
+        g_Joshua.Log(L"(DZLOG) " +
                      in_sFunc + L" - " +
                      GString(in_iLine) + L": " +
                      in_sMsg);

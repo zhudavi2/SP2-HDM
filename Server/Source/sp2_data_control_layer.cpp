@@ -242,7 +242,7 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
          {
              GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" is fully occupied; " +
                            L"disbanding nuclear missiles and AMDS",
-                           EDZDebugLogCategory::Nuclear,
+                           EDZLogCat::Nuclear,
                            __FUNCTION__, __LINE__);
 
              // remove nuclear missiles of our country
@@ -269,7 +269,7 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
 
                  GDZDebug::Log(L"Number of requests to cancel: " +
                                GString(l_mRequestsToCancel.size()),
-                               EDZDebugLogCategory::Nuclear,
+                               EDZLogCat::Nuclear,
                                __FUNCTION__, __LINE__);
                  for(auto it = l_mRequestsToCancel.cbegin();
                      it != l_mRequestsToCancel.cend();
@@ -280,7 +280,7 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                      GDZDebug::Log(L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
                                    L"Built by " + l_pCountryData->NameAndIDForLog() +
                                    L" and destined for " + g_ServerDAL.CountryData(l_iDestinationID)->NameAndIDForLog(),
-                                   EDZDebugLogCategory::Nuclear | EDZDebugLogCategory::ObtainUnits,
+                                   EDZLogCat::Nuclear | EDZLogCat::ObtainUnits,
                                    __FUNCTION__, __LINE__);
                      CancelUnitProduction(l_iCountryID, l_iDestinationID, l_iRequestID);
                  }
@@ -294,7 +294,7 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                  {
                      GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": " +
                          g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" " + GString(l_pNuclearValues[i]),
-                         EDZDebugLogCategory::Nuclear,
+                         EDZLogCat::Nuclear,
                          __FUNCTION__, __LINE__);
                      l_pNuclearValues[i] = max(0.f, l_pNuclearValues[i] - 1.f);
                      l_fHighestTechLevel = max(l_pNuclearValues[i], l_fHighestTechLevel);
@@ -305,7 +305,7 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                  {
                      GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": " +
                                    L"Removing nuclear readiness",
-                                   EDZDebugLogCategory::Nuclear,
+                                   EDZLogCat::Nuclear,
                                    __FUNCTION__, __LINE__);
 
                      l_pCountryData->NuclearReady(-1.f);
@@ -442,7 +442,7 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
                          GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population15()), L",", L".", L"", L"", 3, 0) + L", " +
                          L"over-15 population " +
                          GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population() - l_pRegion->Population15()), L",", L".", L"", L"", 3, 0),
-                         EDZDebugLogCategory::HDI,
+                         EDZLogCat::HDI,
                          __FUNCTION__, __LINE__);
 
            REAL32 l_fFormerBirths = l_pFormerCountryData->BirthRate() * l_pRegion->Population();
@@ -495,7 +495,7 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
                          g_ServerDAL.GetString(g_ServerDAL.StringIdRegion(in_iRegionID)) +
                          L" with population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0) + L"; " +
                          L"loses " + GString::FormatNumber(l_fStabilityLoss, 3) + L" stability",
-                         EDZDebugLogCategory::Regions,
+                         EDZLogCat::Regions,
                          __FUNCTION__, __LINE__);
            ChangeCountryStability(in_iNewControl, -l_fStabilityLoss, false);
        }
@@ -1837,10 +1837,10 @@ bool GDataControlLayer::DeclareNewWar(const set<UINT32>& in_AttackingCountries, 
         {
             if(cit->first != in_iDefendingCountry && l_vAttackers.count(cit->first) == 0)
             {
-                GDZDEBUGLOG(g_ServerDAL.CountryData(cit->first)->NameAndIDForLog() +
-                            L" joins war on the same side as its master, " +
-                            l_pCountryData->NameAndIDForLog(),
-                            EDZDebugLogCategory::ClientStates);
+                GDZLOG(g_ServerDAL.CountryData(cit->first)->NameAndIDForLog() +
+                       L" joins war on the same side as its master, " +
+                       l_pCountryData->NameAndIDForLog(),
+                       EDZLogCat::ClientStates);
                 l_vAttackers.insert(l_vAttackers.cend(), cit->first);
             }
         }
@@ -2095,7 +2095,7 @@ bool GDataControlLayer::DeclareWar(ENTITY_ID in_iAttackingCountry, ENTITY_ID in_
             GDZDebug::Log(L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
                           L"Built by " + g_ServerDAL.CountryData(l_iBuilderID)->NameAndIDForLog() +
                           L" and destined for " + g_ServerDAL.CountryData(l_iDestinationID)->NameAndIDForLog(),
-                          EDZDebugLogCategory::ObtainUnits | EDZDebugLogCategory::War,
+                          EDZLogCat::ObtainUnits | EDZLogCat::War,
                           __FUNCTION__, __LINE__);
             CancelUnitProduction(l_iBuilderID, l_iDestinationID, l_iRequestID);
         }
@@ -2583,7 +2583,7 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
                       L" is requesting " + GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
                       L" infantry; has " + GString::FormatNumber(static_cast<REAL64>(l_iMiliManpowerAvailable), L",", L".", L"", L"", 3, 0) +
                       L" people available",
-                      EDZDebugLogCategory::ObtainUnits,
+                      EDZLogCat::ObtainUnits,
                       __FUNCTION__, __LINE__);
 
         in_iQty = min(static_cast<UINT32>(l_iMiliManpowerAvailable), in_iQty);
@@ -2595,7 +2595,7 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
                       GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
                       L" people from " + l_pDestinationCountryData->NameAndIDForLog() +
                       L" due to enrolling infantry",
-                      EDZDebugLogCategory::ObtainUnits,
+                      EDZLogCat::ObtainUnits,
                       __FUNCTION__, __LINE__);
         const INT64 l_iRemovedPeople = g_ServerDCL.RemovePopulationFromCountry(in_iDestinationCountryID,in_iQty,true);
         in_iQty = min(static_cast<UINT32>(l_iRemovedPeople), in_iQty);
@@ -2841,7 +2841,7 @@ bool GDataControlLayer::CancelUnitProduction(UINT32 in_iBuildingCountryID,
                  L"and destined for " + l_pCancellingCountry->NameAndIDForLog() + L": " +
                  GString(l_Request.m_iQtyWanted) + L" units of " +
                  l_pDesign->Name(),
-                 EDZDebugLogCategory::ObtainUnits,
+                 EDZLogCat::ObtainUnits,
                  __FUNCTION__, __LINE__);
 
    // Decrease population if we just ship some infantry
@@ -2852,7 +2852,7 @@ bool GDataControlLayer::CancelUnitProduction(UINT32 in_iBuildingCountryID,
       g_ServerDCL.AddPopulationAfterDisbandInfantry(l_Request.m_iDestinationCountryID,(UINT32)(l_iPopulationToAdd));
       GDZDebug::Log(l_pCancellingCountry->NameAndIDForLog() + L" will gain " +
                     GString(l_iPopulationToAdd) + L" population",
-                    EDZDebugLogCategory::ObtainUnits,
+                    EDZLogCat::ObtainUnits,
                     __FUNCTION__, __LINE__);
    }
 
@@ -3217,7 +3217,7 @@ void GDataControlLayer::IterateResearch(REAL64 in_fClock)
              /*GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": "
                            L"NuclearReady " + GString(l_pCountryData->NuclearReady()) + L"; " +
                            L"nuclear values " + l_sOldNuclearValuesString,
-                           EDZDebugLogCategory::Nuclear,
+                           EDZLogCat::Nuclear,
                            __FUNCTION__, __LINE__);*/
          }
 
@@ -3232,7 +3232,7 @@ void GDataControlLayer::IterateResearch(REAL64 in_fClock)
                  {
                      GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" is fully occupied; " +
                                    L"halting nuclear " + g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" research",
-                                   EDZDebugLogCategory::Nuclear,
+                                   EDZLogCat::Nuclear,
                                    __FUNCTION__, __LINE__);
                      l_pNuclearValues[i] = l_vOldNuclearValues[i];
                  }
@@ -3263,7 +3263,7 @@ bool GDataControlLayer::StartAMDSResearch(UINT32 in_iCountryID)
    {
        gassert(l_pCountryData->AMDSLevel() == 0,"Occupied country has AMDS research");
        GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" can't research AMDS due to being fully occupied",
-                     EDZDebugLogCategory::Nuclear,
+                     EDZLogCat::Nuclear,
                      __FUNCTION__, __LINE__);
        return false;
    }
@@ -3273,7 +3273,7 @@ bool GDataControlLayer::StartAMDSResearch(UINT32 in_iCountryID)
     {
         GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" can't research AMDS " +
                       L"due to already having an AMDS level of " + GString::FormatNumber(l_pCountryData->AMDSLevel(), 3),
-                      EDZDebugLogCategory::Nuclear,
+                      EDZLogCat::Nuclear,
                       __FUNCTION__, __LINE__);
 		return true;
     }
@@ -3282,7 +3282,7 @@ bool GDataControlLayer::StartAMDSResearch(UINT32 in_iCountryID)
 	l_pCountryData->m_fAMDSLevel = 0.000000001f;
 
     GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" has started AMDS research",
-                  EDZDebugLogCategory::Nuclear,
+                  EDZLogCat::Nuclear,
                   __FUNCTION__, __LINE__);
 
 	//Lose Relations
@@ -3816,7 +3816,7 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
                                   g_ServerDAL.GetString(l_pRegion->NameId()) + L" of " +
                                   L"country " + g_SP2Server->Countries().at(l_pRegion->OwnerId() - 1).Name() + L" with " +
                                   L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0),
-                                  EDZDebugLogCategory::Nuclear | EDZDebugLogCategory::War,
+                                  EDZLogCat::Nuclear | EDZLogCat::War,
                                   __FUNCTION__, __LINE__);
                 }
             }
@@ -3838,7 +3838,7 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
                           g_ServerDAL.GetString(l_pRegion->NameId()) + L" of " +
                           L"country " + g_SP2Server->Countries().at(l_pRegion->OwnerId() - 1).Name() + L" with " +
                           L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0),
-                          EDZDebugLogCategory::Nuclear | EDZDebugLogCategory::War,
+                          EDZLogCat::Nuclear | EDZLogCat::War,
                           __FUNCTION__, __LINE__);
         }
    }
@@ -3900,7 +3900,7 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
 
         GDZDebug::Log(L"Region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L": " +
                       L"Current population is " + GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0),
-                      EDZDebugLogCategory::Nuclear | EDZDebugLogCategory::War,
+                      EDZLogCat::Nuclear | EDZLogCat::War,
                       __FUNCTION__, __LINE__);
 
         INT64 l_iRegionCasualtiesTotal = 0;
@@ -3919,7 +3919,7 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
                               L"Missile area: " + GString::FormatNumber(l_fMissileAreaKm, L",", L".", L"", L"", 3, 2) + L"; " +
                               L"total region area: " + GString::FormatNumber(l_fRegionAreaTotal, L",", L".", L"", L"", 3, 2) + L"; " +
                               L"percentage: " + GString::FormatNumber(l_fRegionLandAreaPercentage * 100, 2),
-                              EDZDebugLogCategory::Nuclear | EDZDebugLogCategory::War,
+                              EDZLogCat::Nuclear | EDZLogCat::War,
                               __FUNCTION__, __LINE__);
 
                 INT64 l_iRegionCasualtiesFromMissile = static_cast<INT64>(l_RegionIt->second * l_fRegionLandAreaPercentage);
@@ -3939,7 +3939,7 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
         GDZDebug::Log(L"Removed " +
                       GString::FormatNumber(static_cast<REAL64>(l_iRegionCasualtiesTotal), L",", L".", L"", L"", 3, 0) + L" population " +
                       L"from region " + g_ServerDAL.GetString(l_pRegion->NameId()),
-                      EDZDebugLogCategory::Nuclear | EDZDebugLogCategory::War,
+                      EDZLogCat::Nuclear | EDZLogCat::War,
                       __FUNCTION__, __LINE__);
    }
 
@@ -4268,10 +4268,10 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 	UINT32 l_iTreatyID = l_NewTreaty.ID();
 	SetEligibleCountries(l_iTreatyID, true);
 
-    GDZDEBUGLOG(g_ServerDAL.CountryData(in_iCountryCreator)->NameAndIDForLog() +
-                L" has created treaty: " + in_sName +
-                L" with ID: " + GString(l_iTreatyID),
-                EDZDebugLogCategory::Treaties);
+    GDZLOG(g_ServerDAL.CountryData(in_iCountryCreator)->NameAndIDForLog() +
+           L" has created treaty: " + in_sName +
+           L" with ID: " + GString(l_iTreatyID),
+           EDZLogCat::Treaties);
 
 	//Then, send the game events
 	for(set<ENTITY_ID>::const_iterator l_Itr = in_vSideA.begin();
@@ -4313,10 +4313,10 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 	}
 	
 	//Execute treaty
-    GDZDEBUGLOG(L"Treaty ID " + GString(l_iTreatyID) + L": " +
-                L"Active " + GString(l_NewTreaty.Active()) + L", " +
-                L"should be active " + GString(l_NewTreaty.ShouldBeActive()),
-                EDZDebugLogCategory::Treaties);
+    GDZLOG(L"Treaty ID " + GString(l_iTreatyID) + L": " +
+           L"Active " + GString(l_NewTreaty.Active()) + L", " +
+           L"should be active " + GString(l_NewTreaty.ShouldBeActive()),
+           EDZLogCat::Treaties);
 	if(!l_NewTreaty.Active() && l_NewTreaty.ShouldBeActive())
 	{
         gassert(l_bIsClientStateTreaty != (l_pClientData == nullptr),
@@ -4460,10 +4460,10 @@ void GDataControlLayer::LeaveTreaty(ENTITY_ID in_iCountry, UINT32 in_iTreatyID, 
                 if(l_pCountryData->MilitaryStrength() <
                    g_ServerDAL.CountryData(*l_pTreaty->MembersSideA(true).cbegin())->MilitaryStrength())
                 {
-                    GDZDEBUGLOG(g_ServerDAL.CountryData(in_iCountry)->NameAndIDForLog() +
-                                L" is trying to leave a client state treaty, " +
-                                L"but can't because it's the client",
-                                EDZDebugLogCategory::ClientStates);
+                    GDZLOG(g_ServerDAL.CountryData(in_iCountry)->NameAndIDForLog() +
+                           L" is trying to leave a client state treaty, " +
+                           L"but can't because it's the client",
+                           EDZLogCat::ClientStates);
                     return;
                 }
                 else
@@ -4949,7 +4949,7 @@ bool GDataControlLayer::ConfirmChangeMilitaryControl(UINT32 in_iRegionID, UINT32
     GDZDebug::Log(L"g_ServerDAL.ChangeMilitaryControl() returned " + GString(l_bResult) +
                   L" for " + g_ServerDAL.CountryData(in_iNewControlID)->NameAndIDForLog() + 
                   L" to occpuy region " + GString(in_iRegionID),
-                  EDZDebugLogCategory::Regions,
+                  EDZLogCat::Regions,
                   __FUNCTION__, __LINE__);
 
 	if(l_bResult)
@@ -5833,7 +5833,7 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
     GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": " +
                   L"Removing " + GString::FormatNumber(static_cast<REAL64>(in_iNbPopulation), L",", L".", L"", L"", 3, 0) + L" population; " +
                   L"new manpower available " + GString::FormatNumber(static_cast<REAL64>(l_pCountryData->MiliManpowerAvailable()), L",", L".", L"", L"", 3, 0),
-                  EDZDebugLogCategory::ObtainUnits,
+                  EDZLogCat::ObtainUnits,
                   __FUNCTION__, __LINE__);
 
 	//military manpower available portion done
@@ -8467,7 +8467,7 @@ void GDataControlLayer::IterateBudgetUnitUpkeep(UINT32 in_iCountryID)
         GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L": " +
                       L" Missile value " + GString::FormatNumber(l_fMissileValue/1000000.f, L",", L".", L"$", L"M", 3, 3) + L"; " +
                       L" modified value " + GString::FormatNumber(l_fMissileValue*l_fNuclearModifier/1000000.f, L",", L".", L"$", L"M", 3, 3),
-                      EDZDebugLogCategory::Upkeep,
+                      EDZLogCat::Upkeep,
                       __FUNCTION__, __LINE__);
     l_fMissileValue *= l_fNuclearModifier;
 
@@ -8546,7 +8546,7 @@ REAL32 GDataControlLayer::UpkeepFeeForSingleUnit(const SP2::GUnit* in_pUnit) con
                   GString(in_pUnit->Qty()) + L" " + l_pDesign->Name() + L" " + g_ServerDAL.GetString(c_iUnitCategoryStringID[l_pDesign->Type()->Category()]) + L": " +
                   L" Units value " + GString::FormatNumber(l_fUpkeep/1000000.f, L",", L".", L"$", L"M", 3, 3) + L"; " +
                   L" modified value " + GString::FormatNumber(l_fUpkeep*l_fUpkeepModifier/1000000.f, L",", L".", L"$", L"M", 3, 3),
-                  EDZDebugLogCategory::Upkeep,
+                  EDZLogCat::Upkeep,
                   __FUNCTION__, __LINE__);
 
 	return l_fUpkeep * l_fUpkeepModifier;
@@ -8738,7 +8738,7 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
 	REAL32 l_fNuclearLevel = l_pCountryData->NuclearReady();
     GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" will start nuclear research " +
                   L"with current nuclear level " + GString(l_fNuclearLevel),
-                  EDZDebugLogCategory::Nuclear,
+                  EDZLogCat::Nuclear,
                   __FUNCTION__, __LINE__);
 
 	if(l_fNuclearLevel >= 0.f)
@@ -8752,7 +8752,7 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
     {
         //Nuclear research cannot be started when fully occupied, and we're configured to disable nuclear research on occupy
         GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" can't start nuclear research due to being fully occupied",
-                      EDZDebugLogCategory::Nuclear,
+                      EDZLogCat::Nuclear,
                       __FUNCTION__, __LINE__);
         return;
     }
@@ -8775,7 +8775,7 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
 	l_pCountryData->NuclearReady(0.f);
 
     GDZDebug::Log(l_pCountryData->NameAndIDForLog() + L" has started nuclear research",
-                  EDZDebugLogCategory::Nuclear,
+                  EDZLogCat::Nuclear,
                   __FUNCTION__, __LINE__);
 }
 
@@ -9227,7 +9227,7 @@ void GDataControlLayer::ChangePlayerName(SDK::GPlayer* in_pPlayer, const GString
                       in_pPlayer->Name() + L", " +
                       L"is changing name to " +
                       in_sNewName,
-                      EDZDebugLogCategory::Player,
+                      EDZLogCat::Player,
                       __FUNCTION__, __LINE__);
 
         in_pPlayer->Name(in_sNewName);
@@ -9295,10 +9295,9 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
 
     if(!in_bLoadingGame)
     {
-        GDZDEBUGLOG(l_pClientData->NameAndIDForLog() +
-                    L" is now a client of " +
-                    g_ServerDAL.CountryData(in_iMaster)->NameAndIDForLog(),
-                    EDZDebugLogCategory::ClientStates);
+        GDZLOG(l_pClientData->NameAndIDForLog() + L" is now a client of " +
+               l_pMasterData->NameAndIDForLog(),
+               EDZLogCat::ClientStates);
 
         //Leave all wars, but join wars on same side as master
         const auto& l_mWars = g_ServerDAL.CurrentWars();

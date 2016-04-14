@@ -1933,9 +1933,9 @@ INT32 GCountryData::NumberOfPoliticallyControlledRegions() const
 bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
 {
     const GCountryData* const l_pMasterData = g_ServerDAL.CountryData(in_iMaster);
-    GDZDEBUGLOG(L"Testing if " + NameAndIDForLog() + L" can be a client of " +
-                l_pMasterData->NameAndIDForLog(),
-                EDZDebugLogCategory::ClientStates);
+    GDZLOG(L"Testing if " + NameAndIDForLog() + L" can be a client of " +
+           l_pMasterData->NameAndIDForLog(),
+           EDZLogCat::ClientStates);
 
     //Master can't be a client itself
     if(l_pMasterData->Master().first != 0)
@@ -1944,34 +1944,35 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
     //Client state can't have an economic score higher than half the master's
     const REAL64 l_fClientOptimalEconomicScore = OptimalGDPValue() * m_fEconomicHealth;
     const REAL64 l_fMasterEconomicScore = l_pMasterData->GDPValue() * l_pMasterData->EconomicHealth();
-    GDZDEBUGLOG(NameAndIDForLog() + L" economic score: " +
-                GString::FormatNumber(l_fClientOptimalEconomicScore, L",", L".", L"$", L"") + L"; " +
-                l_pMasterData->NameAndIDForLog() + L" economic score: " +
-                GString::FormatNumber(l_fMasterEconomicScore, L",", L".", L"$", L""),
-                EDZDebugLogCategory::ClientStates);
+    GDZLOG(NameAndIDForLog() + L" economic score: " +
+           GString::FormatNumber(l_fClientOptimalEconomicScore, L",", L".", L"$", L"") +
+           L"; " +
+           l_pMasterData->NameAndIDForLog() + L" economic score: " +
+           GString::FormatNumber(l_fMasterEconomicScore, L",", L".", L"$", L""),
+           EDZLogCat::ClientStates);
     if(l_fMasterEconomicScore / 2.0 < l_fClientOptimalEconomicScore)
         return false;
 
     //Client must have less than or equal to 1/10 of master's military strength
     const REAL32 l_fMasterMilitaryStrength = l_pMasterData->MilitaryStrength();
-    GDZDEBUGLOG(NameAndIDForLog() + L" military: " +
-                GString::FormatNumber(m_fMilitaryStrength, L",", L".", L"$", L"") + L"; " +
-                l_pMasterData->NameAndIDForLog() + L" military: " +
-                GString::FormatNumber(l_fMasterMilitaryStrength, L",", L".", L"$", L""),
-                EDZDebugLogCategory::ClientStates);
+    GDZLOG(NameAndIDForLog() + L" military: " +
+           GString::FormatNumber(m_fMilitaryStrength, L",", L".", L"$", L"") +
+           L"; " +
+           l_pMasterData->NameAndIDForLog() + L" military: " +
+           GString::FormatNumber(l_fMasterMilitaryStrength, L",", L".", L"$", L""),
+           EDZLogCat::ClientStates);
     if(m_fMilitaryStrength > l_fMasterMilitaryStrength / 10.f)
         return false;
 
     //Client must be occupied sufficiently
     const REAL32 l_fPercentageOccupied = PercentageOfPopulationOccupiedByCountry(in_iMaster);
-    GDZDEBUGLOG(NameAndIDForLog() + L" percentage occupied: " +
-                GString(l_fPercentageOccupied * 100.f),
-                EDZDebugLogCategory::ClientStates);
+    GDZLOG(NameAndIDForLog() + L" percentage occupied: " +
+           GString(l_fPercentageOccupied * 100.f),
+           EDZLogCat::ClientStates);
     if(l_fPercentageOccupied < 0.8f)
         return false;
 
-    GDZDEBUGLOG(NameAndIDForLog() + L" is eligible",
-                EDZDebugLogCategory::ClientStates);
+    GDZLOG(NameAndIDForLog() + L" is eligible", EDZLogCat::ClientStates);
     return true;
 }
 
@@ -2609,9 +2610,9 @@ void GCountryData::RemoveClient(ENTITY_ID in_iCountryID)
             GString(l_iTreatyID) + L" master");
     l_pClient->Master(0, 0);
 
-    GDZDEBUGLOG(l_pClient->NameAndIDForLog() + L" is no longer a client of " +
-                NameAndIDForLog(),
-                EDZDebugLogCategory::ClientStates);
+    GDZLOG(l_pClient->NameAndIDForLog() + L" is no longer a client of " +
+           NameAndIDForLog(),
+           EDZLogCat::ClientStates);
 
     //Send country list to update the former client's name
     g_ServerDCL.SendCountryList();

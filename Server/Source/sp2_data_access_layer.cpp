@@ -1201,8 +1201,8 @@ bool GDataAccessLayerServer::LoadTreaties()
 			m_Treaties[l_iTreatyID].Active(false);		
 		m_Treaties[l_iTreatyID].Creator(0);
 
-        GDZDEBUGLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " + l_sName,
-                    EDZDebugLogCategory::Treaties);
+        GDZLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " + l_sName,
+               EDZLogCat::Treaties);
 	}
 
 	GSString l_sSelectQueryMember("SELECT treaty_id, country_id, side, activated, original, suspended FROM treaty_member");
@@ -3023,9 +3023,9 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
          io_Buffer >> l_iTreatyID;
          m_Treaties[l_iTreatyID].Unserialize(io_Buffer);
 
-         GDZDEBUGLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " +
-                     m_Treaties[l_iTreatyID].Name(),
-                     EDZDebugLogCategory::Treaties);
+         GDZLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " +
+                m_Treaties[l_iTreatyID].Name(),
+                EDZLogCat::Treaties);
 
          if(m_Treaties[l_iTreatyID].Type() == ETreatyType::MilitaryAccess &&
             m_Treaties[l_iTreatyID].Name().find(L"CLIENT") == 0)
@@ -3723,7 +3723,7 @@ bool GDataAccessLayerServer::CountryCanAssignCovertCellToTarget(UINT32 in_iSourc
                       g_ServerDAL.CountryData(in_iTarget)->NameAndIDForLog() + "; " +
                       L"already has " + GString(l_iNumberCellsAlreadyInIntendedCountry) + L" cells in that country. " +
                       L"CanMove " + GString(l_bCanMove),
-                      EDZDebugLogCategory::Covert,
+                      EDZLogCat::Covert,
                       __FUNCTION__, __LINE__);
     }
 

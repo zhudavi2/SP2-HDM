@@ -429,7 +429,7 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
                       l_player->Name() + L", is inactive, or " +
                       L"country name change mode is allowing player name change via Lobby; " +
                       L"changing player name to " + l_sNewPlayerName,
-                      EDZDebugLogCategory::Player,
+                      EDZLogCat::Player,
                       __FUNCTION__, __LINE__);
 
         g_ServerDCL.ChangePlayerName(l_player, l_sNewPlayerName);

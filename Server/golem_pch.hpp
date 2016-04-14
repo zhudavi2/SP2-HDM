@@ -37,7 +37,7 @@ using namespace SDK::EHE;
 
 #ifdef GOLEM_DEBUG
 #undef gassert
-#define gassert(expr, msg) GDZDEBUGASSERT(expr, msg)
+#define gassert(expr, msg) GDZASSERT(expr, msg)
 #endif
 
 #endif

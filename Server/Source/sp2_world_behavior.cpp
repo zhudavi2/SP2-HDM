@@ -191,7 +191,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
                 L"Population1565() " + GString(in_pRegion->Population1565()) + L", " +
                 L"Population65() "   + GString(in_pRegion->Population65()) + L", " +
                 L"Population() "     + GString(in_pRegion->Population()),
-                EDZDebugLogCategory::Population);*/
+                EDZLogCat::Population);*/
 
 	GReligionList l_Religions;
 	GLanguageList l_Languages;
@@ -279,7 +279,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
     /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
                 m_CountryData->NameAndIDForLog() + L": " +
                 L"Birth and death difference " + GString(l_iDifference),
-                EDZDebugLogCategory::Population);*/
+                EDZLogCat::Population);*/
 
 	//Number of people that leave and enter the country
 	INT64 l_iLeavingPopulation15 = ReturnInteger64((REAL32)in_pRegion->Population15() * m_CountryData->EmigrationLevel() * m_fFrequency);
@@ -322,7 +322,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
                 m_CountryData->NameAndIDForLog() + L": " +
                 L"Leaving populations: " + GString(l_iLeavingPopulation15) + L" " + GString(l_iLeavingPopulation1565) + L" " + GString(l_iLeavingPopulation65) + L", " +
                 L"Arriving populations: " + GString(l_iArrivingPopulation15) + L" " + GString(l_iArrivingPopulation1565) + L" " + GString(l_iArrivingPopulation65),
-                EDZDebugLogCategory::Population);*/
+                EDZLogCat::Population);*/
 
 	in_pRegion->Population15(in_pRegion->Population15() + l_iArrivingPopulation15 - l_iLeavingPopulation15);
 	in_pRegion->Population1565(in_pRegion->Population1565() + l_iArrivingPopulation1565 - l_iLeavingPopulation1565);
@@ -351,7 +351,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
                     L": " +
                     GString(m_CountryData->ReligionGetPourcentage(l_Itr->first)) + L" " +
                     GString(in_pRegion->ReligionGetPopulation(l_Itr->first)),
-                    EDZDebugLogCategory::Population);*/
+                    EDZLogCat::Population);*/
     }
 
     /*gassert(l_iInitialPopulation == l_iInitialPopulationOfReligions,
@@ -404,7 +404,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
                     g_ServerDAL.GetString(g_ServerDAL.StringIdReligion(l_Itr->first)) +
                     L": " +
                     GString(in_pRegion->ReligionGetPopulation(l_Itr->first)),
-                    EDZDebugLogCategory::Population);*/
+                    EDZLogCat::Population);*/
 		l_iPopulationReligion += in_pRegion->ReligionGetPopulation(l_Itr->first);
 
 	}	
@@ -444,7 +444,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
                 L"Remaining population " + GString(l_iTemp) + L", " +
                 L"Remaining immigrants " + GString(l_iTempLeftToArrive) + L", " +
                 L"Remaining emigrants " + GString(l_iTempLeftToLeave),
-                EDZDebugLogCategory::Population);*/
+                EDZLogCat::Population);*/
 
 	if (l_iTemp != 0)
 	{
@@ -565,7 +565,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
                 L"Population15() " + GString(in_pRegion->Population15()) + L", " +
                 L"Population1565() " + GString(in_pRegion->Population1565()) + L", " +
                 L"Population65() " + GString(in_pRegion->Population65()),
-                EDZDebugLogCategory::Population);*/
+                EDZLogCat::Population);*/
 
 	INT64 l_iNbConverts = 0;
 	INT64 l_iTempConverts = 0;
@@ -1364,7 +1364,7 @@ bool GWorldBehavior::Iterate_Human_Development()
                           L"EYS " + GString::FormatNumber(m_CountryData->ExpectedYearsSchooling(), 1) + L"; " +
                           L"GDP per capita " + GString::FormatNumber(m_CountryData->GDPPerCapita(), L",", L".", L"$", L"", 3) + L"; " +
                           L"HDI " + GString::FormatNumber(m_CountryData->HumanDevelopment(), 3),
-                          EDZDebugLogCategory::HDI,
+                          EDZLogCat::HDI,
                           __FUNCTION__, __LINE__);
 
             if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHDILogStartingCountryID) //We're finished logging
@@ -3746,10 +3746,10 @@ void GWorldBehavior::IterateBudget(REAL64 in_fGameTime)
 
             //Diplomacy expense for client, foreign aid revenue for master
             const REAL64 l_fTribute = l_pClientData->GDPValue() / 10.0 * l_pClientData->HumanDevelopment();
-            GDZDEBUGLOG(l_pClientData->NameAndIDForLog() + L" pays " +
-                        GString::FormatNumber(l_fTribute, L",", L".", L"$", L"", 3) +
-                        L" tribute to " + l_pMasterData->NameAndIDForLog(),
-                        EDZDebugLogCategory::ClientStates);
+            GDZLOG(l_pClientData->NameAndIDForLog() + L" pays " +
+                   GString::FormatNumber(l_fTribute, L",", L".", L"$", L"", 3) +
+                   L" tribute to " + l_pMasterData->NameAndIDForLog(),
+                   EDZLogCat::ClientStates);
             l_vDiplomacyExpenses[i] += l_fTribute;
             l_vForeignAid[l_iMaster] += l_fTribute;
         }
