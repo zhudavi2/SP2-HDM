@@ -4766,7 +4766,6 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 			 l_ItrB != l_vSideB.end();
 			 l_ItrB++)
 			{
-				GCountryData* l_pCountryDataB = g_ServerDAL.CountryData(*l_ItrB);
 				g_ServerDAL.RelationBetweenCountries(*l_Itr,*l_ItrB,
 					g_ServerDAL.RelationBetweenCountries(*l_Itr,*l_ItrB) + -50);
 			}
@@ -4796,7 +4795,6 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 			 l_ItrB != l_vSideB.end();
 			 l_ItrB++)
 			{
-				GCountryData* l_pCountryDataB = g_ServerDAL.CountryData(*l_ItrB);
 				g_ServerDAL.RelationBetweenCountries(*l_Itr,*l_ItrB,
 					g_ServerDAL.RelationBetweenCountries(*l_Itr,*l_ItrB) + -25);
 			}

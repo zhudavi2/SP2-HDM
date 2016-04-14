@@ -349,7 +349,6 @@ void GAI::AskForWar(UINT32 in_iCountryLookingToDeclareWar, UINT32 in_iTarget, bo
 	l_vSideA.insert(in_iCountryLookingToDeclareWar);
 	l_vSideB.insert(in_iTarget);
 	REAL32 l_fTotalValueA = g_ServerDAL.TotalUnitsValue(in_iCountryLookingToDeclareWar);
-	REAL32 l_fTotalValueB = g_ServerDAL.TotalUnitsValueWithAllies(in_iTarget);
 	multimap<REAL32,UINT32> l_mPossibilities;	
 
 	for(UINT32 i=1; i<= g_ServerDAL.NbCountry(); i++)
