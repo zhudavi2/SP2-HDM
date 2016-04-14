@@ -2987,9 +2987,17 @@ void GWorldBehavior::IterateChangingVariables(REAL64 in_fGameTime)
 		gassert(l_fStability >= 0.f && l_fStability <= 1.f,"GWorldBehavior::IterateChangingVariables(): Stability is negative");
 		gassert(l_fStabilityEx >= 0.f && l_fStabilityEx <= 1.f,"GWorldBehavior::IterateChangingVariables(): Stability expected is negative");
 		gassert(l_fApproval >= 0.f && l_fApproval <= 1.f,"GWorldBehavior::IterateChangingVariables(): Approval is negative");
-		gassert(l_fApprovalEx >= 0.f && l_fApprovalEx <= 1.f,
-                L"Invalid expected approval, " + GString(l_fApprovalEx) + L", " +
-                L"for " + l_pCountryData->NameAndIDForLog());
+
+        if(l_fApprovalEx < 0.f || l_fApprovalEx > 1.f)
+        {
+            GDZLOG("Warning: Invalid expected approval, " + GString(l_fApprovalEx) + L", " +
+                   L"for " + l_pCountryData->NameAndIDForLog(),
+                   EDZLogCat::General);
+            l_pCountryData->GvtApprovalExpected(min(max(0.f, l_fApprovalEx), 1.f));
+            GDZLOG("Changed expected approval to " + GString(l_pCountryData->GvtApprovalExpected()),
+                   EDZLogCat::General);
+        }
+
 		gassert(l_fCorruption >= 0.f && l_fCorruption <= 1.f,"GWorldBehavior::IterateChangingVariables(): Corruption is negative");
 		gassert(l_fCorruptionEx >= 0.f && l_fCorruptionEx <= 1.f,"GWorldBehavior::IterateChangingVariables(): Corruption expected is negative");
 		gassert(l_fBirthRate >= 0.f && l_fBirthRate <= 1.f,"GWorldBehavior::IterateChangingVariables(): Birth rate is negative");
