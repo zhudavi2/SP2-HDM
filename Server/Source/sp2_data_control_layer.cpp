@@ -193,10 +193,15 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                                                     const UINT32 in_iNewControl,
                                                     bool in_bTestConquer)
 {
+    GDZLOG(L"in_iRegionID: " + GString(in_iRegionID) + L", " +
+           L"in_iNewControl: " + GString(in_iNewControl) + L", " +
+           L"in_bTestConquer: " + GString(in_bTestConquer),
+           EDZLogCat::Regions);
+
    if(in_iRegionID == 0)
 		return true;
-   assert(in_iRegionID <= g_ServerDAL.NbRegion() );
-   assert(in_iNewControl <= (UINT32) g_ServerDAL.NbCountry() );
+   gassert(in_iRegionID <= g_ServerDAL.NbRegion(), "Region ID: " + GString(in_iRegionID));
+   gassert(in_iNewControl <= g_ServerDAL.NbCountry(), "Military control country ID: " + GString(in_iNewControl));
 
    GRegionControl l_CurrentControl = g_ServerDAL.RegionControl(in_iRegionID);
 
@@ -4944,11 +4949,10 @@ bool GDataControlLayer::ConfirmChangeMilitaryControl(UINT32 in_iRegionID, UINT32
 		return false;
 
 	bool l_bResult = g_ServerDAL.ChangeMilitaryControl(in_iRegionID,in_iNewControlID);
-    GDZDebug::Log(L"g_ServerDAL.ChangeMilitaryControl() returned " + GString(l_bResult) +
-                  L" for " + g_ServerDAL.CountryData(in_iNewControlID)->NameAndIDForLog() + 
-                  L" to occpuy region " + GString(in_iRegionID),
-                  EDZLogCat::Regions,
-                  __FUNCTION__, __LINE__);
+    GDZLOG(L"g_ServerDAL.ChangeMilitaryControl() returned " + GString(l_bResult) +
+           L" for " + g_ServerDAL.CountryData(in_iNewControlID)->NameAndIDForLog() + 
+           L" to occupy region " + GString(in_iRegionID),
+           EDZLogCat::Regions);
 
 	if(l_bResult)
 	{
@@ -9304,7 +9308,7 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
             const GWar& l_War = it->second;
 
             if(l_War.MasterAttacking() == in_iClient ||
-                l_War.MasterDefending() == in_iClient)
+               l_War.MasterDefending() == in_iClient)
             {
                 DeclarePeace(l_War.MasterAttacking(), l_War.MasterDefending(),
                              true);
@@ -9324,6 +9328,10 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
             }
         }
 
+        GDZLOG(l_pClientData->NameAndIDForLog() + L" has left all previous wars and joined all wars on " +
+               l_pMasterData->NameAndIDForLog() + L"'s side",
+               EDZLogCat::ClientStates);
+
         //Free all regions of the client state
         const auto& l_vRegions = g_ServerDAL.CountryPoliticalControl(in_iClient);
         for(auto l_It = l_vRegions.cbegin(); l_It != l_vRegions.cend(); ++l_It)
@@ -9332,13 +9340,22 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
                 ChangeRegionMilitaryControl(*l_It, in_iClient, false);
         }
 
+        GDZLOG(l_pClientData->NameAndIDForLog() + L" has regained its regions occupied by " + l_pMasterData->NameAndIDForLog(),
+               EDZLogCat::ClientStates);
+
         //Synchronize the 2 countries
         l_pClientData->SynchronizeWithRegions();
         l_pMasterData->SynchronizeWithRegions();
 
+        GDZLOG(L"Synchronized regions of " + l_pClientData->NameAndIDForLog() + L" and " + l_pMasterData->NameAndIDForLog(),
+               EDZLogCat::ClientStates);
+
         //Client state will start off with same relations
         for(ENTITY_ID i = 1; i <= g_ServerDAL.NbCountry(); i++)
             g_ServerDAL.RelationBetweenCountries(in_iClient, i, g_ServerDAL.RelationBetweenCountries(in_iMaster, i));
+
+        GDZLOG(L"Synchronized relations of " + l_pClientData->NameAndIDForLog() + L" and " + l_pMasterData->NameAndIDForLog(),
+               EDZLogCat::ClientStates);
     }
 
     //Send country list to update the client state's name (with "client of (name)")
