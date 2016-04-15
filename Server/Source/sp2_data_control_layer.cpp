@@ -4132,7 +4132,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
     const GCountryData* l_pClientData = nullptr;
     const ENTITY_ID l_iMasterID = l_bIsClientStateTreaty ? *in_vSideA.cbegin() : 0;
 
-    //Don't go through with creating a client state treaty if the client isn't eligible
+    //Don't go through with creating a client state treaty if the client isn't eligible, or if the master-client relationship already exists between the 2 parties
     if(l_bIsClientStateTreaty)
     {
         gassert(in_vSideA.size() == 1 && in_vSideB.size() == 1,
@@ -4141,6 +4141,12 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
         l_pClientData = g_ServerDAL.CountryData(*in_vSideB.cbegin());
         if(!l_pClientData->EligibleToBeClientOf(l_iMasterID))
             return 0;
+
+        if(l_pClientData->Master().first == l_iMasterID)
+        {
+            gassert(l_pClientData->Master().second != 0, g_ServerDAL.CountryData(l_iMasterID)->NameAndIDForLog() + L"-" + l_pClientData->NameAndIDForLog() + L" doesn't have a valid treaty");
+            return 0;
+        }
     }
 
 	//Check if a treaty already exist with that name
@@ -4445,14 +4451,11 @@ void GDataControlLayer::LeaveTreaty(ENTITY_ID in_iCountry, UINT32 in_iTreatyID, 
 
    const bool l_bIsClientStateTreaty = l_pTreaty->Type() == ETreatyType::MilitaryAccess &&
                                        l_pTreaty->Name().find(L"CLIENT") == 0;
-   gassert(!l_bIsClientStateTreaty || (l_pTreaty->MembersSideA(true).size() == 1 &&
-                                       l_pTreaty->MembersSideB(true).size() == 1),
-           L"Client state treaty has more than one master or client!");
 
 	switch(l_iSide)
 	{
 		case 1:
-            if(l_bIsClientStateTreaty)
+            if(l_bIsClientStateTreaty && !l_pTreaty->MembersSideA(true).empty())
                 g_ServerDAL.CountryData(in_iCountry)->RemoveClient(*l_pTreaty->MembersSideB(true).cbegin());
 			l_pTreaty->RemoveMemberSideA(in_iCountry);
 			break;
