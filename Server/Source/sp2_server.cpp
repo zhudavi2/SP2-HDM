@@ -1781,9 +1781,12 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
        const ENTITY_ID l_iClient = in_vArgs[1].ToINT32();
        l_vSideB.insert(l_iClient);
 
-       const set<ENTITY_ID> l_vPressure;
+       //Needs non-const GString reference for some reason
+       GString l_sName(L"CLIENT - " + m_DAL.CountryData(l_iMaster)->NameAndIDForLog() + L"-" + m_DAL.CountryData(l_iClient)->NameAndIDForLog());
 
-       m_DCL.CreateNewTreaty(l_iMaster, l_vSideA, l_vSideB, l_vPressure, ETreatyType::MilitaryAccess, true, L"CLIENT - " + m_DAL.CountryData(l_iMaster)->NameAndIDForLog() + L"-" + m_DAL.CountryData(l_iClient)->NameAndIDForLog(), nullptr);
+       const vector<UINT32> l_vConditions(ETreatyConditions::ItemCount, 0);
+
+       m_DCL.CreateNewTreaty(l_iMaster, l_vSideA, l_vSideB, set<ENTITY_ID>(), ETreatyType::MilitaryAccess, true, l_sName, l_vConditions.data());
    }
 #endif //#define GOLEM_DEBUG
    return L"";
