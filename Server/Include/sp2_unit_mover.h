@@ -390,8 +390,9 @@ namespace SP2
 			*	Removes automatically units from the leaving country to the closest allied region
 			*	@param in_iCountryLeaving : The country that needs to move its troops
 			*  @param in_iCountryAsking  : The country that asked to move troops away from its territory
+            *  @return True if at least one unit actually moved
 			**/
-		  void MilitaryRemoval(UINT32 in_iCountryLeaving, UINT32 in_iCountryAsking);
+		  bool MilitaryRemoval(UINT32 in_iCountryLeaving, UINT32 in_iCountryAsking);
 
 			/*!
 			*	Moves a unit group towards that region cities, or middle if no cities exist

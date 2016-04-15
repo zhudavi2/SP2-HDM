@@ -1329,6 +1329,7 @@ void GUnitMover::IterateGroupsInDeployement()
       while(l_groupIterator != l_pListOfGroupInDeployement->end())
       {   
          GUnitGroupInDeployement  l_GroupInDepoloyement= *l_groupIterator;
+         gassert(!_isnan(l_GroupInDepoloyement.m_fDeployementTime), L"Unit group's deployment time is NAN");
       
          // When deployement time is smaller than current game time, its time to deploy.
          if(l_GroupInDepoloyement.m_fDeployementTime < g_Joshua.GameTime())
@@ -2564,7 +2565,7 @@ bool  GUnitMover::FinishDeployingGroup(SP2::GUnitGroup* in_pGroup)
    }
 }
 
-void GUnitMover::MilitaryRemoval(UINT32 in_iCountryLeaving, UINT32 in_iCountryAsking)
+bool GUnitMover::MilitaryRemoval(UINT32 in_iCountryLeaving, UINT32 in_iCountryAsking)
 {
 	set<UINT32> l_vRegionPossibilities;	
 	set<UINT32> l_vAllies;
@@ -2583,6 +2584,7 @@ void GUnitMover::MilitaryRemoval(UINT32 in_iCountryLeaving, UINT32 in_iCountryAs
 	}
 	
 	//Now cycle through units in asking country territory, and move them away
+    bool l_bAtLeastOneUnitMoved = false;
 	const set<UINT32>& l_vUnitGroups = g_Joshua.UnitManager().CountryUnitGroups(in_iCountryLeaving);
 	for(set<UINT32>::const_iterator l_Itr = l_vUnitGroups.begin();
 		 l_Itr != l_vUnitGroups.end();
@@ -2602,7 +2604,8 @@ void GUnitMover::MilitaryRemoval(UINT32 in_iCountryLeaving, UINT32 in_iCountryAs
 					continue;
 				}					
 			}
-			
+            else
+                continue;
 		}
 			
 
@@ -2625,9 +2628,11 @@ void GUnitMover::MilitaryRemoval(UINT32 in_iCountryLeaving, UINT32 in_iCountryAs
 		{
 			//Move unit group towards the minimum region
 			MoveUnitToRegion(*l_Itr,l_iMinRegion, EMilitaryAction::MergeWith);
+            l_bAtLeastOneUnitMoved = true;
 		}
 	}
 
+    return l_bAtLeastOneUnitMoved;
 }
 
 void GUnitMover::MoveUnitToRegion(UINT32 in_iUnitGroupID, UINT32 in_iDestRegion, SP2::EMilitaryAction::Flags in_eAction)

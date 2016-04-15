@@ -4563,29 +4563,30 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 			UINT32 l_iSecondCountry = *l_vSideA.begin();
 			if(l_iFirstCountry > 0 && l_iSecondCountry > 0)
 			{
-				m_UnitMover.MilitaryRemoval(l_iFirstCountry,l_iSecondCountry);
-
-				//MultiMOD
-				//Community sans those still enemies approve! +10 relations for everyone
-				INT32 l_iNbCountries = 0;
-				for (UINT32 i=1; i<= g_ServerDAL.NbCountry(); i++)
-				{
-					g_ServerDAL.RelationBetweenCountries(i, l_iSecondCountry,
-						g_ServerDAL.RelationBetweenCountries(i,l_iSecondCountry)+ 10);
-				} //end MultiMOD
-
-				//Send the news
-				vector<INT32> l_vStrings;
-				l_vStrings.push_back(SP2::EStrId::TreatyRequestMilitaryPresenceRemoval);
-				News::GInfo l_News;
-				l_News.m_iCountryA = l_iFirstCountry;
-				l_News.m_iCountryB = l_iSecondCountry;
-				l_News.m_eType = News::EType::SignedTreatyTwo;
-				l_News.m_fGameTime = g_Joshua.GameTime();
-				l_News.m_iPriority = g_ServerDAL.NewsPriority(l_News.m_eType);
-				l_News.m_eCategory = g_ServerDAL.NewsCategory(l_News.m_eType);
-				l_News.m_vStrings = l_vStrings;
-				SendNews(l_News);
+                if(m_UnitMover.MilitaryRemoval(l_iFirstCountry, l_iSecondCountry))
+                {
+                    //Improve relations with country from which military was removed
+                    g_ServerDAL.RelationBetweenCountries(l_iFirstCountry, l_iSecondCountry,
+                                                         g_ServerDAL.RelationBetweenCountries(l_iFirstCountry, l_iSecondCountry) + 10);
+                    
+                    //Send the news
+                    vector<INT32> l_vStrings;
+                    l_vStrings.push_back(SP2::EStrId::TreatyRequestMilitaryPresenceRemoval);
+                    News::GInfo l_News;
+                    l_News.m_iCountryA = l_iFirstCountry;
+                    l_News.m_iCountryB = l_iSecondCountry;
+                    l_News.m_eType = News::EType::SignedTreatyTwo;
+                    l_News.m_fGameTime = g_Joshua.GameTime();
+                    l_News.m_iPriority = g_ServerDAL.NewsPriority(l_News.m_eType);
+                    l_News.m_eCategory = g_ServerDAL.NewsCategory(l_News.m_eType);
+                    l_News.m_vStrings = l_vStrings;
+                    SendNews(l_News);
+                }
+                else
+                {
+                    GDZLOG(L"Military removal treaty " + GString(in_iTreatyID) + L" has no effect",
+                           EDZLogCat::Treaties);
+                }
 			}
 		}
 		break;
