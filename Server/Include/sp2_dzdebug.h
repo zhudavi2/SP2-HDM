@@ -103,7 +103,7 @@ void GDZDebug::Assert(bool in_bExpr,
             l_sLogicErrorMsg += *l_It;
         }
 
-        throw logic_error(l_sLogicErrorMsg);
+        abort();
     }
 }
 
