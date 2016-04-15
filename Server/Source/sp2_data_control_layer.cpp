@@ -9360,5 +9360,9 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
     }
 
     //Send country list to update the client state's name (with "client of (name)")
-    SendCountryList();
+    if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::Off)
+        SendCountryList();
+
+    GDZLOG(L"<<<",
+           EDZLogCat::ClientStates);
 }

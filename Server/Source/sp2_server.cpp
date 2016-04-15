@@ -538,6 +538,13 @@ SDK::GAME_MSG GServer::Initialize()
          L"print country's general nuclear research level, and range, precision, and damage research levels",
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"force_client",
+          L"II",
+          L"first country creates client treaty with second country",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+          this);
    } 
 #endif
 
@@ -1763,6 +1770,20 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
           l_sNuclearResearchString += L" " + GString(l_pCountryData->ResearchInfo()->m_fMaxValues[EUnitCategory::Nuclear][l_eResearchCategory]);
       }
       return l_sNuclearResearchString;
+   }
+   else if(in_sCommand == L"force_client")
+   {
+       set<ENTITY_ID> l_vSideA;
+       const ENTITY_ID l_iMaster = in_vArgs[0].ToINT32();
+       l_vSideA.insert(l_iMaster);
+
+       set<ENTITY_ID> l_vSideB;
+       const ENTITY_ID l_iClient = in_vArgs[1].ToINT32();
+       l_vSideB.insert(l_iClient);
+
+       const set<ENTITY_ID> l_vPressure;
+
+       m_DCL.CreateNewTreaty(l_iMaster, l_vSideA, l_vSideB, l_vPressure, ETreatyType::MilitaryAccess, true, L"CLIENT - " + m_DAL.CountryData(l_iMaster)->NameAndIDForLog() + L"-" + m_DAL.CountryData(l_iClient)->NameAndIDForLog(), nullptr);
    }
 #endif //#define GOLEM_DEBUG
    return L"";
