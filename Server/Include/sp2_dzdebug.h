@@ -15,9 +15,10 @@
     GDZDebug::Log((msg), (logCategories), __FUNCTION__, __LINE__)
 
 #ifdef GOLEM_DEBUG
-#define GDZASSERT(expr, msg)\
+#undef gassert
+#define gassert(expr, msg)\
     GDZDebug::Assert((expr) ? true : false, (#expr), (msg), __FUNCTION__, __FILE__, __LINE__)
-#endif
+#endif // GOLEM_DEBUG
 
 namespace SP2
 {

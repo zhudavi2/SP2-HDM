@@ -35,9 +35,6 @@ using namespace SDK::EHE;
 #include "include/sp2_military_plan.h"
 #include "include/sp2_country_data_holder.h"
 
-#ifdef GOLEM_DEBUG
-#undef gassert
-#define gassert(expr, msg) GDZASSERT(expr, msg)
-#endif
+
 
 #endif

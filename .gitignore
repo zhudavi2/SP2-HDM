@@ -26,3 +26,5 @@ x86/
 *.tlog
 *.unsuccessfulbuild
 *.user
+*.VC.db
+*.VC.VC.opendb
