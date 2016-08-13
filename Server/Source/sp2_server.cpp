@@ -67,7 +67,7 @@ SDK::GAME_MSG GServer::Initialize()
 
    // Initialize Mode
    // JMercier : This will be changed later by reading a xml file or a menu.
-   ModName(L"Human Development Mod V8 Preview");
+   ModName(L"Human Development Mod V9");
 
    GDALInterface::Instance = &m_DAL;
    GDCLInterface::Instance = &m_DCL;
@@ -255,6 +255,7 @@ SDK::GAME_MSG GServer::Initialize()
    {
         // Default values
         m_bAllowDefenderAttackAttackerTerritory  = true;
+        m_allowHumanClientStates                 = false;
         m_bAllowAIAssumeDebt                     = true;
         m_fCombatThresholdSquare                 = 0.7f*0.7f;
         m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
@@ -2646,6 +2647,11 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_bAllowAIAssumeDebt = (elementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowAIAssumeDebt: " + GString(m_bAllowAIAssumeDebt));
+                    }
+                    else if(elementName == L"allowHumanClientStates")
+                    {
+                        m_allowHumanClientStates = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"allowHumanClientStates: " + GString(m_allowHumanClientStates));
                     }
                     else if(elementName == L"allowDefenderAttackAttackerTerritory")
                     {

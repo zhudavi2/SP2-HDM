@@ -2447,6 +2447,11 @@ void GUnitMover::DeployUnit(SP2::GUnitGroup* in_pGroup,list<UINT32>& in_UnitList
    if(fabs(l_CapitalPosition.x - in_Dest.x) > 0.01f || fabs(l_CapitalPosition.y - in_Dest.y) > 0.01f)
       l_fDistanceFromCapital = g_ServerDAL.DistanceBetween2PointsLatLong(l_CapitalPosition,in_Dest);
 
+   gassert(!_isnan(l_fDistanceFromCapital),
+	       L"Unit is being deployed to (" + GString(in_Dest.x) + L", " + GString(in_Dest.y) + L"), " +
+           L"with capital at (" + GString(l_CapitalPosition.x) + L", " + GString(l_CapitalPosition.y) + L"), " +
+           L"but distance calculation messed up");
+
    REAL32 l_totalDayToDeploy = l_fDistanceFromCapital / 2000 + 1 ;
    l_UnitGroupInDeployement.m_fDeployementTime         = g_Joshua.GameTime()+ l_totalDayToDeploy;
 

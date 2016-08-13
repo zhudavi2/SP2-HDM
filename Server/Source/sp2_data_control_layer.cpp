@@ -6950,10 +6950,9 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
                  ++l_CellIt)
             {
                 if ((l_CellIt->AssignedCountry() == l_iCountryTarget) &&
-                    (l_CellIt->ActualState() == ECovertActionsCellState::Active))
+                    (l_CellIt->ActualState() == ECovertActionsCellState::Active) &&
+                    (l_CellIt->ID() != in_Cell.ID())) //Executing cell has already been set to Active by this point, but of course it shouldn't count as an extra cell contributing to the base success rate
                 {
-                    gassert(l_CellIt->ID() != in_Cell.ID(), "GDataControlLayer::ExecuteMission(): Ready-to-execute cell has wrong state");
-
                     switch(l_CellIt->ExperienceLevelType())
                     {
                     case ECovertActionCellTraining::Recruit:

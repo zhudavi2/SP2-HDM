@@ -287,22 +287,27 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
        //Create 10 cells at a time if the given name was "MULTIPLE " followed immediately by a whole number
        static const GString l_sMultipleCellsPrefix = L"MULTIPLE ";
+	   INT32 l_iNumCellsToCreate = 1;
        if(l_sEventName.find(l_sMultipleCellsPrefix) == 0)
        {
            const GString& l_sStartingCellName = l_sEventName.substr(l_sMultipleCellsPrefix.length());
-           l_iStartingCellNumber = l_sStartingCellName.ToINT32();
-           gassert(l_iStartingCellNumber >= 1,"Invalid starting cell number for multiple cell creation");
+		   l_iStartingCellNumber = l_sStartingCellName.ToINT32();
+		   if (l_iStartingCellNumber >= 1)
+			   l_iNumCellsToCreate = 10;
        }
 
-       for(INT32 i = l_iStartingCellNumber;
-           i < l_iStartingCellNumber + 10;
-           i++)
+       INT32 l_iNumCellsCreated = 0;
+	   const auto l_iNumCellsOriginal = l_pData->CovertActionCells().size();
+
+       do
        {
            SP2::GCovertActionCell l_Cell;
 
            l_Cell.OwnerID(l_iCurPlayerID);
 
-           const GString& l_sCellName = (l_iStartingCellNumber == -1) ? l_sEventName : GString(i);
+           const GString& l_sCellName = (l_iStartingCellNumber >= 1) ?
+                                        l_sEventName :
+                                        GString(l_iStartingCellNumber + l_iNumCellsCreated);
            l_Cell.Name( l_sCellName );
 
            l_Cell.AssignedCountry( g_ServerDAL.CountryCanAssignCovertCellToTarget(l_iCurPlayerID, l_pEvent->m_iAssignedCountryID) ?
@@ -313,10 +318,13 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
            l_pData->AddCovertActionCell(l_Cell);
 
-           //If it's not the special case of creating multiple cells
-           if(l_iStartingCellNumber == -1)
-               break;
-       }
+           l_iNumCellsCreated++;
+	   } while (l_iNumCellsCreated < l_iNumCellsToCreate);
+
+       gassert(l_iNumCellsOriginal + l_iNumCellsCreated == l_pData->CovertActionCells().size(),
+           L"Number of cells before: " + GString(l_iNumCellsOriginal) + L"; " +
+           L"number of cells created: " + GString(l_iNumCellsCreated) + L"; " +
+           L"number of cells after: " + GString(l_pData->CovertActionCells().size()));
    }
 }
 

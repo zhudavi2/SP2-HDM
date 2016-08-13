@@ -4,6 +4,11 @@
   Allowed values are 0 and 1. Default is 1. -->
   <allowAIAssumeDebt>1</allowAIAssumeDebt>
   
+  <!-- Setting to 0 disallows a human-controlled country from being turned into a client state by another country (AI or human).
+  This setting exists because some players have reported crashing when a human-controlled country becomes a client state.
+  Allowed values are 0 and 1. Default is 0. -->
+  <allowHumanClientStates>0</allowHumanClientStates>
+  
   <!-- Setting to 0 disallows a country on the defending side of a war from occupying the home
   territory of a country on the attacking side, unless the occupying country is also currently in an
   offensive war against the owning country.
