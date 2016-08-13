@@ -1937,6 +1937,18 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
            l_pMasterData->NameAndIDForLog(),
            EDZLogCat::ClientStates);
 
+    //Check if the server allows human-controlled countries to become client states
+    if(!g_SP2Server->AllowHumanClientStates())
+    {
+        SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayerByModID(m_iCountryID);
+        if(l_pPlayer == nullptr || !l_pPlayer->AIControlled())
+        {
+            GDZLOG(NameAndIDForLog() + L" is ineligible to be a client because it is not AI-controlled, and the server disallows human-controlled countries from becoming client states",
+                   EDZLogCat::ClientStates);
+            return false;
+        }
+    }
+
     //Master can't be a client itself
     if(l_pMasterData->Master().first != 0)
         return false;
