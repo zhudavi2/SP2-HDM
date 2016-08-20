@@ -215,6 +215,10 @@ void GUnitMover::ChangeToMovingStatus(SP2::GUnitGroupEx* in_pGroup, REAL32 in_fT
    if(in_pGroup->NextStatus() != EMilitaryStatus::Moving)
    {
       // Status change is not started yet, start the status change now
+      GDZLOG(L"Unit group " + GString(in_pGroup->Id()) + L" change to moving status not started yet; " +
+             L"movement delay " + GString(l_fMoveDelay),
+             EDZLogCat::UnitMovement);
+
       in_pGroup->ChangeStatus(EMilitaryStatus::Moving, in_fTime, l_fMoveDelay);
       m_GroupsChangingStatus.push_back(in_pGroup->Id() );
    }
@@ -224,6 +228,11 @@ void GUnitMover::ChangeToMovingStatus(SP2::GUnitGroupEx* in_pGroup, REAL32 in_fT
               "A group is changing to moving, but it is not in the status change list");
 
       // Status change already started, update the delay by using the previous change time.
+      GDZLOG(L"Unit group " + GString(in_pGroup->Id()) + L" will be in moving status next; " +
+             L"StatusChangeStartTime()" + GString(in_pGroup->StatusChangeStartTime()) + L", " +
+             L"StatusChangeEndTime()" + GString(in_pGroup->StatusChangeEndTime()),
+             EDZLogCat::UnitMovement);
+
       in_pGroup->ChangeStatus(EMilitaryStatus::Moving, 
                               in_pGroup->StatusChangeStartTime(), 
                               l_fMoveDelay);
@@ -865,12 +874,25 @@ bool GUnitMover::Iterate()
          SP2::GUnitGroupEx* l_pGroup = (SP2::GUnitGroupEx*) g_Joshua.UnitManager().UnitGroup(*l_GroupPathIt);
          gassert(l_pGroup, "Problem synchronizing group paths");
 
+         const GVector2D<REAL32> l_OriginalPosition = l_pGroup->Position();
+         const UINT32 l_iGroupId = l_pGroup->Id();
+         gassert(!_isnan(l_OriginalPosition.x) && !_isnan(l_OriginalPosition.y),
+                 g_ServerDAL.CountryData(l_pGroup->OwnerId())->NameAndIDForLog() + L": " +
+                 L"Unit group ID " + GString(l_iGroupId) + L" has indeterminate position");
+
          // Remove group from its current region
          m_pRegionGroups[l_pGroup->m_iMoveRegionID].erase(*l_GroupPathIt);
          ++ l_GroupPathIt;
 
          // Update prevlocation
          l_pGroup->m_iPrevMoveRegionID = l_pGroup->m_iMoveRegionID;
+
+         const vector<GUnitPathPoint>& l_vPathPoints = l_pGroup->Path().Points();
+         GDZLOG(g_ServerDAL.CountryData(l_pGroup->OwnerId())->NameAndIDForLog() + L": " +
+                L"Updating unit group " + GString(l_iGroupId) + L"'s path; " +
+                L"current position (" + GString(l_OriginalPosition.x) + L", " + GString(l_OriginalPosition.y) + L"), " +
+                L"path points " + GString(l_vPathPoints.size()),
+                EDZLogCat::UnitMovement);
 
          // Update the current group path, if updatePath returns true, movement is over
          if(l_pGroup->UpdatePath(l_fTime) )
@@ -890,13 +912,20 @@ bool GUnitMover::Iterate()
                AddBombardingGroup(l_pGroup->Id());
             }
          }
+         else
+         {
+             const GVector2D<REAL32>& l_CurrentPosition = l_pGroup->Position();
+             GDZLOG(L"Unit group " + GString(l_iGroupId) + L" not finished movement yet after updating path; " +
+                    L"position (" + GString(l_CurrentPosition.x) + L", " + GString(l_CurrentPosition.y) + L")",
+                    EDZLogCat::UnitMovement);
+         }
 
          // Locate current location of unit
          UINT32 l_iRegionID = g_ServerDCL.EarthLocateRegion(l_pGroup->Position().x, l_pGroup->Position().y);
          l_pGroup->m_iMoveRegionID = l_iRegionID;
 
          // Add group from its current region
-         m_pRegionGroups[l_pGroup->m_iMoveRegionID].insert(l_pGroup->Id() );
+         m_pRegionGroups[l_pGroup->m_iMoveRegionID].insert(l_iGroupId );
 
          if(!l_pGroup->Path().IsProtected(l_fTime) )
          {
@@ -1137,6 +1166,12 @@ bool GUnitMover::Iterate()
 							" completed its status change to " + 
 							GString( (INT32) l_pGroup->NextStatus() ) );
 
+                const GString l_sOwnerNameAndId = g_ServerDAL.CountryData(l_pGroup->OwnerId())->NameAndIDForLog();
+                GDZLOG(l_sOwnerNameAndId + L": " +
+                       L"Unit group " + GString(l_iGroupID) + L" is now at position (" + GString(l_pGroup->Position().x) + L", " + GString(l_pGroup->Position().y) + L") with " +
+                       L"status " + GString(l_pGroup->Status()) + L"; changing to status " + GString(l_pGroup->NextStatus()),
+                       EDZLogCat::UnitMovement);
+
 				// Complete status change by making current status equal to next status
 				l_pGroup->ChangeStatus(l_pGroup->NextStatus() );
 
@@ -1161,15 +1196,28 @@ bool GUnitMover::Iterate()
 				// Check if group must begin a movement
 				else if(l_MoveIt != m_GroupsToMove.end() )
 				{
+                    GDZLOG(l_sOwnerNameAndId + L": " +
+                           L"Unit group " + GString(l_iGroupID) + L" will move from position (" + GString(l_pGroup->Position().x) + L", " + GString(l_pGroup->Position().y) + L")",
+                           EDZLogCat::UnitMovement);
+
 					// Unit must be in status "moving" to begin its movement
 					if(l_pGroup->Status() == EMilitaryStatus::Moving)
 					{
+                        GDZLOG(L"Unit group " + GString(l_iGroupID) + L" already in moving status; " +
+                               L"move action " + GString(l_MoveIt->second.m_Action),
+                               EDZLogCat::UnitMovement);
+
 						ChangeGroupPath( (SP2::GUnitGroupEx*) l_pGroup, l_MoveIt->second, l_fTime);
 						m_GroupsToMove.erase(l_MoveIt);
 					}
 					else
 					{
 //						gassert(l_pGroup->Status() == EMilitaryStatus::Ready, "Unit must be ready before it can change to moving status");
+
+                        GDZLOG(l_sOwnerNameAndId + L": " +
+                               L"Unit group " + GString(l_iGroupID) + L" will change to moving status",
+                               EDZLogCat::UnitMovement);
+
 						ChangeToMovingStatus( (SP2::GUnitGroupEx*) l_pGroup, l_fTime);
 					}
 				}
@@ -1191,18 +1239,27 @@ bool GUnitMover::Iterate()
       SP2::GUnitGroupEx* l_pGroup = (SP2::GUnitGroupEx*) g_Joshua.UnitManager().UnitGroup(*l_GroupItr);
       if( (l_pGroup) && (m_pStatusCanBeMerged[l_pGroup->Status() ] ) )
       {
+         const UINT32 l_iGroupId = l_pGroup->Id();
+         GDZLOG(g_ServerDAL.CountryData(l_pGroup->OwnerId())->NameAndIDForLog() + L": " +
+                L"Trying to merge unit group " + GString(l_iGroupId),
+                EDZLogCat::UnitMovement);
+
          const set<UINT32>& l_CountryUnitGroups = g_Joshua.UnitManager().CountryUnitGroups(l_pGroup->OwnerId() );
          set<UINT32>::const_iterator itr;
          for (itr = l_CountryUnitGroups.begin(); itr != l_CountryUnitGroups.end(); ++ itr)
          {
             SP2::GUnitGroupEx* l_DestGroup = (SP2::GUnitGroupEx*) g_Joshua.UnitManager().UnitGroup(*itr);
+            GDZLOG(L"Testing unit group " + GString(l_DestGroup->Id()) + L" with status " + GString(l_DestGroup->Status()),
+                   EDZLogCat::UnitMovement);
+
             if ( (l_DestGroup != l_pGroup) && (m_pStatusCanBeMerged[l_DestGroup->Status() ] ) )
             {
                if (l_DestGroup->Position().DistanceSquared(l_pGroup->Position() ) < c_fMergeThresSquared)
                {
                   if(l_DestGroup->IsNaval() == l_pGroup->IsNaval())
                   {
-                     UINT32 l_iGroupId = l_pGroup->Id();
+                     GDZLOG(L"Merging unit group " + GString(l_iGroupId) + L" with unit group " + GString(l_DestGroup->Id()),
+                            EDZLogCat::UnitMovement);
 
                      // Remember each unit design in the destination group
                      multimap<UINT32, UINT32> l_DesignMap;
@@ -2157,10 +2214,21 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                   else
                   {
                       // Path connects directly to end point, no penalty
-                      l_PathPoints.front().first.z = 
-                          (REAL32) g_ServerDAL.DistanceBetween2PointsLatLong(
-                          l_PathPoints.front().first, 
-                          l_PathPoints.back().first);
+                      GVector3D<REAL32>&       l_Start = l_PathPoints.front().first;
+                      const GVector3D<REAL32>& l_End   = l_PathPoints.back().first;
+
+                      // Prevent DistanceBetween2PointsLatLong() from returning NaN
+                      // Issue #46
+                      l_Start.z = (l_Start.DistanceSquared(l_End) > c_fMergeThresSquared) ?
+                                  (g_ServerDAL.DistanceBetween2PointsLatLong(l_Start, l_End)) :
+                                  (0);
+
+                      gassert(!_isnan(l_Start.z),
+                              l_pOwnerCountry->NameAndIDForLog() + L": " +
+                              L"Unit group " + GString(l_pUnitGroup->Id()) + L" moving directly from " +
+                              L"(" + GString(l_Start.x) + L", " + GString(l_Start.y) + L") to " +
+                              L"(" + GString(l_End.x)   + L", " + GString(l_End.y)   + L") " +
+                              L"will move an indeterminate distance");
                   }
 
                   // Fill remaining points
@@ -2455,6 +2523,13 @@ void GUnitMover::DeployUnit(SP2::GUnitGroup* in_pGroup,list<UINT32>& in_UnitList
    REAL32 l_totalDayToDeploy = l_fDistanceFromCapital / 2000 + 1 ;
    l_UnitGroupInDeployement.m_fDeployementTime         = g_Joshua.GameTime()+ l_totalDayToDeploy;
 
+   GDZLOG(g_ServerDAL.CountryData(l_pNewGroup->OwnerId())->NameAndIDForLog() + L": " +
+          L"Unit group " + GString(l_pNewGroup->Id()) + L" is being deployed to (" + GString(in_Dest.x) + L", " + GString(in_Dest.y) + L"), " +
+          L"with capital at (" + GString(l_CapitalPosition.x) + L", " + GString(l_CapitalPosition.y) + L"); " +
+          L"distance from capital " + GString(l_fDistanceFromCapital) + L"; " +
+          L"days for deployment " + GString(l_totalDayToDeploy),
+          EDZLogCat::UnitMovement);
+
    // Get the list for the current country.
    list<GUnitGroupInDeployement>* l_pListOfGroupInDeployement = &(m_vGroupsInDeployement[in_pGroup->OwnerId()-1] );
    l_pListOfGroupInDeployement->push_back(l_UnitGroupInDeployement);
@@ -2518,6 +2593,9 @@ bool  GUnitMover::FinishDeployingGroup(SP2::GUnitGroup* in_pGroup)
    bool l_bIsNaval = in_pGroup->IsNaval();
    if(g_ServerDCL.IsDeployGroupAtPositionPossible((UINT16)in_pGroup->OwnerId(),in_pGroup->Position(),l_bIsNaval))
    {
+       GDZLOG(g_ServerDAL.CountryData(in_pGroup->OwnerId())->NameAndIDForLog() + L": " +
+              L"About to deploy unit group " + GString(in_pGroup->Id()) + L" at (" + GString(in_pGroup->Position().x) + L", " + GString(in_pGroup->Position().y) + L")",
+              EDZLogCat::UnitMovement);
 
       //If there is nuclear submarine, add the missiles to the nuclear missile list
       vector<SDK::Combat::GUnit*>::const_iterator l_UnitIterator = in_pGroup->Units().begin();
@@ -2532,15 +2610,31 @@ bool  GUnitMover::FinishDeployingGroup(SP2::GUnitGroup* in_pGroup)
       }
 
       //If a unit group is present at that exact location, merge the two
+
+      //Units to be deployed may not make it onto the globe if forced to merge with units that aren't actually deployed (e.g., when mistakenly merged with unit groups that are ready to be but not actually deployed)
+      //Issue #46
+        const GUnitGroupEx* const l_pProductionQueueGroup = m_vProductionQueueGroups[in_pGroup->OwnerId() - 1];
+        const GVector2D<REAL32> l_ProductionQueuePosition = l_pProductionQueueGroup->Position();
+        GDZLOG(GString(L"About to check for unit group merge possibilities for ") +
+               L"unit group " + GString(in_pGroup->Id()) + L"; " +
+               L"production queue ID " + GString(l_pProductionQueueGroup->Id()) + L" at (" + GString(l_ProductionQueuePosition.x) + L", " + GString(l_ProductionQueuePosition.y) + L")",
+               EDZLogCat::UnitMovement);
+
 		bool l_bFoundUnitGroup = false;
+
 		const set<UINT32>& l_UnitGroups = g_Joshua.UnitManager().CountryUnitGroups( in_pGroup->OwnerId() );		
 		for(set<UINT32>::const_iterator it = l_UnitGroups.begin();
 			 ((it != l_UnitGroups.end()) && (l_bFoundUnitGroup == false)); it++)
 		{
 			SDK::Combat::GUnitGroup* l_pUnitGroup = g_Joshua.UnitManager().UnitGroup(*it);
-			if(l_pUnitGroup->Id() != in_pGroup->Id() &&
-				l_pUnitGroup->Position() == in_pGroup->Position())
+            if(l_pUnitGroup->Id() != l_pProductionQueueGroup->Id() &&
+               l_pUnitGroup->Id() != in_pGroup->Id() &&
+			   l_pUnitGroup->Position() == in_pGroup->Position())
 			{
+                GDZLOG(L"Unit group " + GString(in_pGroup->Id()) + L" might be able to merge with " +
+                       L"unit group " + GString(l_pUnitGroup->Id()),
+                       EDZLogCat::UnitMovement);
+
 				in_pGroup->ChangeStatus(EMilitaryStatus::Ready);
 				vector<SDK::Combat::GUnitGroup*> l_vUnitsToMove;				
 				l_vUnitsToMove.push_back(in_pGroup);
@@ -2558,6 +2652,10 @@ bool  GUnitMover::FinishDeployingGroup(SP2::GUnitGroup* in_pGroup)
 
       // Notify Client that this units was modified.
       g_Joshua.UnitManager().ModifyUnitGroup(in_pGroup);
+
+      GDZLOG(L"Deployed unit group " + GString(in_pGroup->Id()) + L" at (" + GString(in_pGroup->Position().x) + L", " + GString(in_pGroup->Position().y) + L") " +
+             L"with status " + GString(in_pGroup->Status()),
+             EDZLogCat::UnitMovement);
 
 		// Unit was deployed
 		return true;
