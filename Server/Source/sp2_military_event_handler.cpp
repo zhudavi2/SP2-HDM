@@ -305,9 +305,9 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
            l_Cell.OwnerID(l_iCurPlayerID);
 
-           const GString& l_sCellName = (l_iStartingCellNumber >= 1) ?
-                                        l_sEventName :
-                                        GString(l_iStartingCellNumber + l_iNumCellsCreated);
+           const GString l_sCellName = (l_iStartingCellNumber >= 1)                          ?
+                                       (GString(l_iStartingCellNumber + l_iNumCellsCreated)) :
+                                       (l_sEventName);
            l_Cell.Name( l_sCellName );
 
            l_Cell.AssignedCountry( g_ServerDAL.CountryCanAssignCovertCellToTarget(l_iCurPlayerID, l_pEvent->m_iAssignedCountryID) ?
@@ -322,9 +322,9 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 	   } while (l_iNumCellsCreated < l_iNumCellsToCreate);
 
        gassert(l_iNumCellsOriginal + l_iNumCellsCreated == l_pData->CovertActionCells().size(),
-           L"Number of cells before: " + GString(l_iNumCellsOriginal) + L"; " +
-           L"number of cells created: " + GString(l_iNumCellsCreated) + L"; " +
-           L"number of cells after: " + GString(l_pData->CovertActionCells().size()));
+               L"Number of cells before: "  + GString(l_iNumCellsOriginal) + L"; " +
+               L"number of cells created: " + GString(l_iNumCellsCreated)  + L"; " +
+               L"number of cells after: "   + GString(l_pData->CovertActionCells().size()));
    }
 }
 
