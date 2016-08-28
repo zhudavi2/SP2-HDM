@@ -4464,18 +4464,31 @@ void GDataControlLayer::LeaveTreaty(ENTITY_ID in_iCountry, UINT32 in_iTreatyID, 
                 return;
             else if(l_bIsClientStateTreaty)
             {
-                const GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountry);
-                if(l_pCountryData->MilitaryStrength() <
-                   g_ServerDAL.CountryData(*l_pTreaty->MembersSideA(true).cbegin())->MilitaryStrength())
+                //Check if the client treaty has an active master. If not, then cancel the treaty.
+                const set<ENTITY_ID>& l_vMasters = l_pTreaty->MembersSideA(true);
+                switch(l_vMasters.size())
                 {
-                    GDZLOG(g_ServerDAL.CountryData(in_iCountry)->NameAndIDForLog() +
-                           L" is trying to leave a client state treaty, " +
-                           L"but can't because it's the client",
-                           EDZLogCat::ClientStates);
-                    return;
+                case 1:
+                {
+                    const GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountry);
+                    if(l_pCountryData->MilitaryStrength() <
+                       g_ServerDAL.CountryData(*l_vMasters.cbegin())->MilitaryStrength())
+                    {
+                        GDZLOG(g_ServerDAL.CountryData(in_iCountry)->NameAndIDForLog() +
+                               L" is trying to leave a client state treaty, " +
+                               L"but can't because it's the client",
+                               EDZLogCat::ClientStates);
+                        return;
+                    }
+                    else
+                        g_ServerDAL.CountryData(in_iCountry)->RemoveClient(*l_pTreaty->MembersSideB(true).cbegin());
+                    break;
                 }
-                else
-                    g_ServerDAL.CountryData(in_iCountry)->RemoveClient(*l_pTreaty->MembersSideB(true).cbegin());
+                default:
+                    gassert(l_vMasters.size() == 0,
+                            L"Client treaty has " + GString(l_vMasters.size()) + L" masters");
+                    break;
+                }
             }
 			l_pTreaty->RemoveMemberSideB(in_iCountry);
 			break;
