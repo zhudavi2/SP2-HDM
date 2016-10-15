@@ -2514,6 +2514,8 @@ bool GCountryData::OnLoad(GOBuffer& io_Buffer)
       {
          m_vCovertActionCells[i].Unserialize(io_Buffer);
          m_vCovertActionCells[i].Dirty(true);
+
+         GCovertActionCell::m_iNextId = max(GCovertActionCell::m_iNextId, m_vCovertActionCells[i].ID() + 1);
       }
    }
 

@@ -2992,7 +2992,50 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
                // GServer::Countries() is 0-based
                g_SP2Server->Countries().at(i - 1).Name(m_pCountryData[i].Name());
            }
+
+           GDZLOG(L"After loading " + m_pCountryData[i].NameAndIDForLog() + L": " +
+                  L"Next covert cell ID " + GString(GCovertActionCell::m_iNextId),
+                  EDZLogCat::Covert);
 	   }
+
+       // Issue #10, covert cell duplicate ID fix
+       for(ENTITY_ID i = 1; i <= l_iCount; i++)
+       {
+           GCountryData& l_Data = m_pCountryData[i];
+           if(l_Data.Activated())
+           {
+               vector<GCovertActionCell>& l_vCells = l_Data.CovertActionCells();
+               set<UINT32> l_vCellIds;
+
+               for(auto it = l_vCells.begin(); it < l_vCells.end(); ++it)
+               {
+                   gassert(it->ID() < GCovertActionCell::m_iNextId,
+                           l_Data.NameAndIDForLog() + L": Covert cell ID " + GString(it->ID()) + L" vs. " +
+                           L"next ID" + GString(GCovertActionCell::m_iNextId));
+
+                   if(l_vCellIds.count(it->ID()) == 1)
+                   {
+                       GDZLOG(l_Data.NameAndIDForLog() + L": " +
+                              L"Duplicate covert cell ID " + GString(it->ID()) + L"; " +
+                              L"Setting ID " + GString(GCovertActionCell::m_iNextId),
+                              EDZLogCat::Covert);
+                       it->ID(GCovertActionCell::m_iNextId);
+                       GCovertActionCell::m_iNextId++;
+                   }
+
+                   l_vCellIds.insert(it->ID());
+               }
+
+               gassert(l_vCells.size() == l_vCellIds.size(),
+                       l_Data.NameAndIDForLog() + L": " +
+                       L"Unique cells " + GString(l_vCells.size()) + L" vs. " +
+                       L"Unique cell IDs " + GString(l_vCellIds.size()));
+
+               GDZLOG(L"After fixing " + l_Data.NameAndIDForLog() + L": " +
+                      L"Next covert cell ID " + GString(GCovertActionCell::m_iNextId),
+                      EDZLogCat::Covert);
+           }
+       }
 
    }
 

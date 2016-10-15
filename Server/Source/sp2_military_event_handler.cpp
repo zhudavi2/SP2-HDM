@@ -297,7 +297,8 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
        }
 
        INT32 l_iNumCellsCreated = 0;
-	   const auto l_iNumCellsOriginal = l_pData->CovertActionCells().size();
+       const vector<GCovertActionCell>& l_vCells = l_pData->CovertActionCells();
+	   const auto l_iNumCellsOriginal = l_vCells.size();
 
        do
        {
@@ -316,15 +317,30 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
            l_Cell.ExperienceLevel( (REAL32)l_pEvent->m_eTraining );
            l_Cell.Initialize();
 
+           GDZLOG(L"Next ID before add: " + GString(GCovertActionCell::m_iNextId),
+                  EDZLogCat::Covert);
+
            l_pData->AddCovertActionCell(l_Cell);
+
+           GDZLOG(L"Next ID after add: " + GString(GCovertActionCell::m_iNextId),
+                  EDZLogCat::Covert);
 
            l_iNumCellsCreated++;
 	   } while (l_iNumCellsCreated < l_iNumCellsToCreate);
 
-       gassert(l_iNumCellsOriginal + l_iNumCellsCreated == l_pData->CovertActionCells().size(),
+       gassert(l_iNumCellsOriginal + l_iNumCellsCreated == l_vCells.size(),
                L"Number of cells before: "  + GString(l_iNumCellsOriginal) + L"; " +
                L"number of cells created: " + GString(l_iNumCellsCreated)  + L"; " +
-               L"number of cells after: "   + GString(l_pData->CovertActionCells().size()));
+               L"number of cells after: "   + GString(l_vCells.size()));
+
+       for(auto it = l_vCells.cbegin(); it < l_vCells.cend(); ++it)
+       {
+           GDZLOG(l_pData->NameAndIDForLog() + L" " +
+                  L"cell " + GString(distance(l_vCells.cbegin(),it) + 1) + L" of " +
+                  GString(l_vCells.size()) + L": " +
+                  L"ID " + GString(it->ID()) + L"; " + L"name " + it->Name(),
+                  EDZLogCat::Covert);
+       }
    }
 }
 
