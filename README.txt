@@ -1,4 +1,4 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V8 Preview
+SuperPower 2 Human Development Modification (SP2-HDM) V8
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -89,6 +89,9 @@ Changes to previous SP2-HDM releases:
 - (V5) Fixed a potential issue in which countries with extremely low revenue wouldn't be able to build or buy non-infantry units.
 
 Fixes to SP2 V1.5.1 issues:
+- (V8) Fixed an issue where cells in the covert cell window may appear to "overwrite" each other when being created. (Issue #10)
+- (V8) Fixed an issue where deploying units to a capital, while having other units ready to be deployed or while having other units deployed in the capital, would sometimes cause the in-deployment units to disappear after deployment. (Issue #46)
+- (V8) Fixed an issue where a military removal treaty would boost diplomatic relations even if no units moved countries as a result. (Issue #37)
 - (V6) Fixed an issue where a player could enroll a large amount of infantry (more than its manpower should make available) and then cancel them, resulting in an artificial population boost. Thanks to Fenix for pointing it out.
 - (V6) Fixed an issue in which a country's nuclear units would not always be automatically disbanded when the country becomes fully occupied.
 - (V5) Fixed at least some instances of the issue in which units that are deployed close to their capital may get stuck in deployment status.
@@ -101,6 +104,7 @@ Fixes to SP2 V1.5.1 issues:
 - A country can no longer (net) export more of a resource than its own production of that resource.
 
 Other changes:
+- (V8) A successful military removal treaty now only improves relations between the parties to the treaty, instead of affecting relations between the military unit mover and the rest of the world.
 - (V6) Added a console command, print_players, to list all active players. Thanks to Fenix for the suggestion.
 - (V6) Added a console command, set_admin_country, that sets the server's admin player by country ID.
 - (V6) Added a console command, set_admin_player, that sets the server's admin player by player ID.
