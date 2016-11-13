@@ -78,12 +78,10 @@ void GDZDebug::Log(const GString& in_sMsg,
     }
 }
 
-void GDZDebug::Assert(bool in_bExpr,
                       const GString& in_sExpr,
                       const GString& in_sMsg,
                       const GString& in_sFunc,
                       const GString& in_sFile,
-                      INT32 in_iLine)
 {
     if(!in_bExpr)
     {
@@ -91,10 +89,10 @@ void GDZDebug::Assert(bool in_bExpr,
         //Need to log out each line separately
         vector<GString> l_vAssertMsgs;
         l_vAssertMsgs.push_back(L"----------------------------------------------------------------\n");
-        l_vAssertMsgs.push_back(L"ASSERT FAILED  :" + in_sExpr + L"\n");
-        l_vAssertMsgs.push_back(L"ASSERT MESSAGE :" + in_sMsg + L"\n");
-        l_vAssertMsgs.push_back(L"ASSERT FUNCTION:" + in_sFunc + L"\n");
-        l_vAssertMsgs.push_back(L"ASSERT LOCATION:" + in_sFile + L":" + GString(in_iLine) + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT FAILED  : " + in_sExpr + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT MESSAGE : " + in_sMsg  + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT FUNCTION: " + in_sFunc + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT LOCATION: " + in_sFile + L":" + GString(in_iLine) + L"\n");
         l_vAssertMsgs.push_back(L"----------------------------------------------------------------");
 
         GString l_sLogicErrorMsg;
