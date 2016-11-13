@@ -1251,7 +1251,7 @@ bool GDataAccessLayerServer::LoadTreaties()
     for(auto it = m_Treaties.cbegin(); it != m_Treaties.cend(); ++it)
     {
         if(it->second.Type() == ETreatyType::MilitaryAccess &&
-           it->second.Name().find(L"CLIENT") == 0)
+           it->second.Name().find(GDataControlLayer::c_sClientStateTreatyPrefix) == 0)
             g_ServerDCL.MakeClientState(*it->second.MembersSideA(true).cbegin(),
                                         *it->second.MembersSideB(true).cbegin(),
                                         it->first,
@@ -3071,7 +3071,7 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
                 EDZLogCat::Treaties);
 
          if(m_Treaties[l_iTreatyID].Type() == ETreatyType::MilitaryAccess &&
-            m_Treaties[l_iTreatyID].Name().find(L"CLIENT") == 0)
+            m_Treaties[l_iTreatyID].Name().find(GDataControlLayer::c_sClientStateTreatyPrefix) == 0)
             g_ServerDCL.MakeClientState(*m_Treaties[l_iTreatyID].MembersSideA(true).cbegin(),
                                         *m_Treaties[l_iTreatyID].MembersSideB(true).cbegin(),
                                         l_iTreatyID,

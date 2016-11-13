@@ -18,6 +18,8 @@
 
 const INT32 c_iMeaningfulUnitQty = 25;
 
+const GString GDataControlLayer::c_sClientStateTreatyPrefix = L"CLIENT";
+
 GDataControlLayer::GDataControlLayer(GDALInterface* in_pDAL) : GDCLInterface(in_pDAL)
 {
    // Set vulnerability of group status
@@ -4128,7 +4130,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 		return 0;
 
     const bool l_bIsClientStateTreaty = in_iType == ETreatyType::MilitaryAccess &&
-                                        in_sName.find(L"CLIENT") == 0;
+                                        in_sName.find(GDataControlLayer::c_sClientStateTreatyPrefix) == 0;
     const GCountryData* l_pClientData = nullptr;
     const ENTITY_ID l_iMasterID = l_bIsClientStateTreaty ? *in_vSideA.cbegin() : 0;
 
@@ -4450,7 +4452,7 @@ void GDataControlLayer::LeaveTreaty(ENTITY_ID in_iCountry, UINT32 in_iTreatyID, 
 		return;
 
    const bool l_bIsClientStateTreaty = l_pTreaty->Type() == ETreatyType::MilitaryAccess &&
-                                       l_pTreaty->Name().find(L"CLIENT") == 0;
+                                       l_pTreaty->Name().find(GDataControlLayer::c_sClientStateTreatyPrefix) == 0;
 
 	switch(l_iSide)
 	{
@@ -4647,7 +4649,7 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
             const GCountryData* const l_pPoliticalControlData = g_ServerDAL.CountryData(l_iPoliticControl);
 
             //If country is sufficiently occupied, and it's a client, then it may be freed from its master
-            const REAL32 l_fPercentageOccupied = l_pTreaty->Name().find(L"CLIENT") == 0 ?
+            const REAL32 l_fPercentageOccupied = l_pTreaty->Name().find(GDataControlLayer::c_sClientStateTreatyPrefix) == 0 ?
                                                  l_pPoliticalControlData->PercentageOfPopulationOccupiedByCountry(l_iMilitaryControl) :
                                                  0.f;
             if(l_fPercentageOccupied >= 0.8f)
@@ -4827,7 +4829,7 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
     //Client state
     case ETreatyType::MilitaryAccess:
     {
-        if(l_pTreaty->Name().find(L"CLIENT") == 0)
+        if(l_pTreaty->Name().find(GDataControlLayer::c_sClientStateTreatyPrefix) == 0)
         {
             gassert(l_vSideA.size() == 1 && l_vSideB.size() == 1,
                     L"Client state treaty has " + GString(l_vSideA.size()) +

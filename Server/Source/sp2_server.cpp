@@ -1783,7 +1783,7 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
        l_vSideB.insert(l_iClient);
 
        //Needs non-const GString reference for some reason
-       GString l_sName(L"CLIENT - " + m_DAL.CountryData(l_iMaster)->NameAndIDForLog() + L"-" + m_DAL.CountryData(l_iClient)->NameAndIDForLog());
+       GString l_sName(GDataControlLayer::c_sClientStateTreatyPrefix + L" - " + m_DAL.CountryData(l_iMaster)->NameAndIDForLog() + L"-" + m_DAL.CountryData(l_iClient)->NameAndIDForLog());
 
        const vector<UINT32> l_vConditions(ETreatyConditions::ItemCount, 0);
 

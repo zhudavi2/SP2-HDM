@@ -2049,7 +2049,7 @@ void GWorldBehavior::BankruptCountry(INT16 in_iCountryID)
               g_ServerDCL.LeaveTreaty(in_iCountryID,l_treatyIt->first);
               break;
           case ETreatyType::MilitaryAccess:
-              if(l_Treaty.Name().find(L"CLIENT") == 0)
+              if(l_Treaty.Name().find(GDataControlLayer::c_sClientStateTreatyPrefix) == 0)
                   g_ServerDCL.LeaveTreaty(in_iCountryID,l_treatyIt->first,true);
               break;
           default:

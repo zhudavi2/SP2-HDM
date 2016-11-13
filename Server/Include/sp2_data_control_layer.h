@@ -121,6 +121,8 @@ namespace SP2
       bool LaunchNuclearAttack(const GNukeLaunchRequest&,GLaunchedNuke& out_LaunchedNuke);
 
    public:
+       static const GString c_sClientStateTreatyPrefix;
+
       GDataControlLayer(GDALInterface* in_pDAL);
       ~GDataControlLayer();
 
