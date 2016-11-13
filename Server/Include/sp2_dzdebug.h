@@ -78,10 +78,12 @@ void GDZDebug::Log(const GString& in_sMsg,
     }
 }
 
+void GDZDebug::Assert(const bool in_bExpr,
                       const GString& in_sExpr,
                       const GString& in_sMsg,
                       const GString& in_sFunc,
                       const GString& in_sFile,
+                      const INT32 in_iLine)
 {
     if(!in_bExpr)
     {
