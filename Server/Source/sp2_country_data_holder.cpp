@@ -249,7 +249,9 @@ void GCountryData::SynchronizeWithRegions()
 void GCountryData::IterateDemand()
 {
 	//Find new demand
-	REAL64 l_fTemp = (REAL64)m_iPopulationPoliticalControl * (REAL64)((1.f-m_fPopInPoverty) * m_fHumanDevelopment);
+    const REAL32 l_fUncappedHdi = GCountryData::FindHumanDevelopment(m_fLifeExpectancy, m_fMeanYearsSchooling, m_fExpectedYearsSchooling, GDPPerCapita(), false);
+
+	REAL64 l_fTemp = (REAL64)m_iPopulationPoliticalControl * (REAL64)((1.f-m_fPopInPoverty) * l_fUncappedHdi);
 	m_pResourceDemand[EResources::Meat] = (l_fTemp * 498.2f) + ((REAL64)m_iPopulationPoliticalControl * 30.f);
 	m_pResourceDemand[EResources::Vegetable_Fruits] = (l_fTemp * 764.3f) + ((REAL64)m_iPopulationPoliticalControl * 40.f);
 	m_pResourceDemand[EResources::Dairy] = (l_fTemp * 830.9f) + ((REAL64)m_iPopulationPoliticalControl * 25.f);
@@ -537,8 +539,12 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 	SynchronizeWithRegions();
 
     {
+        //Determine LE, MYS, and EYS, given just HDI and GDP per capita.
         REAL32 l_fHIEIMean = powf(m_fHumanDevelopment, 3);
-        l_fHIEIMean /= (GCountryData::FindIncomeIndex(m_fGDPValueBase/m_iPopulation)) > 0 ? (GCountryData::FindIncomeIndex(m_fGDPValueBase/m_iPopulation)) : 1;
+
+        const REAL32 l_fIncomeIndex = GCountryData::FindIncomeIndex(m_fGDPValueBase/m_iPopulation, true);
+        l_fHIEIMean /= (l_fIncomeIndex > 0) ? l_fIncomeIndex : 1;
+
         l_fHIEIMean = sqrt(l_fHIEIMean);
         m_fLifeExpectancy = (l_fHIEIMean * 65) + 20;
         m_fMeanYearsSchooling = l_fHIEIMean * 15;
@@ -1888,31 +1894,48 @@ void GCountryData::ExpectedYearsSchooling(REAL32 in_fExpectedYearsSchooling)
     m_fExpectedYearsSchooling = in_fExpectedYearsSchooling;
 }
 
-REAL32 GCountryData::FindIncomeIndex(REAL64 in_fGDPPerCapita)
+REAL32 GCountryData::FindIncomeIndex(const REAL64 in_fGDPPerCapita, const bool in_bCap)
 {
-    if(in_fGDPPerCapita <= 100)
-    {
-        return 0;
-    }
-    else if(in_fGDPPerCapita <= 60000)
-    {
-        return static_cast<REAL32>(log(in_fGDPPerCapita/100) / log(600.0));
-    }
-    else
-    {
-        return 1;
-    }
+    static const REAL64 c_fMinIncome = 100;
+    static const REAL64 c_fMaxIncome = 60000;
+
+    REAL32 l_fIncomeIndex = 0.f;
+
+    if(100 < in_fGDPPerCapita)
+        l_fIncomeIndex = static_cast<REAL32>(log(in_fGDPPerCapita/c_fMinIncome) / log(c_fMaxIncome/c_fMinIncome));
+
+    l_fIncomeIndex = in_bCap ? min(l_fIncomeIndex, 1) : l_fIncomeIndex;
+    return l_fIncomeIndex;
 }
 
-REAL32 GCountryData::FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita)
+REAL32 GCountryData::FindHumanDevelopment(const REAL32 in_fLifeExpectancy, const REAL32 in_fMeanYearsSchooling, const REAL32 in_fExpectedYearsSchooling, const REAL64 in_fGDPPerCapita, const bool in_bCap)
 {
-    REAL32 l_fHI = max(0, min((in_fLifeExpectancy - 20) / 65, 1));
+    gassert(0 < in_fLifeExpectancy,L"LE less than or equal to 0: " + GString(in_fLifeExpectancy));
+    gassert(0 <= in_fMeanYearsSchooling,L"MYS less than 0: " + GString(in_fMeanYearsSchooling));
+    gassert(0 <= in_fExpectedYearsSchooling,L"EYS less than 0: " + GString(in_fExpectedYearsSchooling));
 
-    REAL32 l_fMeanYearsIndex = max(0, min(in_fMeanYearsSchooling / 15, 1));
-    REAL32 l_fExpectedYearsIndex = max(0, min(in_fExpectedYearsSchooling / 18, 1));
-    REAL32 l_fEI = (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
+    static const REAL32 c_fMinLE = 20;
+    static const REAL32 c_fMaxLE = 85;
 
-    return powf(l_fHI * l_fEI * GCountryData::FindIncomeIndex(in_fGDPPerCapita), 1.f/3.f);
+    static const REAL32 c_fMaxMys = 15;
+    static const REAL32 c_fMaxEys = 18;
+
+    REAL32 l_fHI = max(0, (in_fLifeExpectancy - c_fMinLE) / (c_fMaxLE - c_fMinLE));
+    l_fHI = in_bCap ? min(l_fHI, 1) : l_fHI;
+
+    REAL32 l_fMeanYearsIndex = in_fMeanYearsSchooling / c_fMaxMys;
+    l_fMeanYearsIndex = in_bCap ? min(l_fMeanYearsIndex, 1) : l_fMeanYearsIndex;
+
+    REAL32 l_fExpectedYearsIndex = in_fExpectedYearsSchooling / c_fMaxEys;
+    l_fExpectedYearsIndex = in_bCap ? min(l_fExpectedYearsIndex, 1) : l_fExpectedYearsIndex;
+
+    const REAL32 l_fEI = (l_fMeanYearsIndex + l_fExpectedYearsIndex) / 2;
+
+    const REAL32 l_fHdi = powf(l_fHI * l_fEI * GCountryData::FindIncomeIndex(in_fGDPPerCapita, in_bCap), 1.f/3.f);
+
+    gassert((l_fHdi <= 1) || !in_bCap, L"Calculated an HDI greater than 1.000 when capped: " + GString(l_fHdi));
+
+    return l_fHdi;
 }
 
 INT32 GCountryData::NumberOfPoliticallyControlledRegions() const

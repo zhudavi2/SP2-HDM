@@ -480,7 +480,7 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
            //g_Joshua.Log(L"Old EYSs: " + GString::FormatNumber(l_pFormerCountryData->ExpectedYearsSchooling(), 1) + " and " + GString::FormatNumber(l_pCountryData->ExpectedYearsSchooling(), 1) + "; new EYS: " + GString::FormatNumber(l_fNewExpectedYearsSchooling, 1));
            l_pCountryData->ExpectedYearsSchooling(l_fNewExpectedYearsSchooling);
 
-           REAL32 l_fNewHumanDevelopment = GCountryData::FindHumanDevelopment(l_fNewLifeExpectancy, l_fNewMeanYearsSchooling, l_fNewExpectedYearsSchooling, l_pCountryData->GDPPerCapita());
+           REAL32 l_fNewHumanDevelopment = GCountryData::FindHumanDevelopment(l_fNewLifeExpectancy, l_fNewMeanYearsSchooling, l_fNewExpectedYearsSchooling, l_pCountryData->GDPPerCapita(), true);
            l_pCountryData->HumanDevelopment(l_fNewHumanDevelopment);
            //g_Joshua.Log(L"New HDI: " + GString::FormatNumber(l_fNewHumanDevelopment, 3));
 
@@ -8257,7 +8257,7 @@ REAL32 GDataControlLayer::AverageHumanDevelopment() const
     REAL32 l_fWorldEYS = l_fTotalEYS / l_iWorldOver15Population;
     REAL64 l_fWorldGDPPerCapita = l_fWorldGDP / l_iWorldPopulation;
         
-    return GCountryData::FindHumanDevelopment(l_fWorldLE, l_fWorldMYS, l_fWorldEYS, l_fWorldGDPPerCapita);
+    return GCountryData::FindHumanDevelopment(l_fWorldLE, l_fWorldMYS, l_fWorldEYS, l_fWorldGDPPerCapita, true);
 }
 
 void GDataControlLayer::SendRelationHistory(UINT32 in_iPlayerID,UINT32 in_iCountry1,UINT32 in_iCountry2)

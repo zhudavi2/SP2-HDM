@@ -1340,7 +1340,7 @@ bool GWorldBehavior::Iterate_Human_Development()
     m_CountryData->MeanYearsSchooling(l_fMeanYearsSchooling);
     m_CountryData->ExpectedYearsSchooling(l_fExpectedYearsSchooling);
 
-    REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, l_fMeanYearsSchooling, l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita());
+    REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, l_fMeanYearsSchooling, l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita(), true);
 	m_CountryData->HumanDevelopment(l_fNewHDLevel);
 
     if(g_SP2Server->ShowHDIComponents())
@@ -1349,27 +1349,6 @@ bool GWorldBehavior::Iterate_Human_Development()
         m_CountryData->ForestLandLevel(l_fLifeExpectancy / 100.f);
         m_CountryData->ParksLandLevel(l_fMeanYearsSchooling / 100.f);
         m_CountryData->NotUsedLandLevel(l_fExpectedYearsSchooling / 100.f);
-    }
-
-    {
-        //Logging
-        if((static_cast<INT32>(g_Joshua.GameTime()) % 180 == 0) && (m_iHDILogStartingCountryID == 0))
-            m_iHDILogStartingCountryID = m_CountryData->CountryID();
-
-        if(m_iHDILogStartingCountryID != 0)
-        {
-            GDZDebug::Log(m_CountryData->NameAndIDForLog() + L": " +
-                          L"LE " + GString::FormatNumber(m_CountryData->LifeExpectancy(), 1) + L"; " +
-                          L"MYS " + GString::FormatNumber(m_CountryData->MeanYearsSchooling(), 1) + L"; " +
-                          L"EYS " + GString::FormatNumber(m_CountryData->ExpectedYearsSchooling(), 1) + L"; " +
-                          L"GDP per capita " + GString::FormatNumber(m_CountryData->GDPPerCapita(), L",", L".", L"$", L"", 3) + L"; " +
-                          L"HDI " + GString::FormatNumber(m_CountryData->HumanDevelopment(), 3),
-                          EDZLogCat::HDI,
-                          __FUNCTION__, __LINE__);
-
-            if((m_CountryData->CountryID() + 1) % g_ServerDAL.NbCountry() == m_iHDILogStartingCountryID) //We're finished logging
-                m_iHDILogStartingCountryID = 0;
-        }
     }
 
 	return true;
@@ -4111,11 +4090,11 @@ REAL32 GWorldBehavior::FindHumanDevelopmentFactor(ENTITY_ID in_iCountryID)
 }
 
 /*! Gets modifier for GDP / Population
-*	Same as income index, log( x/100 ) / log( 60,000/100 ), must > 0
+*	Same as income index
 **/
 REAL32 GWorldBehavior::FindGDPPopulationFactor(ENTITY_ID in_iCountryID)
 {
-    return GCountryData::FindIncomeIndex(g_ServerDAL.CountryData(in_iCountryID)->GDPPerCapita());
+    return GCountryData::FindIncomeIndex(g_ServerDAL.CountryData(in_iCountryID)->GDPPerCapita(), true);
 }
 
 /*!

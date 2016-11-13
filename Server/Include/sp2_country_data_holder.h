@@ -130,9 +130,9 @@ namespace SP2
       REAL32    ExpectedYearsSchooling() const;
       void      ExpectedYearsSchooling(REAL32 in_fExpectedYearsSchooling);
 
-      static REAL32 FindIncomeIndex(REAL64 in_fGDPPerCapita);
+      static REAL32 FindIncomeIndex(REAL64 in_fGDPPerCapita, bool in_bCap);
 
-      static REAL32 FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita);
+      static REAL32 FindHumanDevelopment(REAL32 in_fLifeExpectancy, REAL32 in_fMeanYearsSchooling, REAL32 in_fExpectedYearsSchooling, REAL64 in_fGDPPerCapita, bool in_bCap);
 
       inline GString Name() const { return m_sName; }
       inline void    Name(const GString& in_sName) { m_sName = in_sName; }
