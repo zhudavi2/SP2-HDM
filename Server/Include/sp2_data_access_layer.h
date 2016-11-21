@@ -333,6 +333,9 @@ namespace SP2
       //! Helper method to get region name and ID. Non-const because GetString() is non-const
       GString RegionNameAndIDForLog(UINT32 in_iRegionID);
 
+      //! Helper method to get covert cell name, ID, and country.
+      GString CovertCellInfoForLog(ENTITY_ID in_iCountryID, UINT32 in_iCellID) const;
+
    private:
       //-----------------------------------------------
       //  Military data loading functions

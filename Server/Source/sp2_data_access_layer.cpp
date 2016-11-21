@@ -1802,20 +1802,49 @@ void GDataAccessLayerServer::DestroyCountryEntity(UINT32 in_iCountryID, UINT32 i
 			UINT32 l_iNbCountry = NbCountry();
 			for(UINT32 i = 1 ; i <= l_iNbCountry ; i++)
 			{
-				vector<GCovertActionCell>& l_vCells = CountryData(i)->CovertActionCells();								
+                GCountryData& l_CountryData = m_pCountryData[i];
+				vector<GCovertActionCell>& l_vCells = l_CountryData.CovertActionCells();
 				for(UINT32 j = 0 ; j < l_vCells.size() ; j++)
 				{
-					if(l_vCells[j].AssignedCountry() == in_iCountryID)
-					{						
+                    const UINT32 l_iCellID = l_vCells[j].ID();
+                    const GCountryData& l_ConquerorData = m_pCountryData[in_iConquerorID];
+
+					if(l_vCells[j].AssignedCountry() == in_iCountryID &&
+                       l_vCells[j].ActualState() != ECovertActionsCellState::InTransit)
+					{	
+                        //Cancel missions against conquered country
+                        switch(l_vCells[j].ActualState())
+                        {
+                        case ECovertActionsCellState::PreparingMission:
+                        case ECovertActionsCellState::ReadyToExecute:
+                            GDZLOG(l_CountryData.NameAndIDForLog() + L" is cancelling a mission by cell " + CovertCellInfoForLog(i, l_iCellID) + L" against " + GString(in_iCountryID) + L" due to target inactivity",
+                                   EDZLogCat::Covert);
+                            l_vCells[j].CancelAction();
+                            break;
+
+                        default:
+                            break;
+                        }
+
+                        GDZLOG(l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be reassigned from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity",
+                               EDZLogCat::Covert);
+
 						l_vCells[j].AssignedCountry(in_iConquerorID);
-
-                        //Recalculate national security if conqueror's cells were in the conquered country
-                        if(i == in_iConquerorID)
-                            CountryData(i)->NationalSecurity( g_ServerDCL.FindNationalSecurity(i) );
-
-						CountryData(i)->FlagCovertActionsCellsAsDirty();
+                        l_CountryData.FlagCovertActionsCellsAsDirty();
 					}
-				}				
+                    else if(l_vCells[j].NextAssignedCountry() == in_iCountryID)
+                    {
+                        GDZLOG(l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be redirected from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity",
+                               EDZLogCat::Covert);
+
+                        l_vCells[j].NextAssignedCountry(in_iConquerorID);
+                        l_CountryData.FlagCovertActionsCellsAsDirty();
+                    }
+				}	
+
+                //Recalculate national security if conqueror's cells were in the conquered country
+                if(i == in_iConquerorID)
+                    l_CountryData.NationalSecurity(g_ServerDCL.FindNationalSecurity(i));
 			}
 		}
    }
@@ -3777,4 +3806,18 @@ GString GDataAccessLayerServer::RegionNameAndIDForLog(UINT32 in_iRegionID)
 {
     return GetString(StringIdRegion(in_iRegionID)) +
            L" (" + GString(in_iRegionID) + L")";
+}
+
+GString GDataAccessLayerServer::CovertCellInfoForLog(const ENTITY_ID in_iCountryID, const UINT32 in_iCellID) const
+{
+    GString l_sCellInfo;
+
+    if(m_pCountryValidityArray[in_iCountryID])
+    {
+        GCountryData& l_CountryData = m_pCountryData[in_iCountryID];
+        const GCovertActionCell& l_Cell = l_CountryData.CovertActionCell(in_iCellID);
+        l_sCellInfo = l_Cell.Name() + L" (" + GString(l_Cell.ID()) + L", " + l_CountryData.NameAndIDForLog() + L")";
+    }
+
+    return l_sCellInfo;
 }

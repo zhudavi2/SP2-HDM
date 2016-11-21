@@ -444,9 +444,21 @@ void GMilitaryEventHandler::HandleCellUpdate(SDK::GGameEventSPtr in_Event)
    }
    else if(l_pEvent->m_bStartMission)
    {
-      l_Cells[i].ChangeState(ECovertActionsCellState::Active);
-      if(g_ServerDCL.ExecuteMission( l_Cells[i] ))
-			l_pData->RemoveCovertActionCell(l_Cells[i]);
+       const ENTITY_ID l_iTarget = l_Cells[i].AssignedCountry();
+       if(g_ServerDAL.CountryData(l_iTarget)->Activated())
+       {
+           l_Cells[i].ChangeState(ECovertActionsCellState::Active);
+           if(g_ServerDCL.ExecuteMission(l_Cells[i]))
+               l_pData->RemoveCovertActionCell(l_Cells[i]);
+       }
+       else
+       {
+           GDZLOG(L"Fixing save: " + l_pData->NameAndIDForLog() + L" is cancelling a mission against " + GString(l_iTarget) + L" due to target inactivity",
+                  EDZLogCat::Covert);
+           l_Cells[i].CancelAction();
+           l_Cells[i].AssignedCountry(l_iCurPlayerID);
+       }
+
       l_pData->m_bCovertActionCellsDirty = true;
    }
 }

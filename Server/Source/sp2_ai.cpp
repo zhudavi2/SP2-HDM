@@ -185,11 +185,22 @@ void GAI::ExamineCovertActionCells(UINT32 in_iCountryID) const
 	{		
 		if(l_vCells[i].ActualState() == ECovertActionsCellState::Dormant && l_vCells[i].AssignedCountry() == in_iCountryID)
 			l_vCells[i].ChangeState(ECovertActionsCellState::Active);
-		else if(l_vCells[i].ActualState() == ECovertActionsCellState::ReadyToExecute)
-		{
-			if(g_ServerDCL.ExecuteMission(l_vCells[i]))
-				l_CellsToRemove.insert(l_vCells[i].ID());
-			l_vCells[i].ChangeState(ECovertActionsCellState::Active);
+        else if(l_vCells[i].ActualState() == ECovertActionsCellState::ReadyToExecute)
+        {
+            const ENTITY_ID l_iTarget = l_vCells[i].AssignedCountry();
+            if(g_ServerDAL.CountryData(l_iTarget)->Activated())
+            {
+                if(g_ServerDCL.ExecuteMission(l_vCells[i]))
+                    l_CellsToRemove.insert(l_vCells[i].ID());
+                l_vCells[i].ChangeState(ECovertActionsCellState::Active);
+            }
+            else
+            {
+                GDZLOG(L"Fixing save: " + l_pCountryData->NameAndIDForLog() + L" is cancelling a mission against " + GString(l_iTarget) + L" due to target inactivity",
+                       EDZLogCat::Covert);
+                l_vCells[i].CancelAction();
+                l_vCells[i].AssignedCountry(in_iCountryID);
+            }
 		}
 			
 	}
