@@ -249,7 +249,15 @@ void GCountryData::SynchronizeWithRegions()
 void GCountryData::IterateDemand()
 {
 	//Find new demand
-    const REAL32 l_fUncappedHdi = GCountryData::FindHumanDevelopment(m_fLifeExpectancy, m_fMeanYearsSchooling, m_fExpectedYearsSchooling, GDPPerCapita(), false);
+    REAL32 l_fUncappedHdi = GCountryData::FindHumanDevelopment(m_fLifeExpectancy,
+                                                               m_fMeanYearsSchooling,
+                                                               m_fExpectedYearsSchooling,
+                                                               (0 < m_iPopulation) ? GDPPerCapita() : 0,
+                                                               false);
+
+    //When this is ultimately called from FetchCountryData() at the start of the game, LE, MYS, and EYS may not be filled in.
+    //This ensures that a sane value will be used for the first IterateDemand(). After the game starts, uncapped HDI would never be lower than capped HDI.
+    l_fUncappedHdi = max(m_fHumanDevelopment, l_fUncappedHdi);
 
 	REAL64 l_fTemp = (REAL64)m_iPopulationPoliticalControl * (REAL64)((1.f-m_fPopInPoverty) * l_fUncappedHdi);
 	m_pResourceDemand[EResources::Meat] = (l_fTemp * 498.2f) + ((REAL64)m_iPopulationPoliticalControl * 30.f);
@@ -534,6 +542,8 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
     m_sName = g_ServerDAL.GetString(m_iNameID);
 
     m_Master = pair<ENTITY_ID, UINT32>(0, 0);
+
+    m_iPopulation = 0;
 
 	//Fill information that comes from the regions
 	SynchronizeWithRegions();
@@ -1910,10 +1920,6 @@ REAL32 GCountryData::FindIncomeIndex(const REAL64 in_fGDPPerCapita, const bool i
 
 REAL32 GCountryData::FindHumanDevelopment(const REAL32 in_fLifeExpectancy, const REAL32 in_fMeanYearsSchooling, const REAL32 in_fExpectedYearsSchooling, const REAL64 in_fGDPPerCapita, const bool in_bCap)
 {
-    gassert(0 < in_fLifeExpectancy,L"LE less than or equal to 0: " + GString(in_fLifeExpectancy));
-    gassert(0 <= in_fMeanYearsSchooling,L"MYS less than 0: " + GString(in_fMeanYearsSchooling));
-    gassert(0 <= in_fExpectedYearsSchooling,L"EYS less than 0: " + GString(in_fExpectedYearsSchooling));
-
     static const REAL32 c_fMinLE = 20;
     static const REAL32 c_fMaxLE = 85;
 
