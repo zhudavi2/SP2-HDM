@@ -93,6 +93,10 @@
     <the>100</the>
   </incomeTaxLimits>
   
+  <!-- Set to 1 to print a server log message whenever a country's economy fails.
+  Allowed values are 0 and 1. Default is 0. -->
+  <logBankruptcies>0</logBankruptcies>
+  
   <!-- The maximum number of covert cells each country can have in each foreign country.
   0 means no limit.
   Default is 0. -->

@@ -275,6 +275,7 @@ SDK::GAME_MSG GServer::Initialize()
         for(INT32 i=0; i<EGovernmentType::ItemCount; i++)
             m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
 
+        m_bLogBankruptcies              = false;
         m_iMaximumCellsInForeignCountry = 0;
 
         for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::ItemCount; i++)
@@ -2741,6 +2742,11 @@ void GServer::LoadSP2HDMConfigXML()
                             g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " +
                                          GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }
+                    }
+                    else if(elementName == L"logBankruptcies")
+                    {
+                        m_bLogBankruptcies = (elementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"logBankruptcies: " + GString(m_bLogBankruptcies));
                     }
                     else if(elementName == L"maximumCellsInForeignCountry")
                     {

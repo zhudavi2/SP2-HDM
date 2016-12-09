@@ -137,6 +137,7 @@ namespace SP2
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
       inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
       inline REAL32  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
+      inline bool    LogBankruptcies() const { return m_bLogBankruptcies; }
       inline INT32   MaximumCellsInForeignCountry() const { return m_iMaximumCellsInForeignCountry; }
       inline GString Message() const { return m_sMessage; }
       inline REAL32  MilitaryUpkeepPercentages(EUnitCategory::Enum in_eUnitCategory) const { return m_mMilitaryUpkeepPercentages.at(in_eUnitCategory); }
@@ -273,6 +274,7 @@ namespace SP2
       map<EGlobalTaxSpecialType::Enum, INT32> m_GlobalTaxSpecials;
 
       map<EGovernmentType::Enum, REAL32>      m_IncomeTaxLimits;
+      bool                                    m_bLogBankruptcies;
       INT32                                   m_iMaximumCellsInForeignCountry;
       GString                                 m_sMessage;
       map<EUnitCategory::Enum, REAL32>        m_mMilitaryUpkeepPercentages;
