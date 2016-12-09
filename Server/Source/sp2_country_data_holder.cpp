@@ -2570,6 +2570,10 @@ bool GCountryData::OnLoad(GOBuffer& io_Buffer)
       }
    }
 
+   // Clear master and client data; GDataAccessLayerServer::OnLoad() will take care of it
+   m_Master = pair<ENTITY_ID, UINT32>(0, 0);
+   m_mClients.clear();
+
    return true;
 }
 
