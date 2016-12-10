@@ -336,6 +336,9 @@ namespace SP2
       //! Helper method to get covert cell name, ID, and country.
       GString CovertCellInfoForLog(ENTITY_ID in_iCountryID, UINT32 in_iCellID) const;
 
+      //! Helper method to get war info
+      GString WarInfoForLog(UINT32 in_iWarID) const;
+
    private:
       //-----------------------------------------------
       //  Military data loading functions

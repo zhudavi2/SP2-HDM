@@ -3821,3 +3821,46 @@ GString GDataAccessLayerServer::CovertCellInfoForLog(const ENTITY_ID in_iCountry
 
     return l_sCellInfo;
 }
+
+GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID) const
+{
+    GString l_sWarInfo;
+
+    do
+    {
+        if(m_CurrentWars.count(in_iWarID) == 0)
+        {
+            GDZLOG(L"War ID " + GString(in_iWarID) + L" not found", EDZLogCat::War);
+            break;
+        }
+
+        const GWar& l_War = m_CurrentWars.at(in_iWarID);
+
+        const ENTITY_ID l_iMasterAttacking = l_War.MasterAttacking();
+        const GCountryData& l_MasterAttacking = m_pCountryData[l_iMasterAttacking];
+        if(!l_MasterAttacking.Activated())
+        {
+            GDZLOG(L"War ID " + GString(in_iWarID) + L" has inactive attacking master " + GString(l_iMasterAttacking),
+                   EDZLogCat::War);
+            break;
+        }
+
+        const ENTITY_ID l_iMasterDefending = l_War.MasterDefending();
+        const GCountryData& l_MasterDefending = m_pCountryData[l_War.MasterDefending()];
+        if(!l_MasterDefending.Activated())
+        {
+            GDZLOG(L"War ID " + GString(in_iWarID) + L" has inactive defending master " + GString(l_iMasterDefending),
+                   EDZLogCat::War);
+            break;
+        }
+
+        l_sWarInfo += l_MasterAttacking.NameAndIDForLog() + L" (" + GString(l_War.AttackingSide().size()) + L" total" + L")";
+        l_sWarInfo += L" vs. ";
+        l_sWarInfo += l_MasterDefending.NameAndIDForLog() + L" (" + GString(l_War.DefendingSide().size()) + L" total" + L")";
+
+        l_sWarInfo += L" (" + GString(in_iWarID) + L")";
+
+    } while(false);
+
+    return l_sWarInfo;
+}
