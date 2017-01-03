@@ -3822,7 +3822,7 @@ GString GDataAccessLayerServer::CovertCellInfoForLog(const ENTITY_ID in_iCountry
     return l_sCellInfo;
 }
 
-GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID) const
+GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID, const bool in_bLogAllParticipants) const
 {
     GString l_sWarInfo;
 
@@ -3855,10 +3855,24 @@ GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID) const
         }
 
         l_sWarInfo += l_MasterAttacking.NameAndIDForLog() + L" (" + GString(l_War.AttackingSide().size()) + L" total" + L")";
-        l_sWarInfo += L" vs. ";
-        l_sWarInfo += l_MasterDefending.NameAndIDForLog() + L" (" + GString(l_War.DefendingSide().size()) + L" total" + L")";
+        if(in_bLogAllParticipants)
+        {
+            l_sWarInfo += L": ";
+            for(auto it = l_War.AttackingSide().cbegin(); it != l_War.AttackingSide().cend(); ++it)
+                l_sWarInfo += m_pCountryData[*it].NameAndIDForLog() + L", ";
+        }
 
-        l_sWarInfo += L" (" + GString(in_iWarID) + L")";
+        l_sWarInfo += L" vs. ";
+
+        l_sWarInfo += l_MasterDefending.NameAndIDForLog() + L" (" + GString(l_War.DefendingSide().size()) + L" total" + L")";
+        if(in_bLogAllParticipants)
+        {
+            l_sWarInfo += L": ";
+            for(auto it = l_War.DefendingSide().cbegin(); it != l_War.DefendingSide().cend(); ++it)
+                l_sWarInfo += m_pCountryData[*it].NameAndIDForLog() + L", ";
+        }
+
+        l_sWarInfo += L"(ID " + GString(in_iWarID) + L")";
 
     } while(false);
 

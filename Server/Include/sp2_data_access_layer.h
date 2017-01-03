@@ -337,7 +337,7 @@ namespace SP2
       GString CovertCellInfoForLog(ENTITY_ID in_iCountryID, UINT32 in_iCellID) const;
 
       //! Helper method to get war info
-      GString WarInfoForLog(UINT32 in_iWarID) const;
+      GString WarInfoForLog(UINT32 in_iWarID, bool in_bLogAllParticipants) const;
 
    private:
       //-----------------------------------------------
