@@ -443,6 +443,13 @@ SDK::GAME_MSG GServer::Initialize()
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
          this);
 
+      g_Joshua.RegisterConsoleCommand(
+          L"declare_war_2v2",
+          L"IIII",
+          L"Declare war between the first 2 and last 2 countries. First and third countries are attacking and defending masters, respectively.",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+          this);
+
 		g_Joshua.RegisterConsoleCommand(
          L"print_wars",
          L"",
@@ -1589,6 +1596,17 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
 		set<UINT32> l_Attackers;
 		l_Attackers.insert(in_vArgs[0].ToINT32());
       m_DCL.DeclareNewWar(l_Attackers,in_vArgs[0].ToINT32(),in_vArgs[1].ToINT32());      
+   }
+   else if(in_sCommand == L"declare_war_2v2")
+   {
+       set<ENTITY_ID> l_vAttackers;
+       const ENTITY_ID l_iMasterAttacker = in_vArgs[0].ToINT32();
+       l_vAttackers.insert(l_iMasterAttacker);
+       l_vAttackers.insert(in_vArgs[1].ToINT32());
+       m_DCL.DeclareNewWar(l_vAttackers, l_iMasterAttacker, in_vArgs[2].ToINT32());
+
+       //m_iNextWarID actually holds the ID of the last-successfully-declared war
+       m_DAL.War(m_DAL.m_iNextWarID)->AddCountryToDefendingSide(in_vArgs[3].ToINT32());
    }
 	else if(in_sCommand == L"print_wars")
    {		
