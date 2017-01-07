@@ -1817,7 +1817,7 @@ bool GDataControlLayer::JoinAWar(UINT32 in_iCountryID, UINT32 in_iWarToJoin, UIN
 		}
 	}
 
-    //All clients join
+    //All client states join; can recursively call JoinAWar because clients can't have clients of their own
     const auto l_vClients = g_ServerDAL.CountryData(in_iCountryID)->Clients();
     for(auto it = l_vClients.cbegin(); it != l_vClients.cend(); ++it)
         JoinAWar(it->first, in_iWarToJoin, in_iSide, in_bWantToContinueWar);
@@ -9320,24 +9320,43 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
                EDZLogCat::ClientStates);
 
         //Leave all wars, but join wars on same side as master
-        const auto& l_mWars = g_ServerDAL.CurrentWars();
-        for(auto it = l_mWars.cbegin(); it != l_mWars.cend(); ++it)
+        auto& l_mWars = g_ServerDAL.m_CurrentWars;
+        for(auto it = l_mWars.begin(); it != l_mWars.end(); ++it)
         {
-            const GWar& l_War = it->second;
+            GWar& l_War = it->second;
 
             if(l_War.MasterAttacking() == in_iClient ||
                l_War.MasterDefending() == in_iClient)
             {
-                DeclarePeace(l_War.MasterAttacking(), l_War.MasterDefending(),
-                             true);
+                GDZLOG(l_pClientData->NameAndIDForLog() + L" is leaving the war " +
+                       g_ServerDAL.WarInfoForLog(it->first, true) +
+                       L" in which it's a master",
+                       EDZLogCat::ClientStates);
+
+                //Call ChangeOpinionOnWar instead of DeclarePeace, as DeclarePeace alone isn't sufficient to clear war status, and ChangeOpinionOnWar calls down to DeclarePeace via VerifyPeaceStatus anyway
                 ChangeOpinionOnWar(l_War.MasterAttacking(), it->first, true);
                 ChangeOpinionOnWar(l_War.MasterDefending(), it->first, true);
             }
             else
             {
-                if(l_War.AttackingSide().count(in_iClient) == 1 ||
-                   l_War.DefendingSide().count(in_iClient) == 1)
-                    LeaveWar(in_iClient, it->first);
+                if(l_War.AttackingSide().count(in_iClient) == 1)
+                {
+                    GDZLOG(l_pClientData->NameAndIDForLog() + L" is leaving the war " +
+                           g_ServerDAL.WarInfoForLog(it->first, true),
+                           EDZLogCat::ClientStates);
+
+                    l_War.RemoveCountryFromAttackingSide(in_iClient);
+                    g_ServerDAL.ModifyWar(it->first);
+                }
+                else if(l_War.DefendingSide().count(in_iClient) == 1)
+                {
+                    GDZLOG(l_pClientData->NameAndIDForLog() + L" is leaving the war " +
+                           g_ServerDAL.WarInfoForLog(it->first, true),
+                           EDZLogCat::ClientStates);
+
+                    l_War.RemoveCountryFromDefendingSide(in_iClient);
+                    g_ServerDAL.ModifyWar(it->first);
+                }
 
                 if(l_War.AttackingSide().count(in_iMaster) == 1)
                     JoinAWar(in_iClient, it->first, 1, !l_War.MasterAttackingWantsPeace());
