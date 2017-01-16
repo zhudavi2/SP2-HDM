@@ -2967,9 +2967,11 @@ void GWorldBehavior::IterateChangingVariables(REAL64 in_fGameTime)
         {
             GDZLOG("Warning: Invalid expected approval, " + GString(l_fApprovalEx) + L", " +
                    L"for " + l_pCountryData->NameAndIDForLog(),
+                   EDZLogLevel::Warning,
                    EDZLogCat::General);
             l_pCountryData->GvtApprovalExpected(min(max(0.f, l_fApprovalEx), 1.f));
             GDZLOG("Changed expected approval to " + GString(l_pCountryData->GvtApprovalExpected()),
+                   EDZLogLevel::Info2,
                    EDZLogCat::General);
         }
 
@@ -3732,6 +3734,7 @@ void GWorldBehavior::IterateBudget(REAL64 in_fGameTime)
             GDZLOG(l_pClientData->NameAndIDForLog() + L" pays " +
                    GString::FormatNumber(l_fTribute, L",", L".", L"$", L"", 3) +
                    L" tribute to " + l_pMasterData->NameAndIDForLog(),
+                   EDZLogLevel::Info2,
                    EDZLogCat::ClientStates);
             l_vDiplomacyExpenses[i] += l_fTribute;
             l_vForeignAid[l_iMaster] += l_fTribute;

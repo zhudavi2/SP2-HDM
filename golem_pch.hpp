@@ -57,6 +57,7 @@
 #include <hash_map>
 #include <hash_set>
 #include <limits>
+#include <regex>
 
 #pragma warning (pop)
 

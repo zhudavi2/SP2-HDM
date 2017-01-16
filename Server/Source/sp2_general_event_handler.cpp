@@ -425,12 +425,12 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
     {
         const auto& l_sNewPlayerName = l_pSetPlayerInfo->m_PlayerInfo.PlayerName;
 
-        GDZDebug::Log(L"Player ID " + GString(l_player->Id()) + L", " +
-                      l_player->Name() + L", is inactive, or " +
-                      L"country name change mode is allowing player name change via Lobby; " +
-                      L"changing player name to " + l_sNewPlayerName,
-                      EDZLogCat::Player,
-                      __FUNCTION__, __LINE__);
+        GDZLOG(L"Player ID " + GString(l_player->Id()) + L", " +
+               l_player->Name() + L", is inactive, or " +
+               L"country name change mode is allowing player name change via Lobby; " +
+               L"changing player name to " + l_sNewPlayerName,
+               EDZLogLevel::Info1,
+               EDZLogCat::Player);
 
         g_ServerDCL.ChangePlayerName(l_player, l_sNewPlayerName);
     }

@@ -318,11 +318,13 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
            l_Cell.Initialize();
 
            GDZLOG(L"Next ID before add: " + GString(GCovertActionCell::m_iNextId),
+                  EDZLogLevel::Info2,
                   EDZLogCat::Covert);
 
            l_pData->AddCovertActionCell(l_Cell);
 
            GDZLOG(L"Next ID after add: " + GString(GCovertActionCell::m_iNextId),
+                  EDZLogLevel::Info2,
                   EDZLogCat::Covert);
 
            l_iNumCellsCreated++;
@@ -339,6 +341,7 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
                   L"cell " + GString(distance(l_vCells.cbegin(),it) + 1) + L" of " +
                   GString(l_vCells.size()) + L": " +
                   L"ID " + GString(it->ID()) + L"; " + L"name " + it->Name(),
+                  EDZLogLevel::Info2,
                   EDZLogCat::Covert);
        }
    }
@@ -454,6 +457,7 @@ void GMilitaryEventHandler::HandleCellUpdate(SDK::GGameEventSPtr in_Event)
        else
        {
            GDZLOG(L"Fixing save: " + l_pData->NameAndIDForLog() + L" is cancelling a mission against " + GString(l_iTarget) + L" due to target inactivity",
+                  EDZLogLevel::Warning,
                   EDZLogCat::Covert);
            l_Cells[i].CancelAction();
            l_Cells[i].AssignedCountry(l_iCurPlayerID);

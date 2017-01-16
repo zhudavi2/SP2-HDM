@@ -1202,6 +1202,7 @@ bool GDataAccessLayerServer::LoadTreaties()
 		m_Treaties[l_iTreatyID].Creator(0);
 
         GDZLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " + l_sName,
+               EDZLogLevel::Info2,
                EDZLogCat::Treaties);
 	}
 
@@ -1818,6 +1819,7 @@ void GDataAccessLayerServer::DestroyCountryEntity(UINT32 in_iCountryID, UINT32 i
                         case ECovertActionsCellState::PreparingMission:
                         case ECovertActionsCellState::ReadyToExecute:
                             GDZLOG(l_CountryData.NameAndIDForLog() + L" is cancelling a mission by cell " + CovertCellInfoForLog(i, l_iCellID) + L" against " + GString(in_iCountryID) + L" due to target inactivity",
+                                   EDZLogLevel::Info1,
                                    EDZLogCat::Covert);
                             l_vCells[j].CancelAction();
                             break;
@@ -1827,6 +1829,7 @@ void GDataAccessLayerServer::DestroyCountryEntity(UINT32 in_iCountryID, UINT32 i
                         }
 
                         GDZLOG(l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be reassigned from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity",
+                               EDZLogLevel::Info1,
                                EDZLogCat::Covert);
 
 						l_vCells[j].AssignedCountry(in_iConquerorID);
@@ -1835,6 +1838,7 @@ void GDataAccessLayerServer::DestroyCountryEntity(UINT32 in_iCountryID, UINT32 i
                     else if(l_vCells[j].NextAssignedCountry() == in_iCountryID)
                     {
                         GDZLOG(l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be redirected from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity",
+                               EDZLogLevel::Info1,
                                EDZLogCat::Covert);
 
                         l_vCells[j].NextAssignedCountry(in_iConquerorID);
@@ -3024,6 +3028,7 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
 
            GDZLOG(L"After loading " + m_pCountryData[i].NameAndIDForLog() + L": " +
                   L"Next covert cell ID " + GString(GCovertActionCell::m_iNextId),
+                  EDZLogLevel::Info2,
                   EDZLogCat::Covert);
 	   }
 
@@ -3047,6 +3052,7 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
                        GDZLOG(l_Data.NameAndIDForLog() + L": " +
                               L"Duplicate covert cell ID " + GString(it->ID()) + L"; " +
                               L"Setting ID " + GString(GCovertActionCell::m_iNextId),
+                              EDZLogLevel::Warning,
                               EDZLogCat::Covert);
                        it->ID(GCovertActionCell::m_iNextId);
                        GCovertActionCell::m_iNextId++;
@@ -3062,6 +3068,7 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
 
                GDZLOG(L"After fixing " + l_Data.NameAndIDForLog() + L": " +
                       L"Next covert cell ID " + GString(GCovertActionCell::m_iNextId),
+                      EDZLogLevel::Info2,
                       EDZLogCat::Covert);
            }
        }
@@ -3097,6 +3104,7 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
 
          GDZLOG(L"Loading treaty ID " + GString(l_iTreatyID) + L": " +
                 m_Treaties[l_iTreatyID].Name(),
+                EDZLogLevel::Info2,
                 EDZLogCat::Treaties);
 
          if(m_Treaties[l_iTreatyID].Type() == ETreatyType::MilitaryAccess &&
@@ -3791,12 +3799,12 @@ bool GDataAccessLayerServer::CountryCanAssignCovertCellToTarget(UINT32 in_iSourc
             }
         }
 
-        GDZDebug::Log(g_ServerDAL.CountryData(in_iSource)->NameAndIDForLog() + L", trying to assign a cell to " +
-                      g_ServerDAL.CountryData(in_iTarget)->NameAndIDForLog() + "; " +
-                      L"already has " + GString(l_iNumberCellsAlreadyInIntendedCountry) + L" cells in that country. " +
-                      L"CanMove " + GString(l_bCanMove),
-                      EDZLogCat::Covert,
-                      __FUNCTION__, __LINE__);
+        GDZLOG(g_ServerDAL.CountryData(in_iSource)->NameAndIDForLog() + L", trying to assign a cell to " +
+               g_ServerDAL.CountryData(in_iTarget)->NameAndIDForLog() + "; " +
+               L"already has " + GString(l_iNumberCellsAlreadyInIntendedCountry) + L" cells in that country. " +
+               L"CanMove " + GString(l_bCanMove),
+               EDZLogLevel::Info2,
+               EDZLogCat::Covert);
     }
 
     return l_bCanMove;
@@ -3830,7 +3838,9 @@ GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID, const bool
     {
         if(m_CurrentWars.count(in_iWarID) == 0)
         {
-            GDZLOG(L"War ID " + GString(in_iWarID) + L" not found", EDZLogCat::War);
+            GDZLOG(L"War ID " + GString(in_iWarID) + L" not found",
+                   EDZLogLevel::Warning,
+                   EDZLogCat::War);
             break;
         }
 
@@ -3841,6 +3851,7 @@ GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID, const bool
         if(!l_MasterAttacking.Activated())
         {
             GDZLOG(L"War ID " + GString(in_iWarID) + L" has inactive attacking master " + GString(l_iMasterAttacking),
+                   EDZLogLevel::Warning,
                    EDZLogCat::War);
             break;
         }
@@ -3850,6 +3861,7 @@ GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID, const bool
         if(!l_MasterDefending.Activated())
         {
             GDZLOG(L"War ID " + GString(in_iWarID) + L" has inactive defending master " + GString(l_iMasterDefending),
+                   EDZLogLevel::Warning,
                    EDZLogCat::War);
             break;
         }
