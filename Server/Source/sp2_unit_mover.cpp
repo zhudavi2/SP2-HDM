@@ -1259,7 +1259,7 @@ bool GUnitMover::Iterate()
          {
             SP2::GUnitGroupEx* l_DestGroup = (SP2::GUnitGroupEx*) g_Joshua.UnitManager().UnitGroup(*itr);
             GDZLOG(L"Testing unit group " + GString(l_DestGroup->Id()) + L" with status " + GString(l_DestGroup->Status()),
-                   EDZLogLevel::Info1,
+                   EDZLogLevel::Info2,
                    EDZLogCat::UnitMovement);
 
             if ( (l_DestGroup != l_pGroup) && (m_pStatusCanBeMerged[l_DestGroup->Status() ] ) )

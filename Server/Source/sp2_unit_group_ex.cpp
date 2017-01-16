@@ -37,7 +37,9 @@ void SP2::GUnitGroupEx::EnterCombat(SDK::Combat::GArena* in_pCombat)
    LOG_MODIF( GString(L"EnterCombat : ") + GString(Id() ) + GString(L" -> ") + GString(in_pCombat->Info()->m_iId) );
 
 #ifdef GOLEM_DEBUG
-   g_Joshua.Log(GString(L"Unit group enters combat ") + GString(Id() ) );
+   GDZLOG(GString(L"Unit group enters combat ") + GString(Id() ),
+          EDZLogLevel::Info2,
+          EDZLogCat::UnitMovement | EDZLogCat::War);
 #endif
    if(m_eStatus != EMilitaryStatus::Attacking)
    {
@@ -75,7 +77,9 @@ void SP2::GUnitGroupEx::LeaveCombat()
    LOG_MODIF( GString(L"LeaveCombat : ") + GString(Id() ) );
 
 #ifdef GOLEM_DEBUG
-   g_Joshua.Log(GString(L"Unit group leaves combat ") + GString(Id() ) + L" status " + GString( (UINT32) m_eStatus) + L" combat status " + GString( (UINT32) m_eCombatStatus) );
+   GDZLOG(GString(L"Unit group leaves combat ") + GString(Id() ) + L" status " + GString( (UINT32) m_eStatus) + L" combat status " + GString( (UINT32) m_eCombatStatus),
+          EDZLogLevel::Info2,
+          EDZLogCat::UnitMovement | EDZLogCat::War);
 #endif
    if(m_eStatus == EMilitaryStatus::Attacking)
    {
