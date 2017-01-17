@@ -197,7 +197,7 @@ void GAI::ExamineCovertActionCells(UINT32 in_iCountryID) const
             else
             {
                 GDZLOG(L"Fixing save: " + l_pCountryData->NameAndIDForLog() + L" is cancelling a mission against " + GString(l_iTarget) + L" due to target inactivity",
-                       EDZLogLevel::Always,                       
+                       EDZLogLevel::Always,
                        EDZLogCat::Covert);
                 l_vCells[i].CancelAction();
                 l_vCells[i].AssignedCountry(in_iCountryID);
@@ -855,11 +855,7 @@ void GAI::ExamineUnitMovement(UINT32 in_iCountryID) const
 		if(l_pUnitGroup->Status() == EMilitaryStatus::Moving)
 			continue;
 
-		if(l_pUnitGroup->IsNaval())
-		{
-			g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Parked);
-			continue;
-		}
+        gassert(!l_pUnitGroup->IsNaval(), L"Naval unit group " + GString(l_pUnitGroup->Id()) + L" of " + g_ServerDAL.CountryData(in_iCountryID)->NameAndIDForLog() + L" shouldn't have been added to l_vUnitsThatMightPark");
 
 		UINT32 l_iRegionID = ((SP2::GUnitGroupEx*)l_pUnitGroup)->m_iRegionID;
 		
@@ -874,22 +870,20 @@ void GAI::ExamineUnitMovement(UINT32 in_iCountryID) const
 		if(l_iRegionPoliticalControl == in_iCountryID &&
 			l_iRegionMilitaryControl == in_iCountryID)
 		{
-			g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Parked);
+            if(l_pUnitGroup->Status() != EMilitaryStatus::Parked)
+			    g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Parked);
 		}
-		else if(l_iRegionPoliticalControl == in_iCountryID &&
-				  l_iRegionMilitaryControl != in_iCountryID)
+		else if((l_iRegionPoliticalControl == in_iCountryID) !=
+                (l_iRegionMilitaryControl  == in_iCountryID))
 		{
-			g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Fortified);
-		}
-		else if(l_iRegionPoliticalControl != in_iCountryID &&
-				  l_iRegionMilitaryControl == in_iCountryID)
-		{
-			g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Fortified);
+            if(l_pUnitGroup->Status() != EMilitaryStatus::Fortified)
+			    g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Fortified);
 		}
 		else if(l_iRegionPoliticalControl != in_iCountryID &&
 				  l_iRegionMilitaryControl != in_iCountryID)
 		{
-			g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Ready);
+            if(l_pUnitGroup->Status() != EMilitaryStatus::Ready)
+			    g_ServerDCL.UnitMover().ChangeUnitState((SDK::Combat::GUnitGroup*)l_pUnitGroup,EMilitaryStatus::Ready);
 		}
 	}	
 
