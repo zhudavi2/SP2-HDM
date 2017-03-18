@@ -288,6 +288,7 @@ SDK::GAME_MSG GServer::Initialize()
         m_bShowHDIComponents                  = false;
         m_fStabilityAnarchyLowerLimit         = c_fStabilityAnarchyLowerLimit;
         m_fStabilityAnarchyUpperLimit         = c_fStabilityAnarchyHigherLimit;
+        m_fTributePercent                     = 0.08f;
 
         // Load the SP2-HDM_Config.xml
         LoadSP2HDMConfigXML();
@@ -2839,6 +2840,11 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_fStabilityAnarchyUpperLimit = elementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"stabilityAnarchyUpperLimit: " + GString::FormatNumber(m_fStabilityAnarchyUpperLimit, 3));
+                    }
+                    else if(elementName == L"tributePercent")
+                    {
+                        m_fTributePercent = elementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(L"tributePercent: " + GString::FormatNumber(m_fTributePercent, 2));
                     }
 	            }
             }

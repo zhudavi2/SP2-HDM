@@ -3730,9 +3730,11 @@ void GWorldBehavior::IterateBudget(REAL64 in_fGameTime)
                     l_pMasterData->NameAndIDForLog());
 
             //Diplomacy expense for client, foreign aid revenue for master
-            const REAL64 l_fTribute = l_pClientData->GDPValue() / c_fPersonalIncomeTaxConstant * 0.4f / 2.f;
-            GDZLOG(l_pClientData->NameAndIDForLog() + L" pays " +
-                   GString::FormatNumber(l_fTribute, L",", L".", L"$", L"", 3) +
+            const REAL64 l_fClientGDP = l_pClientData->GDPValue();
+            const REAL64 l_fTribute   = l_fClientGDP * g_SP2Server->TributePercent();
+            GDZLOG(l_pClientData->NameAndIDForLog() + L" with GDP " +
+                   GString::FormatNumber(l_fClientGDP / 1000000, L",", L".", L"$", L"M", 3, 3) + L" pays " +
+                   GString::FormatNumber(l_fTribute / 1000000, L",", L".", L"$", L"M", 3, 3) +
                    L" tribute to " + l_pMasterData->NameAndIDForLog(),
                    EDZLogLevel::Info2,
                    EDZLogCat::ClientStates);

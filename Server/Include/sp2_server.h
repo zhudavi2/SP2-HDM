@@ -149,6 +149,7 @@ namespace SP2
       inline bool    ShowHDIComponents() const { return m_bShowHDIComponents; }
       inline REAL32  StabilityAnarchyLowerLimit() const { return m_fStabilityAnarchyLowerLimit; }
       inline REAL32  StabilityAnarchyUpperLimit() const { return m_fStabilityAnarchyUpperLimit; }
+      inline REAL32  TributePercent() const { return m_fTributePercent; }
 
       //! Server message helpers
       inline void    AddPlayerID(INT32 in_iID) { m_PlayerIDs.insert(in_iID); }
@@ -286,6 +287,7 @@ namespace SP2
       bool                                    m_bShowHDIComponents;
       REAL32                                  m_fStabilityAnarchyLowerLimit;
       REAL32                                  m_fStabilityAnarchyUpperLimit;
+      REAL32                                  m_fTributePercent;
 
       //! Server message helper to keep track of players who have joined
       set<INT32>    m_PlayerIDs;

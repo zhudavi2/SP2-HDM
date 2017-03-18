@@ -158,4 +158,9 @@
   rises to this value.
   Allowed values are 0-100. Default is 20. -->
   <stabilityAnarchyUpperLimit>20</stabilityAnarchyUpperLimit>
+  
+  <!-- Annual tribute in that a client state would theoretically pay to its
+  master in one year, as a percentage of client GDP.
+  Minimum is 0. Default is 8. -->
+  <tributePercent>8</tributePercent>
 </SP2-HDM>
