@@ -106,13 +106,34 @@
   Default is "Welcome to SuperPower 2 Human Development Mod!". -->
   <message>Welcome to SuperPower 2 Human Development Mod!</message>
   
-  <!-- Military unit upkeep as a percentage of normal, per unit category.
-  Defaults are 100 for all categories. -->
+  <!-- Military unit upkeep as a percentage of normal, per unit category,
+  per training level.
+  Defaults are 100 for all categories and training levels. -->
   <militaryUpkeepPercentages>
-    <inf>100</inf>
-    <gro>100</gro>
-    <air>100</air>
-    <nav>100</nav>
+    <inf>
+      <rec>100</rec>
+      <reg>100</reg>
+      <vet>100</vet>
+      <eli>100</eli>
+    </inf>
+    <gro>
+      <rec>100</rec>
+      <reg>100</reg>
+      <vet>100</vet>
+      <eli>100</eli>
+    </gro>
+    <air>
+      <rec>100</rec>
+      <reg>100</reg>
+      <vet>100</vet>
+      <eli>100</eli>
+    </air>
+    <nav>
+      <rec>100</rec>
+      <reg>100</reg>
+      <vet>100</vet>
+      <eli>100</eli>
+    </nav>
     <nuc>100</nuc>
   </militaryUpkeepPercentages>
   

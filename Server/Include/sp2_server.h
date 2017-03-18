@@ -140,9 +140,10 @@ namespace SP2
       inline bool    LogBankruptcies() const { return m_bLogBankruptcies; }
       inline INT32   MaximumCellsInForeignCountry() const { return m_iMaximumCellsInForeignCountry; }
       inline GString Message() const { return m_sMessage; }
-      inline REAL32  MilitaryUpkeepPercentages(EUnitCategory::Enum in_eUnitCategory) const { return m_mMilitaryUpkeepPercentages.at(in_eUnitCategory); }
+      inline REAL32  MilitaryUpkeepPercentages(EUnitCategory::Enum in_eUnitCategory, ETrainingLevel::Enum in_eTrainingLevel) const { return m_mMilitaryUpkeepPercentages.at(in_eUnitCategory).at(in_eTrainingLevel); }
       inline bool    NavalRuleEnabled() const { return m_bNavalRuleEnabled; }
       inline REAL32  NuclearMissileRangePercentage() const { return m_fNuclearMissileRangePercentage; }
+      inline REAL32  NuclearUpkeepPercentage() const { return m_fNuclearUpkeepPercentage; }
       inline REAL32  OccupiedRegionPercentageForNuclear() const { return m_fOccupiedRegionPercentageForNuclear; }
       inline REAL32  ProductionLossOnAnnex() const { return m_fProductionLossOnAnnex; }
       inline REAL32  ResourceTaxLimit() const { return m_fResourceTaxLimit; }
@@ -274,20 +275,24 @@ namespace SP2
       //! INT32 to eliminate precision issues with REAL32
       map<EGlobalTaxSpecialType::Enum, INT32> m_GlobalTaxSpecials;
 
-      map<EGovernmentType::Enum, REAL32>      m_IncomeTaxLimits;
-      bool                                    m_bLogBankruptcies;
-      INT32                                   m_iMaximumCellsInForeignCountry;
-      GString                                 m_sMessage;
-      map<EUnitCategory::Enum, REAL32>        m_mMilitaryUpkeepPercentages;
-      bool                                    m_bNavalRuleEnabled;
-      REAL32                                  m_fNuclearMissileRangePercentage;
-      REAL32                                  m_fOccupiedRegionPercentageForNuclear;
-      REAL32                                  m_fProductionLossOnAnnex;
-      REAL32                                  m_fResourceTaxLimit;
-      bool                                    m_bShowHDIComponents;
-      REAL32                                  m_fStabilityAnarchyLowerLimit;
-      REAL32                                  m_fStabilityAnarchyUpperLimit;
-      REAL32                                  m_fTributePercent;
+      map<EGovernmentType::Enum, REAL32> m_IncomeTaxLimits;
+
+      bool    m_bLogBankruptcies;
+      INT32   m_iMaximumCellsInForeignCountry;
+      GString m_sMessage;
+
+      map<EUnitCategory::Enum, map<ETrainingLevel::Enum, REAL32>> m_mMilitaryUpkeepPercentages;
+
+      bool   m_bNavalRuleEnabled;
+      REAL32 m_fNuclearMissileRangePercentage;
+      REAL32 m_fNuclearUpkeepPercentage;
+      REAL32 m_fOccupiedRegionPercentageForNuclear;
+      REAL32 m_fProductionLossOnAnnex;
+      REAL32 m_fResourceTaxLimit;
+      bool   m_bShowHDIComponents;
+      REAL32 m_fStabilityAnarchyLowerLimit;
+      REAL32 m_fStabilityAnarchyUpperLimit;
+      REAL32 m_fTributePercent;
 
       //! Server message helper to keep track of players who have joined
       set<INT32>    m_PlayerIDs;

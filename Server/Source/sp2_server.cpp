@@ -278,11 +278,23 @@ SDK::GAME_MSG GServer::Initialize()
         m_bLogBankruptcies              = false;
         m_iMaximumCellsInForeignCountry = 0;
 
-        for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::ItemCount; i++)
-            m_mMilitaryUpkeepPercentages[static_cast<EUnitCategory::Enum>(i)] = 1.f;
+        // Training levels don't exist for nuclear units, so store their upkeep separately from the main map
+        for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::Nuclear; i++)
+        {
+            EUnitCategory::Enum l_eCategory = static_cast<EUnitCategory::Enum>(i);
+
+            m_mMilitaryUpkeepPercentages[l_eCategory] = map<ETrainingLevel::Enum, REAL32>();
+            for(INT32 j = ETrainingLevel::Recruit; j < ETrainingLevel::ItemCount; j++)
+                m_mMilitaryUpkeepPercentages[l_eCategory][static_cast<ETrainingLevel::Enum>(j)] = 1.f;
+
+            gassert(m_mMilitaryUpkeepPercentages[l_eCategory].size() == ETrainingLevel::ItemCount, L"Unexpected number of training levels");
+        }
+
+        gassert(m_mMilitaryUpkeepPercentages.size() == EUnitCategory::Nuclear, L"Unexpected number of unit categories");
 
         m_bNavalRuleEnabled                   = true;
         m_fNuclearMissileRangePercentage      = 1.f;
+        m_fNuclearUpkeepPercentage            = 1.f;
         m_fOccupiedRegionPercentageForNuclear = 0.f;
         m_fResourceTaxLimit                   = 1.f;
         m_bShowHDIComponents                  = false;
@@ -2779,26 +2791,66 @@ void GServer::LoadSP2HDMConfigXML()
                     }
                     else if(elementName == L"militaryUpkeepPercentages")
                     {
-                        for(UINT32 j=0; j<objectNode->NbChilds(); j++)
+                        // Upkeep for all unit categories, including nuclear, are together in the XML
+                        // But nuclear upkeep will be stored separately from the others in the GServer object
+                        const UINT32 l_iNbMUPChildren = objectNode->NbChilds();
+                        gassert(l_iNbMUPChildren == EUnitCategory::ItemCount, L"militaryUpkeepPercentages has only " + GString(l_iNbMUPChildren) + L" children, expected " + GString(EUnitCategory::ItemCount));
+
+                        for(UINT32 j=0; j<EUnitCategory::ItemCount; j++)
 	                    {
                             const GTreeNode<GXMLNode>* const l_CategoryNode = objectNode->Child(j);
 
-		                    const GString l_sName = l_CategoryNode->Data().m_sName;
+		                    const GString l_sCategoryName = l_CategoryNode->Data().m_sName;
                             EUnitCategory::Enum l_eUnitCategory = EUnitCategory::ItemCount;
-                            if(l_sName == L"inf")
+                            if(l_sCategoryName == L"inf")
                                 l_eUnitCategory = EUnitCategory::Infantry;
-                            else if(l_sName == L"gro")
+                            else if(l_sCategoryName == L"gro")
                                 l_eUnitCategory = EUnitCategory::Ground;
-                            else if(l_sName == L"air")
+                            else if(l_sCategoryName == L"air")
                                 l_eUnitCategory = EUnitCategory::Air;
-                            else if(l_sName == L"nav")
+                            else if(l_sCategoryName == L"nav")
                                 l_eUnitCategory = EUnitCategory::Naval;
-                            else if(l_sName == L"nuc")
+                            else if(l_sCategoryName == L"nuc")
                                 l_eUnitCategory = EUnitCategory::Nuclear;
+                            else
+                                gassert(false, L"Unrecognized category node name " + l_sCategoryName);
 
-                            m_mMilitaryUpkeepPercentages[l_eUnitCategory] = l_CategoryNode->Data().m_value.ToREAL32() / 100.f;
-                            g_Joshua.Log(L"militaryUpkeepPercentages[" + l_sName + L"]: " +
-                                         GString::FormatNumber(m_mMilitaryUpkeepPercentages[l_eUnitCategory], 3));
+                            const UINT32 l_iNbCNChildren = l_CategoryNode->NbChilds();
+
+                            switch(l_eUnitCategory)
+                            {
+                            case EUnitCategory::Nuclear:
+                                gassert(l_iNbCNChildren == 0, L"Nuclear node has  " + GString(l_iNbCNChildren) + L" children, expected 0");
+                                m_fNuclearUpkeepPercentage = l_CategoryNode->Data().m_value.ToREAL32() / 100.f;
+                                g_Joshua.Log(L"militaryUpkeepPercentages[" + l_sCategoryName + L"]: " + GString::FormatNumber(m_fNuclearUpkeepPercentage, 3));
+                                break;
+
+                            default:
+                                gassert(l_iNbCNChildren == ETrainingLevel::ItemCount, l_sCategoryName + L" node has only " + GString(l_iNbCNChildren) + L" children, expected " + GString(ETrainingLevel::ItemCount));
+
+                                for(UINT32 k=0; k<ETrainingLevel::ItemCount; k++)
+                                {
+                                    const GTreeNode<GXMLNode>* const l_TrainingNode = l_CategoryNode->Child(k);
+
+                                    const GString l_sTrainingName = l_TrainingNode->Data().m_sName;
+                                    ETrainingLevel::Enum l_eTrainingLevel = ETrainingLevel::ItemCount;
+                                    if(l_sTrainingName == L"rec")
+                                        l_eTrainingLevel = ETrainingLevel::Recruit;
+                                    else if(l_sTrainingName == L"reg")
+                                        l_eTrainingLevel = ETrainingLevel::Regular;
+                                    else if(l_sTrainingName == L"vet")
+                                        l_eTrainingLevel = ETrainingLevel::Veteran;
+                                    else if(l_sTrainingName == L"eli")
+                                        l_eTrainingLevel = ETrainingLevel::Elite;
+                                    else
+                                        gassert(false, L"Unrecognized training node name " + l_sTrainingName);
+
+                                    m_mMilitaryUpkeepPercentages[l_eUnitCategory][l_eTrainingLevel] = l_TrainingNode->Data().m_value.ToREAL32() / 100.f;
+                                    g_Joshua.Log(L"militaryUpkeepPercentages[" + l_sCategoryName + L"][" + l_sTrainingName + L"]: " +
+                                                 GString::FormatNumber(m_mMilitaryUpkeepPercentages[l_eUnitCategory][l_eTrainingLevel], 3));
+                                }
+                                break;
+                            }
                         }
                     }
 		            else if(elementName == L"navalRuleEnabled")

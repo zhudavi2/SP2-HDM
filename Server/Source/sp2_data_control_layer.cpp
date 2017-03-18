@@ -8488,7 +8488,7 @@ void GDataControlLayer::IterateBudgetUnitUpkeep(UINT32 in_iCountryID)
 	REAL32 l_fTotalValue = 0.0f;
 
     REAL32 l_fMissileValue = g_ServerDAL.TotalMissileValue(l_pCountryData->CountryID());
-    REAL32 l_fNuclearModifier = g_SP2Server->MilitaryUpkeepPercentages(EUnitCategory::Nuclear);
+    REAL32 l_fNuclearModifier = g_SP2Server->NuclearUpkeepPercentage();
     if(l_fMissileValue > 0.f)
         GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
                L" Missile value " + GString::FormatNumber(l_fMissileValue/1000000.f, L",", L".", L"$", L"M", 3, 3) + L"; " +
@@ -8566,7 +8566,7 @@ REAL32 GDataControlLayer::UpkeepFeeForSingleUnit(const SP2::GUnit* in_pUnit) con
 
     const GUnitDesign* const l_pDesign = dynamic_cast<const GUnitDesign*>(in_pUnit->Design());
     REAL32 l_fUpkeep = l_pDesign->Cost() * in_pUnit->Qty() * (l_fUnitModifier * l_fCountryModifier);
-    REAL32 l_fUpkeepModifier = g_SP2Server->MilitaryUpkeepPercentages(l_pDesign->Type()->Category());
+    REAL32 l_fUpkeepModifier = g_SP2Server->MilitaryUpkeepPercentages(l_pDesign->Type()->Category(), in_pUnit->Training());
 
     GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
            GString(in_pUnit->Qty()) + L" " + l_pDesign->Name() + L" " + g_ServerDAL.GetString(c_iUnitCategoryStringID[l_pDesign->Type()->Category()]) + L": " +
