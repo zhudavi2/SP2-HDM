@@ -257,20 +257,20 @@ namespace SP2
       bool           m_bCleanVariableOnly;		
 
       //! SP2-HDM configuration
-      void           LoadSP2HDMConfigXML();
+      void InitializeDefaultConfig();
+      void LoadSP2HDMConfigXML();
 
-      bool                                    m_bAllowAIAssumeDebt;
-      bool                                    m_allowHumanClientStates;
-      bool                                    m_bAllowDefenderAttackAttackerTerritory;
-      REAL32                                  m_fCombatThresholdSquare;
-      INT32                                   m_iCountryNameChangeMode;
-      REAL32                                  m_fDedicatedServerAutosavePeriod;
-      bool                                    m_bDedicatedServerAutosaveToJoshuaFolder;
-      bool                                    m_bDisableNuclearOnOccupy;
-      bool                                    m_bDisbandAMDSOnOccupy;
-      REAL64                                  m_fTimeOfLastAutosave;
-
-      REAL32                                  m_fGlobalTaxLimit;
+      bool   m_bAllowAIAssumeDebt;
+      bool   m_allowHumanClientStates;
+      bool   m_bAllowDefenderAttackAttackerTerritory;
+      REAL32 m_fCombatThresholdSquare;
+      INT32  m_iCountryNameChangeMode;
+      REAL32 m_fDedicatedServerAutosavePeriod;
+      bool   m_bDedicatedServerAutosaveToJoshuaFolder;
+      bool   m_bDisableNuclearOnOccupy;
+      bool   m_bDisbandAMDSOnOccupy;
+      REAL64 m_fTimeOfLastAutosave;
+      REAL32 m_fGlobalTaxLimit;
 
       //! INT32 to eliminate precision issues with REAL32
       map<EGlobalTaxSpecialType::Enum, INT32> m_GlobalTaxSpecials;
@@ -295,7 +295,7 @@ namespace SP2
       REAL32 m_fTributePercent;
 
       //! Server message helper to keep track of players who have joined
-      set<INT32>    m_PlayerIDs;
+      set<INT32> m_PlayerIDs;
 
       //! Helper for changing the admin player; returns true if successful
       bool ChangeAdminPlayer(SDK::GPlayer* in_pPlayer);

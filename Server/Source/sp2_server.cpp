@@ -254,53 +254,7 @@ SDK::GAME_MSG GServer::Initialize()
 
    {
         // Default values
-        m_bAllowDefenderAttackAttackerTerritory  = true;
-        m_allowHumanClientStates                 = false;
-        m_bAllowAIAssumeDebt                     = true;
-        m_fCombatThresholdSquare                 = 0.7f*0.7f;
-        m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
-        m_bDedicatedServerAutosaveToJoshuaFolder = false;
-        m_fDedicatedServerAutosavePeriod         = 0.f;
-        m_bDisableNuclearOnOccupy                = false;
-        m_bDisbandAMDSOnOccupy                   = false;
-        m_fTimeOfLastAutosave                    = 0;
-
-        m_fGlobalTaxLimit                        = 1.f;
-
-        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ExportAll]    = 100;
-        m_GlobalTaxSpecials[EGlobalTaxSpecialType::MeetDomestic] = 99;
-        m_GlobalTaxSpecials[EGlobalTaxSpecialType::ImportAll]    = 98;
-        m_GlobalTaxSpecials[EGlobalTaxSpecialType::PrivatizeAll] = 97;
-        
-        for(INT32 i=0; i<EGovernmentType::ItemCount; i++)
-            m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
-
-        m_bLogBankruptcies              = false;
-        m_iMaximumCellsInForeignCountry = 0;
-
-        // Training levels don't exist for nuclear units, so store their upkeep separately from the main map
-        for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::Nuclear; i++)
-        {
-            EUnitCategory::Enum l_eCategory = static_cast<EUnitCategory::Enum>(i);
-
-            m_mMilitaryUpkeepPercentages[l_eCategory] = map<ETrainingLevel::Enum, REAL32>();
-            for(INT32 j = ETrainingLevel::Recruit; j < ETrainingLevel::ItemCount; j++)
-                m_mMilitaryUpkeepPercentages[l_eCategory][static_cast<ETrainingLevel::Enum>(j)] = 1.f;
-
-            gassert(m_mMilitaryUpkeepPercentages[l_eCategory].size() == ETrainingLevel::ItemCount, L"Unexpected number of training levels");
-        }
-
-        gassert(m_mMilitaryUpkeepPercentages.size() == EUnitCategory::Nuclear, L"Unexpected number of unit categories");
-
-        m_bNavalRuleEnabled                   = true;
-        m_fNuclearMissileRangePercentage      = 1.f;
-        m_fNuclearUpkeepPercentage            = 1.f;
-        m_fOccupiedRegionPercentageForNuclear = 0.f;
-        m_fResourceTaxLimit                   = 1.f;
-        m_bShowHDIComponents                  = false;
-        m_fStabilityAnarchyLowerLimit         = c_fStabilityAnarchyLowerLimit;
-        m_fStabilityAnarchyUpperLimit         = c_fStabilityAnarchyHigherLimit;
-        m_fTributePercent                     = 0.08f;
+        InitializeDefaultConfig();
 
         // Load the SP2-HDM_Config.xml
         LoadSP2HDMConfigXML();
@@ -2644,6 +2598,61 @@ void GServer::AIAggressiveness(REAL32 in_fAIAggressiveness)
 
 
 /*!
+* Load default server options.
+*/
+void GServer::InitializeDefaultConfig()
+{
+    // Default values
+    m_bAllowDefenderAttackAttackerTerritory  = true;
+    m_allowHumanClientStates                 = false;
+    m_bAllowAIAssumeDebt                     = true;
+    m_fCombatThresholdSquare                 = 0.7f*0.7f;
+    m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
+    m_bDedicatedServerAutosaveToJoshuaFolder = false;
+    m_fDedicatedServerAutosavePeriod         = 0.f;
+    m_bDisableNuclearOnOccupy                = false;
+    m_bDisbandAMDSOnOccupy                   = false;
+    m_fTimeOfLastAutosave                    = 0;
+    m_fGlobalTaxLimit                        = 1.f;
+
+    m_GlobalTaxSpecials[EGlobalTaxSpecialType::ExportAll]    = 100;
+    m_GlobalTaxSpecials[EGlobalTaxSpecialType::MeetDomestic] = 99;
+    m_GlobalTaxSpecials[EGlobalTaxSpecialType::ImportAll]    = 98;
+    m_GlobalTaxSpecials[EGlobalTaxSpecialType::PrivatizeAll] = 97;
+
+    for(INT32 i=0; i<EGovernmentType::ItemCount; i++)
+        m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
+
+    m_bLogBankruptcies              = false;
+    m_iMaximumCellsInForeignCountry = 0;
+
+    // Training levels don't exist for nuclear units, so store their upkeep separately from the main map
+    for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::Nuclear; i++)
+    {
+        EUnitCategory::Enum l_eCategory = static_cast<EUnitCategory::Enum>(i);
+
+        m_mMilitaryUpkeepPercentages[l_eCategory] = map<ETrainingLevel::Enum, REAL32>();
+        for(INT32 j = ETrainingLevel::Recruit; j < ETrainingLevel::ItemCount; j++)
+            m_mMilitaryUpkeepPercentages[l_eCategory][static_cast<ETrainingLevel::Enum>(j)] = 1.f;
+
+        gassert(m_mMilitaryUpkeepPercentages[l_eCategory].size() == ETrainingLevel::ItemCount, L"Unexpected number of training levels");
+    }
+
+    gassert(m_mMilitaryUpkeepPercentages.size() == EUnitCategory::Nuclear, L"Unexpected number of unit categories");
+
+    m_bNavalRuleEnabled                   = true;
+    m_fNuclearMissileRangePercentage      = 1.f;
+    m_fNuclearUpkeepPercentage            = 1.f;
+    m_fOccupiedRegionPercentageForNuclear = 0.f;
+    m_fResourceTaxLimit                   = 1.f;
+    m_bShowHDIComponents                  = false;
+    m_fStabilityAnarchyLowerLimit         = c_fStabilityAnarchyLowerLimit;
+    m_fStabilityAnarchyUpperLimit         = c_fStabilityAnarchyHigherLimit;
+    m_fTributePercent                     = 0.08f;
+}
+
+
+/*!
 * Load server options from SP2-HDM_Config.xml.
 */
 void GServer::LoadSP2HDMConfigXML()
@@ -2672,61 +2681,61 @@ void GServer::LoadSP2HDMConfigXML()
 		            //Look for OBJECT nodes
 		            const GTreeNode<GXMLNode>* objectNode = l_XMLData->Root()->Child(i);
 
-		            const GString elementName = objectNode->Data().m_sName;
-                    const GString elementValue = objectNode->Data().m_value;
+		            const GString l_sElementName  = objectNode->Data().m_sName;
+                    const GString l_sElementValue = objectNode->Data().m_value;
 
-                    if(elementName == L"allowAIAssumeDebt")
+                    if(l_sElementName == L"allowAIAssumeDebt")
                     {
-                        m_bAllowAIAssumeDebt = (elementValue.ToINT32() != 0);
+                        m_bAllowAIAssumeDebt = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowAIAssumeDebt: " + GString(m_bAllowAIAssumeDebt));
                     }
-                    else if(elementName == L"allowHumanClientStates")
+                    else if(l_sElementName == L"allowHumanClientStates")
                     {
-                        m_allowHumanClientStates = (elementValue.ToINT32() != 0);
+                        m_allowHumanClientStates = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowHumanClientStates: " + GString(m_allowHumanClientStates));
                     }
-                    else if(elementName == L"allowDefenderAttackAttackerTerritory")
+                    else if(l_sElementName == L"allowDefenderAttackAttackerTerritory")
                     {
-                        m_bAllowDefenderAttackAttackerTerritory = (elementValue.ToINT32() != 0);
+                        m_bAllowDefenderAttackAttackerTerritory = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowDefenderAttackAttackerTerritory: " + GString(m_bAllowDefenderAttackAttackerTerritory));
                     }
-                    else if(elementName == L"combatRangeDegrees")
+                    else if(l_sElementName == L"combatRangeDegrees")
                     {
-                        const REAL32 l_fCombatRangeDegrees = elementValue.ToREAL32();
+                        const REAL32 l_fCombatRangeDegrees = l_sElementValue.ToREAL32();
                         m_fCombatThresholdSquare = l_fCombatRangeDegrees*l_fCombatRangeDegrees;
                         g_Joshua.Log(L"combatRangeDegrees: " + GString::FormatNumber(l_fCombatRangeDegrees, 2));
                     }
-                    else if(elementName == L"countryNameChangeMode")
+                    else if(l_sElementName == L"countryNameChangeMode")
                     {
-                        m_iCountryNameChangeMode = elementValue.ToINT32();
+                        m_iCountryNameChangeMode = l_sElementValue.ToINT32();
                         g_Joshua.Log(L"countryNameChangeMode: " + GString(m_iCountryNameChangeMode));
                     }
-                    else if(elementName == L"dedicatedServerAutosavePeriod")
+                    else if(l_sElementName == L"dedicatedServerAutosavePeriod")
                     {
-                        m_fDedicatedServerAutosavePeriod = elementValue.ToREAL32();
+                        m_fDedicatedServerAutosavePeriod = l_sElementValue.ToREAL32();
                         g_Joshua.Log(L"dedicatedServerAutosavePeriod: " + GString::FormatNumber(m_fDedicatedServerAutosavePeriod, 2));
                     }
-                    else if(elementName == L"dedicatedServerAutosaveToJoshuaFolder")
+                    else if(l_sElementName == L"dedicatedServerAutosaveToJoshuaFolder")
                     {
-                        m_bDedicatedServerAutosaveToJoshuaFolder = (elementValue.ToINT32() != 0);
+                        m_bDedicatedServerAutosaveToJoshuaFolder = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"dedicatedServerAutosaveToJoshuaFolder: " + GString(m_bDedicatedServerAutosaveToJoshuaFolder));
                     }
-                    else if(elementName == L"disableNuclearOnOccupy")
+                    else if(l_sElementName == L"disableNuclearOnOccupy")
                     {
-                        m_bDisableNuclearOnOccupy = (elementValue.ToINT32() != 0);
+                        m_bDisableNuclearOnOccupy = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"disableNuclearOnOccupy: " + GString(m_bDisableNuclearOnOccupy));
                     }
-                    else if(elementName == L"disbandAMDSOnOccupy")
+                    else if(l_sElementName == L"disbandAMDSOnOccupy")
                     {
-                        m_bDisbandAMDSOnOccupy = (elementValue.ToINT32() != 0);
+                        m_bDisbandAMDSOnOccupy = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"disbandAMDSOnOccupy: " + GString(m_bDisbandAMDSOnOccupy));
                     }
-                    else if(elementName == L"globalTaxLimit")
+                    else if(l_sElementName == L"globalTaxLimit")
 		            {
-                        m_fGlobalTaxLimit = elementValue.ToREAL32() / 100.f;
+                        m_fGlobalTaxLimit = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"globalTaxLimit: " + GString::FormatNumber(m_fGlobalTaxLimit, 3));
 		            }
-                    else if(elementName == L"globalTaxSpecials")
+                    else if(l_sElementName == L"globalTaxSpecials")
 		            {
                         for(UINT32 j=0; j<objectNode->NbChilds(); j++)
 	                    {
@@ -2748,7 +2757,7 @@ void GServer::LoadSP2HDMConfigXML()
                                          GString(m_GlobalTaxSpecials[l_eGlobalTaxSpecial]));
                         }
 		            }
-                    else if(elementName == L"incomeTaxLimits")
+                    else if(l_sElementName == L"incomeTaxLimits")
                     {
                         for(UINT32 j=0; j<objectNode->NbChilds(); j++)
 	                    {
@@ -2774,27 +2783,26 @@ void GServer::LoadSP2HDMConfigXML()
                                          GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }
                     }
-                    else if(elementName == L"logBankruptcies")
+                    else if(l_sElementName == L"logBankruptcies")
                     {
-                        m_bLogBankruptcies = (elementValue.ToINT32() != 0);
+                        m_bLogBankruptcies = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"logBankruptcies: " + GString(m_bLogBankruptcies));
                     }
-                    else if(elementName == L"maximumCellsInForeignCountry")
+                    else if(l_sElementName == L"maximumCellsInForeignCountry")
                     {
-                        m_iMaximumCellsInForeignCountry = elementValue.ToINT32();
+                        m_iMaximumCellsInForeignCountry = l_sElementValue.ToINT32();
                         g_Joshua.Log(L"maximumCellsInForeignCountry: " + GString(m_iMaximumCellsInForeignCountry));
                     }
-                    else if(elementName == L"message")
+                    else if(l_sElementName == L"message")
                     {
-                        m_sMessage = elementValue;
+                        m_sMessage = l_sElementValue;
                         g_Joshua.Log(L"message: " + m_sMessage);
                     }
-                    else if(elementName == L"militaryUpkeepPercentages")
+                    else if(l_sElementName == L"militaryUpkeepPercentages")
                     {
                         // Upkeep for all unit categories, including nuclear, are together in the XML
                         // But nuclear upkeep will be stored separately from the others in the GServer object
                         const UINT32 l_iNbMUPChildren = objectNode->NbChilds();
-                        gassert(l_iNbMUPChildren == EUnitCategory::ItemCount, L"militaryUpkeepPercentages has only " + GString(l_iNbMUPChildren) + L" children, expected " + GString(EUnitCategory::ItemCount));
 
                         for(UINT32 j=0; j<EUnitCategory::ItemCount; j++)
 	                    {
@@ -2812,8 +2820,6 @@ void GServer::LoadSP2HDMConfigXML()
                                 l_eUnitCategory = EUnitCategory::Naval;
                             else if(l_sCategoryName == L"nuc")
                                 l_eUnitCategory = EUnitCategory::Nuclear;
-                            else
-                                gassert(false, L"Unrecognized category node name " + l_sCategoryName);
 
                             const UINT32 l_iNbCNChildren = l_CategoryNode->NbChilds();
 
@@ -2826,8 +2832,6 @@ void GServer::LoadSP2HDMConfigXML()
                                 break;
 
                             default:
-                                gassert(l_iNbCNChildren == ETrainingLevel::ItemCount, l_sCategoryName + L" node has only " + GString(l_iNbCNChildren) + L" children, expected " + GString(ETrainingLevel::ItemCount));
-
                                 for(UINT32 k=0; k<ETrainingLevel::ItemCount; k++)
                                 {
                                     const GTreeNode<GXMLNode>* const l_TrainingNode = l_CategoryNode->Child(k);
@@ -2842,8 +2846,6 @@ void GServer::LoadSP2HDMConfigXML()
                                         l_eTrainingLevel = ETrainingLevel::Veteran;
                                     else if(l_sTrainingName == L"eli")
                                         l_eTrainingLevel = ETrainingLevel::Elite;
-                                    else
-                                        gassert(false, L"Unrecognized training node name " + l_sTrainingName);
 
                                     m_mMilitaryUpkeepPercentages[l_eUnitCategory][l_eTrainingLevel] = l_TrainingNode->Data().m_value.ToREAL32() / 100.f;
                                     g_Joshua.Log(L"militaryUpkeepPercentages[" + l_sCategoryName + L"][" + l_sTrainingName + L"]: " +
@@ -2853,49 +2855,49 @@ void GServer::LoadSP2HDMConfigXML()
                             }
                         }
                     }
-		            else if(elementName == L"navalRuleEnabled")
+		            else if(l_sElementName == L"navalRuleEnabled")
 		            {
-                        m_bNavalRuleEnabled = (elementValue.ToINT32() != 0);
+                        m_bNavalRuleEnabled = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"navalRuleEnabled: " + GString(m_bNavalRuleEnabled));
 		            }
-                    else if(elementName == L"nuclearMissileRangePercentage")
+                    else if(l_sElementName == L"nuclearMissileRangePercentage")
                     {
-                        m_fNuclearMissileRangePercentage = elementValue.ToREAL32() / 100.f;
+                        m_fNuclearMissileRangePercentage = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"nuclearMissileRangePercentage: " + GString::FormatNumber(m_fNuclearMissileRangePercentage, 2));
                     }
-                    else if(elementName == L"occupiedRegionPercentageForNuclear")
+                    else if(l_sElementName == L"occupiedRegionPercentageForNuclear")
                     {
-                        m_fOccupiedRegionPercentageForNuclear = elementValue.ToREAL32() / 100.f;
+                        m_fOccupiedRegionPercentageForNuclear = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"occupiedRegionPercentageForNuclear: " + GString::FormatNumber(m_fOccupiedRegionPercentageForNuclear, 2));
                     }
-                    else if(elementName == L"productionLossOnAnnex")
+                    else if(l_sElementName == L"productionLossOnAnnex")
                     {
-                        m_fProductionLossOnAnnex = elementValue.ToREAL32() / 100.f;
+                        m_fProductionLossOnAnnex = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"productionLossOnAnnex: " + GString::FormatNumber(m_fProductionLossOnAnnex, 3));
                     }
-                    else if(elementName == L"resourceTaxLimit")
+                    else if(l_sElementName == L"resourceTaxLimit")
                     {
-                        m_fResourceTaxLimit = elementValue.ToREAL32() / 100.f;
+                        m_fResourceTaxLimit = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"resourceTaxLimit: " + GString::FormatNumber(m_fResourceTaxLimit, 3));
                     }
-                    else if(elementName == L"showHDIComponents")
+                    else if(l_sElementName == L"showHDIComponents")
                     {
-                        m_bShowHDIComponents = (elementValue.ToINT32() != 0);
+                        m_bShowHDIComponents = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"showHDIComponents: " + GString(m_bShowHDIComponents));
                     }
-                    else if(elementName == L"stabilityAnarchyLowerLimit")
+                    else if(l_sElementName == L"stabilityAnarchyLowerLimit")
                     {
-                        m_fStabilityAnarchyLowerLimit = elementValue.ToREAL32() / 100.f;
+                        m_fStabilityAnarchyLowerLimit = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"stabilityAnarchyLowerLimit: " + GString::FormatNumber(m_fStabilityAnarchyLowerLimit, 3));
                     }
-                    else if(elementName == L"stabilityAnarchyUpperLimit")
+                    else if(l_sElementName == L"stabilityAnarchyUpperLimit")
                     {
-                        m_fStabilityAnarchyUpperLimit = elementValue.ToREAL32() / 100.f;
+                        m_fStabilityAnarchyUpperLimit = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"stabilityAnarchyUpperLimit: " + GString::FormatNumber(m_fStabilityAnarchyUpperLimit, 3));
                     }
-                    else if(elementName == L"tributePercent")
+                    else if(l_sElementName == L"tributePercent")
                     {
-                        m_fTributePercent = elementValue.ToREAL32() / 100.f;
+                        m_fTributePercent = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"tributePercent: " + GString::FormatNumber(m_fTributePercent, 2));
                     }
 	            }
