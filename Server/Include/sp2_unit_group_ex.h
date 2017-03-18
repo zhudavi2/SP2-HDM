@@ -50,6 +50,10 @@ namespace SP2
 
       //! Value of the group content at start of movement
       REAL64                  m_fLastMoveValue;
+
+   protected:
+      //! Save NextStatus if combat occurs while changing status
+      EMilitaryStatus::Enum   m_eSavedNextStatus;
    };
 }
 

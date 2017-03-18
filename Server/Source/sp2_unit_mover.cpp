@@ -1156,6 +1156,7 @@ bool GUnitMover::Iterate()
       ++ l_It;
       SP2::GUnitGroup* l_pGroup = (SP2::GUnitGroup*) g_Joshua.UnitManager().UnitGroup(l_iGroupID);
       gassert(l_pGroup, "Iterating a non existing group");
+      gassert(l_pGroup->Status() != l_pGroup->NextStatus(), L"Unit group " + GString(l_iGroupID) + L" is marked as changing status, but both its current and next statuses are " + GString(l_pGroup->Status()));
 
 		if(l_pGroup->Status() != EMilitaryStatus::Attacking)
 		{
@@ -1222,7 +1223,8 @@ bool GUnitMover::Iterate()
 //						gassert(l_pGroup->Status() == EMilitaryStatus::Ready, "Unit must be ready before it can change to moving status");
 
                         GDZLOG(l_sOwnerNameAndId + L": " +
-                               L"Unit group " + GString(l_iGroupID) + L" will change to moving status",
+                               L"Unit group " + GString(l_iGroupID) + L" will change to moving status; " +
+                               L"current status " + GString(l_pGroup->Status()) + L"; next status " + GString(l_pGroup->NextStatus()),
                                EDZLogLevel::Info1,
                                EDZLogCat::UnitMovement);
 
@@ -1234,6 +1236,10 @@ bool GUnitMover::Iterate()
 		else
 		{
 			// Cancel status change
+            GDZLOG(L"Unit group " + GString(l_iGroupID) + L" of " + g_ServerDAL.CountryData(l_pGroup->OwnerId())->NameAndIDForLog() +     L" will cancel its status change due to battle",
+                   EDZLogLevel::Info1,
+                   EDZLogCat::UnitMovement);
+
 			m_GroupsChangingStatus.erase(l_CurrentIt);
 			m_GroupsToFortify.erase(l_iGroupID);
 			m_GroupsToMove.erase(l_iGroupID);
@@ -1444,12 +1450,14 @@ bool GUnitMover::ChangeUnitState(SDK::Combat::GUnitGroup* in_pUnitGroup,
       return false;
    }
 
-   LOG_MODIF("Changing unit " +
+   GDZLOG("Changing unit " +
              GString(l_iGroupID) +
              " status from " + 
              GString( (INT32) l_pGroup->Status() ) + 
              " to " +
-             GString( (INT32) in_eNewStatus) );
+             GString( (INT32) in_eNewStatus),
+          EDZLogLevel::Info2,
+          EDZLogCat::UnitMovement);
 
    if(l_pGroup->Status() > EMilitaryStatus::Moving)
    {
@@ -2398,7 +2406,7 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                       }
 
                       // Remember to move unit after unit status changed to moving
-                      GDZLOG(L"Unit group ID " + GString(l_pUnitGroup->Id()) + L" of " + l_pOwnerCountry->NameAndIDForLog() + L" will be added to m_GroupsToMove; current status " + GString(l_pUnitGroup->Status()),
+                      GDZLOG(L"Unit group ID " + GString(l_pUnitGroup->Id()) + L" of " + l_pOwnerCountry->NameAndIDForLog() + L" will be added to m_GroupsToMove; current status " + GString(l_pUnitGroup->Status()) + L"; next status " + GString(l_pUnitGroup->NextStatus()),
                              EDZLogLevel::Info1,
                              EDZLogCat::UnitMovement);
                       m_GroupsToMove[l_pUnitGroup->Id() ] = l_UnitMove;

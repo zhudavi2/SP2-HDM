@@ -25,11 +25,12 @@
 
 SP2::GUnitGroupEx::GUnitGroupEx()
 {
-   m_iMoveRegionID   = 0;
-   m_iPrevMoveRegionID= 0;
-   m_iRegionID       = 0;
-   m_ActionAtDest    = EMilitaryAction::Default;
-   m_fLastMoveValue  = 0;
+   m_iMoveRegionID     = 0;
+   m_iPrevMoveRegionID = 0;
+   m_iRegionID         = 0;
+   m_ActionAtDest      = EMilitaryAction::Default;
+   m_fLastMoveValue    = 0;
+   m_eSavedNextStatus  = EMilitaryStatus::Parked;
 }
 
 void SP2::GUnitGroupEx::EnterCombat(SDK::Combat::GArena* in_pCombat)
@@ -43,7 +44,8 @@ void SP2::GUnitGroupEx::EnterCombat(SDK::Combat::GArena* in_pCombat)
 #endif
    if(m_eStatus != EMilitaryStatus::Attacking)
    {
-      m_eCombatStatus = m_eStatus;
+      m_eCombatStatus    = m_eStatus;
+      m_eSavedNextStatus = m_eNextStatus;
       ChangeStatus(EMilitaryStatus::Attacking);
    }
 
@@ -84,6 +86,14 @@ void SP2::GUnitGroupEx::LeaveCombat()
    if(m_eStatus == EMilitaryStatus::Attacking)
    {
       ChangeStatus(m_eCombatStatus);
+      gassert(m_eStatus == m_eCombatStatus, L"Current status " + GString(m_eStatus) + L" wasn't properly updated to saved status " + GString(m_eCombatStatus) + L" before combat");
+      
+      if(m_eStatus != m_eSavedNextStatus && m_eNextStatus != m_eSavedNextStatus)
+          GDZLOG(L"Unit group " + GString(Id()) + L", status " + GString(m_eStatus) + L", will have its NextStatus changed from " + GString(m_eNextStatus) + L" to " + GString(m_eSavedNextStatus) + L" to match pre-combat state",
+                 EDZLogLevel::Info1,
+                 EDZLogCat::UnitMovement | EDZLogCat::War);
+
+      m_eNextStatus = m_eSavedNextStatus;
    }
 
    //If unit was supposed to be bombarding (and can still bombard), resume bombardments
