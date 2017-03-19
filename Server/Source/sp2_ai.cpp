@@ -1278,13 +1278,17 @@ bool GAI::ShouldAnnexCountry(UINT32 in_iCountryLookingToAnnex, UINT32 in_iTarget
 				if (l_fRelations >= SP2::c_fRelationsLove)
 					l_fDecision +=0.5f;
 				if (l_fRelations <= SP2::c_fRelationsLike)
-					l_fDecision -=0.1f;
+					l_fDecision -= 0.1f * g_SP2Server->AnnexationRelationLossPercent();
 			}
 		}
 	}
 
 	if(l_iNbOfRegions == 0)
 		return false;
+
+    GDZLOG(g_ServerDAL.CountryData(in_iCountryLookingToAnnex)->NameAndIDForLog() + L"'s possible annexation of " + g_ServerDAL.CountryData(in_iTarget)->NameAndIDForLog() + L": Decision " + GString(l_fDecision),
+           EDZLogLevel::Info1,
+           EDZLogCat::General);
 
 	if(l_fDecision <= 0.f)
 		return false;

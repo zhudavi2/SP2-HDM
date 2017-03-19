@@ -28,6 +28,7 @@ bool GDZDebug::m_bLogEnable = false;
 
 const pair<GString, UINT32> GDZDebug::c_LogLevelsEnabled[] =
 {
+    pair<GString, UINT32>(L"AI",            0),
     pair<GString, UINT32>(L"CombatPlanner", 0),
     pair<GString, UINT32>(L"UnitGroupEx",   0),
     pair<GString, UINT32>(L"UnitMover",     0),

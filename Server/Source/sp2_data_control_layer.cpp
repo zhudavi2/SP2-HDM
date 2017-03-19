@@ -5469,7 +5469,7 @@ void GDataControlLayer::LoseRelationsAnnexation(UINT32 in_iCountryAnnexing, UINT
 			- SP2::c_fLossRelations;
 		if(l_pDiplomaticAggressed[i] == EDiplomaticStatus::Allied)
 			l_fLossOfRelations -= SP2::c_fLossRelationsAllies;
-		l_fLossOfRelations = min(SP2::c_fLossRelationsMaximum,l_fLossOfRelations);
+		l_fLossOfRelations = min(SP2::c_fLossRelationsMaximum, l_fLossOfRelations * g_SP2Server->AnnexationRelationLossPercent());
 		if(l_fLossOfRelations != 0.f)
 			g_ServerDAL.RelationBetweenCountries(i,in_iCountryAnnexing,
 				g_ServerDAL.RelationBetweenCountries(i,in_iCountryAnnexing) + l_fLossOfRelations);

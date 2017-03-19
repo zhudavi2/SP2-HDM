@@ -16,6 +16,11 @@
   Allowed values are 0 and 1. Default is 1. -->
   <allowDefenderAttackAttackerTerritory>1</allowDefenderAttackAttackerTerritory>
   
+  <!-- Loss of relations with other countries due to annexing another country,
+  as a percentage of normal relation loss upon annexing.
+  Minimum value is 0. Default is 100. -->
+  <annexationRelationLossPercent>100</annexationRelationLossPercent>
+  
   <!-- Hostile military units in the same region must be at most this far from each other, in
   approximate degrees of latitude/longitude, in order to automatically engage in combat.
   Default is 0.70. -->
@@ -182,6 +187,6 @@
   
   <!-- Annual tribute in that a client state would theoretically pay to its
   master in one year, as a percentage of client GDP.
-  Minimum is 0. Default is 8. -->
+  Minimum value is 0. Default is 8. -->
   <tributePercent>8</tributePercent>
 </SP2-HDM>

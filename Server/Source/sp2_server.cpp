@@ -2604,8 +2604,9 @@ void GServer::InitializeDefaultConfig()
 {
     // Default values
     m_bAllowDefenderAttackAttackerTerritory  = true;
-    m_allowHumanClientStates                 = false;
+    m_bAllowHumanClientStates                = false;
     m_bAllowAIAssumeDebt                     = true;
+    m_fAnnexationRelationLossPercent         = 1.f;
     m_fCombatThresholdSquare                 = 0.7f*0.7f;
     m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
     m_bDedicatedServerAutosaveToJoshuaFolder = false;
@@ -2691,13 +2692,18 @@ void GServer::LoadSP2HDMConfigXML()
                     }
                     else if(l_sElementName == L"allowHumanClientStates")
                     {
-                        m_allowHumanClientStates = (l_sElementValue.ToINT32() != 0);
-                        g_Joshua.Log(L"allowHumanClientStates: " + GString(m_allowHumanClientStates));
+                        m_bAllowHumanClientStates = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"allowHumanClientStates: " + GString(m_bAllowHumanClientStates));
                     }
                     else if(l_sElementName == L"allowDefenderAttackAttackerTerritory")
                     {
                         m_bAllowDefenderAttackAttackerTerritory = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowDefenderAttackAttackerTerritory: " + GString(m_bAllowDefenderAttackAttackerTerritory));
+                    }
+                    else if(l_sElementName == L"annexationRelationLossPercent")
+                    {
+                        m_fAnnexationRelationLossPercent = l_sElementValue.ToREAL32() / 100.f;
+                        g_Joshua.Log(L"annexationRelationLossPercent: " + GString(m_fAnnexationRelationLossPercent));
                     }
                     else if(l_sElementName == L"combatRangeDegrees")
                     {

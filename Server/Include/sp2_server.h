@@ -128,8 +128,9 @@ namespace SP2
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
-      inline bool    AllowHumanClientStates() const { return m_allowHumanClientStates; }
+      inline bool    AllowHumanClientStates() const { return m_bAllowHumanClientStates; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
+      inline REAL32  AnnexationRelationLossPercent() const { return m_fAnnexationRelationLossPercent; }
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
       inline INT32   CountryNameChangeMode() const { return m_iCountryNameChangeMode; }
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
@@ -261,8 +262,9 @@ namespace SP2
       void LoadSP2HDMConfigXML();
 
       bool   m_bAllowAIAssumeDebt;
-      bool   m_allowHumanClientStates;
+      bool   m_bAllowHumanClientStates;
       bool   m_bAllowDefenderAttackAttackerTerritory;
+      REAL32 m_fAnnexationRelationLossPercent;
       REAL32 m_fCombatThresholdSquare;
       INT32  m_iCountryNameChangeMode;
       REAL32 m_fDedicatedServerAutosavePeriod;
