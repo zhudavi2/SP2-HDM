@@ -3453,3 +3453,9 @@ void GUnitMover::TryDeployGroupMerge(SP2::GUnit* in_pUnit)
       }
    }
 }
+
+bool GUnitMover::IsUnitGroupChangingStatus(const UINT32 in_iUnitGroupID) const
+{
+    const auto l_GroupIt = find(m_GroupsChangingStatus.cbegin(), m_GroupsChangingStatus.cend(), in_iUnitGroupID);
+    return l_GroupIt != m_GroupsChangingStatus.end();
+}

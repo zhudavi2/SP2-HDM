@@ -417,6 +417,8 @@ namespace SP2
       {
          return m_ListOfUnitsInTraining;
       }
+
+      bool IsUnitGroupChangingStatus(UINT32 in_iUnitGroupID) const;
    };
 }
 
