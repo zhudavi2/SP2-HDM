@@ -86,6 +86,9 @@ namespace SP2
 		//! Remove relations with other countries based on a change from internal laws
 		void RemoveRelationsFromInternalLaws(UINT32 in_iCountryID, bool in_bStatus, EInternalLaws::Enum in_Law);
 
+        //! If a region in the database has a population total by religion or language that doesn't match population total by age, then call this to fix it by declaring population by age as always correct
+        void FixRegionPopulationMismatch(bool in_bIsReligion, GRegion& in_Region) const;
+
    protected:
       //! Conquer a country if conditions are met when a region changes military control.
       /*!

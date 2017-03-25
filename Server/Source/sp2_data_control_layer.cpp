@@ -5612,6 +5612,15 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 	l_pRegion->Population1565(l_iPop1565);
 	l_pRegion->Population65(l_iPop65);
 
+    const INT64 l_iCurrentPop = l_pRegion->Population();
+
+    {
+        const INT64 l_iExpectedPop = l_iPop + in_iNbPopulation;
+        gassert(l_iCurrentPop == l_iExpectedPop, L"Population mismatch by age, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
+    }
+
+    const GString l_sRegionName = g_ServerDAL.RegionNameAndIDForLog(in_iRegionID);
+
 	/*
 		Now add people from religions
 	*/
@@ -5626,9 +5635,8 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 		l_pRegion->ReligionChangePopulation(l_Itr->first,l_Itr->second + l_iTempAdding);
 		l_iTempLeftToAdd -= l_iTempAdding;
 	}
-	if(l_iTempLeftToAdd != 0)
+	if(l_iTempLeftToAdd > 0)
 	{		
-		gassert(l_iTempLeftToAdd >= 0,"GDataControlLayer::AddPopulationToRegion(): Should be bigger than 0");
 		l_pRegion->GetReligions(l_Religions);	
 		for(GReligionList::iterator l_Itr = l_Religions.begin();
 				l_Itr != l_Religions.end();
@@ -5647,6 +5655,44 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 			}
 
 	}
+    else if(l_iTempLeftToAdd < 0)
+    {
+        INT64 l_iExpectedPop = 0;
+        l_pRegion->GetReligions(l_Religions);
+        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
+            l_iExpectedPop += it->second;
+
+        GDZLOG(l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
+               EDZLogLevel::Warning,
+               EDZLogCat::Population | EDZLogCat::Regions);
+
+        FixRegionPopulationMismatch(true, *l_pRegion);
+    }
+
+    {
+        INT64 l_iExpectedPop = 0;
+        l_pRegion->GetReligions(l_Religions);
+        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
+            l_iExpectedPop += it->second;
+
+        if(l_iCurrentPop != l_iExpectedPop)
+        {
+            GDZLOG(l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
+                   EDZLogLevel::Warning,
+                   EDZLogCat::Population | EDZLogCat::Regions);
+
+            FixRegionPopulationMismatch(true, *l_pRegion);
+        }
+    }
+
+    {
+        INT64 l_iExpectedPop = 0;
+        l_pRegion->GetReligions(l_Religions);
+        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
+            l_iExpectedPop += it->second;
+        gassert(l_iCurrentPop == l_iExpectedPop, L"Population mismatch by religion, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
+    }
+
 	/*
 		Now add people from languages
 	*/
@@ -5661,9 +5707,9 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 		l_pRegion->LanguageChangePopulation(l_Itr->first,l_Itr->second + l_iTempAdding);
 		l_iTempLeftToAdd -= l_iTempAdding;
 	}
-	if(l_iTempLeftToAdd != 0)
+
+	if(l_iTempLeftToAdd > 0)
 	{		
-		gassert(l_iTempLeftToAdd >= 0,"GDataControlLayer::AddPopulationToRegion(): Should be bigger than 0");
 		l_pRegion->GetLanguages(l_Languages);
 		for(GLanguageList::iterator l_Itr = l_Languages.begin();
 				l_Itr != l_Languages.end();
@@ -5680,8 +5726,44 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 				g_Joshua.Log(L"Error while adding population. Should never happen!",MSGTYPE_FATAL_ERROR);
 				return false;
 			}
-
 	}
+    else if(l_iTempLeftToAdd < 0)
+    {
+        INT64 l_iExpectedPop = 0;
+        l_pRegion->GetLanguages(l_Languages);
+        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
+            l_iExpectedPop += it->second;
+
+        GDZLOG(l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
+               EDZLogLevel::Warning,
+               EDZLogCat::Population | EDZLogCat::Regions);
+
+        FixRegionPopulationMismatch(false, *l_pRegion);
+    }
+
+    {
+        INT64 l_iExpectedPop = 0;
+        l_pRegion->GetLanguages(l_Languages);
+        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
+            l_iExpectedPop += it->second;
+
+        if(l_iCurrentPop != l_iExpectedPop)
+        {
+            GDZLOG(l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
+                   EDZLogLevel::Warning,
+                   EDZLogCat::Population | EDZLogCat::Regions);
+
+            FixRegionPopulationMismatch(false, *l_pRegion);
+        }
+    }
+
+    {
+        INT64 l_iExpectedPop = 0;
+        l_pRegion->GetLanguages(l_Languages);
+        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
+            l_iExpectedPop += it->second;
+        gassert(l_iCurrentPop == l_iExpectedPop, L"Population mismatch by language, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
+    }
 
 	//Now add production, for that region;
 	REAL32 l_fPopRatio = ((REAL32)in_iNbPopulation / (REAL32)max(l_iPop,1)) + 1.f;
@@ -9199,6 +9281,76 @@ void GDataControlLayer::LiberateRegions(UINT32 in_iCountryLiberating,
 		g_ServerDAL.RelationBetweenCountries(in_iCountryLiberating, in_iCountryLiberated, 
 				g_ServerDAL.RelationBetweenCountries(in_iCountryLiberating, in_iCountryLiberated) + 100 );
 	}
+}
+
+void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, GRegion& in_Region) const
+{
+    stdext::hash_map<INT32, INT64> l_mPopMap;
+    if(in_bIsReligion)
+        in_Region.GetReligions(l_mPopMap);
+    else
+        in_Region.GetLanguages(l_mPopMap);
+
+    INT64 l_iIncorrectPop = 0;
+    for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
+        l_iIncorrectPop += it->second;
+
+    const INT64 l_iPopulation = in_Region.Population();
+    GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L": Correct population " + GString(l_iPopulation) + L", incorrect population " + GString(l_iIncorrectPop),
+           EDZLogLevel::Always,
+           EDZLogCat::Population | EDZLogCat::Regions);
+
+    if(l_iIncorrectPop == l_iPopulation)
+        GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L" population seems consistent at " + GString(l_iPopulation) + L", continuing anyway",
+               EDZLogLevel::Warning,
+               EDZLogCat::Population | EDZLogCat::Regions);
+
+    INT64 l_iFixedPop = 0;
+    INT32 l_iLargestGroup = l_mPopMap.cbegin()->first;
+
+    for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
+    {
+        const REAL32 l_fPopRatio = static_cast<REAL32>(it->second) / static_cast<REAL32>(l_iIncorrectPop);
+        const INT64 l_iActualPop = static_cast<INT64>(l_fPopRatio * l_iPopulation);
+
+        GDZLOG(L"Current group " + GString(it->first) + L" population is " + GString(it->second) + L", changing to " + GString(l_iActualPop),
+               EDZLogLevel::Always,
+               EDZLogCat::Population | EDZLogCat::Regions);
+
+        if(in_bIsReligion)
+            in_Region.ReligionChangePopulation(it->first, l_iActualPop);
+        else
+            in_Region.LanguageChangePopulation(it->first, l_iActualPop);
+
+        l_iFixedPop += l_iActualPop;
+        l_iLargestGroup = (l_mPopMap.at(l_iLargestGroup) < it->second) ? it->first : l_iLargestGroup;
+    }
+
+    GDZLOG(L"Population by group after fix: " + GString(l_iFixedPop),
+           EDZLogLevel::Always,
+           EDZLogCat::Population | EDZLogCat::Regions);
+
+    //If there's still any discrepancy, add or remove from the largest group
+    if(l_iFixedPop != l_iPopulation)
+    {
+        const INT64 l_iLeftoverPop = l_iPopulation - l_iFixedPop;
+
+        INT64 l_iNewLargestGroupPop = 0;
+        if(in_bIsReligion)
+            l_iNewLargestGroupPop = in_Region.ReligionGetPopulation(l_iLargestGroup);
+        else
+            l_iNewLargestGroupPop = in_Region.LanguageGetPopulation(l_iLargestGroup);
+        l_iNewLargestGroupPop +=  + l_iLeftoverPop;
+
+        GDZLOG(GString(l_iLeftoverPop) + L" left over, modifying group " + GString(l_iLargestGroup) + L" to compensate",
+               EDZLogLevel::Always,
+               EDZLogCat::Population | EDZLogCat::Regions);
+        
+        if(in_bIsReligion)
+            in_Region.ReligionChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
+        else
+            in_Region.LanguageChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
+    }
 }
 
 void GDataControlLayer::ChangeCountryName(ENTITY_ID in_iCountryID, const GString& in_sNewName)
