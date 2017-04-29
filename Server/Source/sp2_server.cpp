@@ -366,6 +366,30 @@ SDK::GAME_MSG GServer::Initialize()
          L"List all current players",
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
+      g_Joshua.RegisterConsoleCommand(
+          L"print_military_control",
+          L"I",
+          L"List all regions under military control of country, as well as political and historical claims",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"print_foreign_presence",
+          L"I",
+          L"List all foreign military units on country's territory",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"print_regions_in_area",
+          L"IIII",
+          L"List all regions within given low and high latitudes, and low and high longitudes",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"declare_peace",
+          L"",
+          L"Force all countries to declare peace, ending all wars",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
    }
 
 
@@ -1494,6 +1518,86 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
                              m_DAL.CountryData(l_iCountryID)->NameAndIDForLog());
             }
 		}
+   }
+   else if(in_sCommand == L"print_military_control")
+   {
+       const ENTITY_ID l_iCountryID = in_vArgs.front().ToINT32();
+       if(0 < l_iCountryID && l_iCountryID <= m_DAL.NbCountry())
+       {
+           g_Joshua.Log(m_DAL.CountryData(l_iCountryID)->NameAndIDForLog() + L":");
+
+           const set<UINT32> l_vMilitaryControl = m_DAL.CountryMilitaryControl(l_iCountryID);
+           for(auto it = l_vMilitaryControl.cbegin(); it != l_vMilitaryControl.cend(); ++it)
+           {
+               const GVector2D<REAL32> l_Location = m_DCL.UnitMover().RegionLocation(*it);
+               const GRegion* const l_pRegion = m_DAL.GetGRegion(*it);
+               g_Joshua.Log(m_DAL.RegionNameAndIDForLog(*it) + L": " +
+                            L"Location " + GString(l_Location.x) + L", " + GString(l_Location.y) + L", " +
+                            L"political control " + m_DAL.CountryData(l_pRegion->OwnerId())->NameAndIDForLog() + L", " +
+                            L"historical claim " + m_DAL.CountryData(l_pRegion->HistoricalClaim())->NameAndIDForLog());
+           }
+       }
+   }
+   else if(in_sCommand == L"print_foreign_presence")
+   {
+       const ENTITY_ID l_iCountryID = in_vArgs.front().ToINT32();
+       if(0 < l_iCountryID && l_iCountryID <= m_DAL.NbCountry())
+       {
+           g_Joshua.Log(L"Foreign presence in " + m_DAL.CountryData(l_iCountryID)->NameAndIDForLog() + L":");
+
+           const set<UINT32>& l_vRegions = m_DAL.CountryPoliticalControl(l_iCountryID);
+           for(auto l_RegionIt = l_vRegions.cbegin(); l_RegionIt != l_vRegions.cend(); ++l_RegionIt)
+           {
+               const set<UINT32>& l_vUnitGroups = m_DCL.UnitMover().UnitGroupsInsideRegion(*l_RegionIt);
+               for(auto l_UnitGroupIt = l_vUnitGroups.cbegin(); l_UnitGroupIt != l_vUnitGroups.cend(); ++l_UnitGroupIt)
+               {
+                   const SDK::Combat::GUnitGroup* const l_pGroup = g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIt);
+                   const ENTITY_ID l_iGroupOwner = l_pGroup->OwnerId();
+
+                   if(l_iGroupOwner != l_iCountryID)
+                       g_Joshua.Log(m_DAL.RegionNameAndIDForLog(*l_RegionIt) + L": " +
+                                    m_DAL.CountryData(l_iGroupOwner)->NameAndIDForLog() + L", "
+                                    L"location " + GString(l_pGroup->Position().x) + L", " + GString(l_pGroup->Position().y));
+               }
+           }
+       }
+   }
+   else if(in_sCommand == L"print_regions_in_area")
+   {
+       const REAL32 l_fMinLat  = in_vArgs[0].ToREAL32();
+       const REAL32 l_fMaxLat  = in_vArgs[1].ToREAL32();
+       const REAL32 l_fMinLong = in_vArgs[2].ToREAL32();
+       const REAL32 l_fMaxLong = in_vArgs[3].ToREAL32();
+
+       // For GRectangle, lowest coordinates are at the top-left
+       const GRectangle<REAL32> l_Rectangle(l_fMinLong, l_fMinLat, l_fMaxLong - l_fMinLong, l_fMaxLat - l_fMinLat);
+
+       // 1-based vector
+       const vector<GRegionControl> l_vRegionControl = m_DAL.RegionControlArray();
+       for(auto it = l_vRegionControl.cbegin() + 1; it < l_vRegionControl.cend(); ++it)
+       {
+           const UINT32 l_iRegionID = distance(l_vRegionControl.cbegin(), it);
+           const GVector2D<REAL32> l_Location = m_DCL.UnitMover().RegionLocation(l_iRegionID);
+           if(l_Rectangle.Contains(l_Location))
+           {
+               const GRegion* const l_pRegion = m_DAL.GetGRegion(l_iRegionID);
+               g_Joshua.Log(m_DAL.RegionNameAndIDForLog(l_iRegionID) + L": " +
+                            L"Location " + GString(l_Location.x) + L", " + GString(l_Location.y) + L", " +
+                            L"political control " + m_DAL.CountryData(l_pRegion->OwnerId())->NameAndIDForLog() + L", " +
+                            L"military control " + m_DAL.CountryData(l_pRegion->OwnerMilitaryId())->NameAndIDForLog() + L", " +
+                            L"historical claim " + m_DAL.CountryData(l_pRegion->HistoricalClaim())->NameAndIDForLog());
+           }
+       }
+   }
+   else if(in_sCommand == L"declare_peace")
+   {
+       const auto l_mWars = m_DAL.CurrentWars();
+       for(auto it = l_mWars.cbegin(); it != l_mWars.cend(); ++it)
+       {
+           const GWar& l_War = it->second;
+           m_DCL.ChangeOpinionOnWar(l_War.MasterAttacking(), it->first, true);
+           m_DCL.ChangeOpinionOnWar(l_War.MasterDefending(), it->first, true);
+       }
    }
 #ifdef GOLEM_DEBUG
    else if(in_sCommand == L"build")
@@ -2808,8 +2912,6 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         // Upkeep for all unit categories, including nuclear, are together in the XML
                         // But nuclear upkeep will be stored separately from the others in the GServer object
-                        const UINT32 l_iNbMUPChildren = objectNode->NbChilds();
-
                         for(UINT32 j=0; j<EUnitCategory::ItemCount; j++)
 	                    {
                             const GTreeNode<GXMLNode>* const l_CategoryNode = objectNode->Child(j);
