@@ -3759,16 +3759,6 @@ void GDataAccessLayerServer::CheckWorldPeace()
       }
    }
 
-   // Check if every countries are still active
-   for(UINT32 i = 0 ; i < (UINT32)NbCountry() && l_bWorldAtPeace; i++)
-   {      
-      // if one country if not active, means it was destroyed, no peace for you
-		if(!CountryData(i+1)->Activated())
-		{
-         l_bWorldAtPeace = false;
-		}
-   }
-
    // update our world peace status after our in depth analysis ?
    g_ServerDCL.UpdateWorldPeaceStatus(l_bWorldAtPeace);
 }

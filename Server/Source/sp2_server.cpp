@@ -565,6 +565,7 @@ SDK::GAME_MSG GServer::Initialize()
       m_WorldBehavior.Attach(&g_ServerDCL.GameObjectiveEvaluator(), c_iNotificationLeadingPoliticalPartyChangeAfterElections);
       m_DCL          .Attach(&g_ServerDCL.GameObjectiveEvaluator(), c_iNotificationOnSuccessfulCoupEtat);
       m_DCL          .Attach(&g_ServerDCL.GameObjectiveEvaluator(), c_iNotificationOnNukeLaunched);
+      m_DCL          .Attach(&g_ServerDCL.GameObjectiveEvaluator(), c_iWorldPeaceStatusChanged);
    }
 
 
