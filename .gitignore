@@ -1,5 +1,6 @@
 Client/
 includes/RGAPI/
+lib/
 
 [Bb]in/
 build/

@@ -116,7 +116,7 @@ Known issues and possible future changes:
 
 SDK notes:
 - The source code is at https://github.com/zhudavi2/SP2-HDM.
-- The includes/RGAPI folder, that comes with the SDK, is not on GitHub; you must provide your own. The RGAPI files were not modified in making SP2-HDM.
+- The includes/RGAPI and lib folders, that come with the SDK, are not on GitHub; you must provide your own. The RGAPI and lib files were not modified in making SP2-HDM.
 - The "Debug_In_Release" and "Release" build configurations are known to build correctly and produce working DLLs.
 - A Post-Build Event will automatically copy the built DLL to a default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder. 
 - The Release DLL is included with each commit for those interested in testing out the latest changes.
