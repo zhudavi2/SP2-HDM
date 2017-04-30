@@ -120,6 +120,9 @@ void GDZDebug::Assert(const bool in_bExpr,
         l_vAssertMsgs.push_back(L"ASSERT FUNCTION: " + in_sFunc + L"\n");
         l_vAssertMsgs.push_back(L"ASSERT LOCATION: " + in_sFile + L":" + GString(in_iLine) + L"\n");
         l_vAssertMsgs.push_back(L"----------------------------------------------------------------");
+		
+		for(auto l_It = l_vAssertMsgs.cbegin(); l_It < l_vAssertMsgs.cend(); ++l_It)
+			g_Joshua.Log(*l_It);
 
         abort();
     }
