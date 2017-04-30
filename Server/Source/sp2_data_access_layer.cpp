@@ -425,7 +425,14 @@ bool GDataAccessLayerServer::LoadUnits()
 			REAL32 l_fTraining = 0.f;
          l_Results.Row(i)->Cell(5)->GetData(l_fTraining);
          l_pUnit->Training((SP2::ETrainingLevel::Enum)(UINT32)l_fTraining);
-         gassert(l_pUnit->Training() <= ETrainingLevel::Elite,"Invalid training");
+
+         if(l_pUnit->Training() > ETrainingLevel::Elite)
+         {
+             GDZLOG(L"Unit " + GString(l_pUnit->Id()) + L" has invalid training level " + GString(l_pUnit->Training()) + L"; setting to Elite",
+                    EDZLogLevel::Warning,
+                    EDZLogCat::General);
+             l_pUnit->Training(ETrainingLevel::Elite);
+         }
 
          g_Joshua.UnitManager().AddNewUnit(l_pUnit);
 
