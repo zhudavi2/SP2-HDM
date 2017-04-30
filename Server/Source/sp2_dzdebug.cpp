@@ -13,28 +13,34 @@
 
 const UINT32 GDZDebug::c_iDefaultLogLevel = EDZLogLevel::Always | EDZLogLevel::Error | EDZLogLevel::Warning;
 
-const pair<EDZLogLevel::Enum, GString> GDZDebug::c_LogLevelNames[] =
+const GDZDebug::GLogLevelNamePair GDZDebug::c_LogLevelNames[] =
 {
-    pair<EDZLogLevel::Enum, GString>(EDZLogLevel::Always,  L"ALWAYS"),
-    pair<EDZLogLevel::Enum, GString>(EDZLogLevel::Error,   L"ERROR"),
-    pair<EDZLogLevel::Enum, GString>(EDZLogLevel::Warning, L"WARNING"),
-    pair<EDZLogLevel::Enum, GString>(EDZLogLevel::Info1,   L"INFO1"),
-    pair<EDZLogLevel::Enum, GString>(EDZLogLevel::Info2,   L"INFO2"),
+    GLogLevelNamePair(EDZLogLevel::Always,  L"ALWAYS"),
+    GLogLevelNamePair(EDZLogLevel::Error,   L"ERROR"),
+    GLogLevelNamePair(EDZLogLevel::Warning, L"WARNING"),
+    GLogLevelNamePair(EDZLogLevel::Info1,   L"INFO1"),
+    GLogLevelNamePair(EDZLogLevel::Info2,   L"INFO2"),
 };
 
-const map<EDZLogLevel::Enum, GString> GDZDebug::c_mLogLevelNames(GDZDebug::c_LogLevelNames, GDZDebug::c_LogLevelNames + sizeof(c_LogLevelNames) / sizeof(pair<EDZLogLevel::Enum, GString>));
+const map<EDZLogLevel::Enum, GString> GDZDebug::c_mLogLevelNames(GDZDebug::c_LogLevelNames, GDZDebug::c_LogLevelNames + sizeof(c_LogLevelNames) / sizeof(GLogLevelNamePair));
 
 bool GDZDebug::m_bLogEnable = false;
 
-const pair<GString, UINT32> GDZDebug::c_LogLevelsEnabled[] =
+const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 {
-    pair<GString, UINT32>(L"AI",               0),
-    pair<GString, UINT32>(L"CombatPlanner",    0),
-    pair<GString, UINT32>(L"DataControlLayer", 0),
-    pair<GString, UINT32>(L"UnitGroupEx",      0),
-    pair<GString, UINT32>(L"UnitMover",        0),
+    GLogLevelEnabled(L"AI",               0),
+    GLogLevelEnabled(L"CombatPlanner",    0),
+    GLogLevelEnabled(L"DataControlLayer", 0),
+    GLogLevelEnabled(L"UnitGroupEx",      0),
+    GLogLevelEnabled(L"UnitMover",        0),
 };
 
-map<GString, UINT32> GDZDebug::m_mLogLevelsEnabled(c_LogLevelsEnabled, c_LogLevelsEnabled + sizeof(c_LogLevelsEnabled) / sizeof(pair<GString, UINT32>));
+map<GString, UINT32> GDZDebug::m_mLogLevelsEnabled(c_LogLevelsEnabled, c_LogLevelsEnabled + sizeof(c_LogLevelsEnabled) / sizeof(GLogLevelEnabled));
 
 UINT32 GDZDebug::m_iEnabledLogCategories = 0;
+
+#ifdef GOLEM_DEBUG
+bool GDZDebug::m_bAssertEnable = true;
+#else // GOLEM_DEBUG
+bool GDZDebug::m_bAssertEnable = false;
+#endif // GOLEM_DEBUG

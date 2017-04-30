@@ -11,14 +11,15 @@
 #ifndef _GOLEM_SP2_DZDEBUG_H_
 #define _GOLEM_SP2_DZDEBUG_H_
 
-#define GDZLOG(msg, logLevel, logCategories)\
-    GDZDebug::Log((msg), (logLevel), (logCategories), __FUNCTION__, __LINE__)
+#define GDZLOG(msg, logLevel)\
+    GDZDebug::Log((msg), (logLevel), __FUNCTION__, __LINE__)
 
-#ifdef GOLEM_DEBUG
+#ifdef gassert
 #undef gassert
+#endif // gassert
+
 #define gassert(expr, msg)\
     GDZDebug::Assert((expr) ? true : false, (#expr), (msg), __FUNCTION__, __FILE__, __LINE__)
-#endif // GOLEM_DEBUG
 
 namespace SP2
 {
@@ -34,33 +35,11 @@ namespace SP2
         };
     }
 
-    namespace EDZLogCat
-    {
-        enum Enum
-        {
-            General      = 1 << 0,
-            ObtainUnits  = 1 << 1,
-            Covert       = 1 << 2,
-            HDI          = 1 << 3,
-            Resources    = 1 << 4,
-            UnitMovement = 1 << 5,
-            War          = 1 << 6,
-            Nuclear      = 1 << 7,
-            Regions      = 1 << 8,
-            Upkeep       = 1 << 9,
-            Player       = 1 << 10,
-            Population   = 1 << 11,
-            ClientStates = 1 << 12,
-            Treaties     = 1 << 13,
-        };
-    }
-
     class GDZDebug
     {
     public:
         static inline void Log(const GString& in_sMsg,
                                EDZLogLevel::Enum in_iLogLevel,
-                               UINT32 in_iLogCategories,
                                const GString& in_sFunc,
                                INT32 in_iLine);
 
@@ -72,28 +51,33 @@ namespace SP2
                                   INT32 in_iLine);
 
     private:
-        //! Default log level when m_bLogEnabled is true. Log levels enabled in this bitfield don't need to also be enabled in m_mLogLevelsEnabled for default logs to appear.
+        typedef pair<EDZLogLevel::Enum, GString> GLogLevelNamePair;
+        typedef pair<GString, UINT32> GLogLevelEnabled;
+
+        //! Default log level when m_bLogEnabled is true. Log levels enabled in this bitfield don't need to also be enabled in m_mLogLevelsEnabled.
         static const UINT32 c_iDefaultLogLevel;
 
         //! Helper array and actual map for log level names.
-        static const pair<EDZLogLevel::Enum, GString> c_LogLevelNames[];
+        static const GLogLevelNamePair c_LogLevelNames[];
         static const map<EDZLogLevel::Enum, GString> c_mLogLevelNames;
 
         //! Must be enabled for any DZLOGs to appear, including Always-level logs
         static bool m_bLogEnable;
         
         //! Helper array and actual map for enabled log levels. Maps module name to level enablement bitfield.
-        static const pair<GString, UINT32> c_LogLevelsEnabled[];
+        static const GLogLevelEnabled c_LogLevelsEnabled[];
         static map<GString, UINT32> m_mLogLevelsEnabled;
 
         //! Bitfield to enable log categories.
         static UINT32 m_iEnabledLogCategories;
+
+        //! Must be enabled for gassert
+        static bool m_bAssertEnable;
     };
 }
 
 void GDZDebug::Log(const GString& in_sMsg,
                    EDZLogLevel::Enum in_iLogLevel,
-                   UINT32 in_iLogCategories,
                    const GString& in_sFunc,
                    INT32 in_iLine)
 {
@@ -107,7 +91,7 @@ void GDZDebug::Log(const GString& in_sMsg,
         const auto l_LogLevel = m_mLogLevelsEnabled.find(l_sModuleName);
         const UINT32 l_iLogLevelsEnabled = c_iDefaultLogLevel | ((l_LogLevel == m_mLogLevelsEnabled.cend()) ? 0 : l_LogLevel->second);
 
-        if((l_iLogLevelsEnabled & in_iLogLevel) != 0 || (in_iLogCategories & m_iEnabledLogCategories) != 0)
+        if((l_iLogLevelsEnabled & in_iLogLevel) != 0)
         {
             g_Joshua.Log(L"(DZLOG) [" + c_mLogLevelNames.at(in_iLogLevel) + L"] " +
                          l_sModuleName + L" - " +
@@ -125,7 +109,7 @@ void GDZDebug::Assert(const bool in_bExpr,
                       const GString& in_sFile,
                       const INT32 in_iLine)
 {
-    if(!in_bExpr)
+    if(m_bAssertEnable && !in_bExpr)
     {
         //g_Joshua.Log() doesn't log out newlines within a GString for some reason
         //Need to log out each line separately
@@ -136,13 +120,6 @@ void GDZDebug::Assert(const bool in_bExpr,
         l_vAssertMsgs.push_back(L"ASSERT FUNCTION: " + in_sFunc + L"\n");
         l_vAssertMsgs.push_back(L"ASSERT LOCATION: " + in_sFile + L":" + GString(in_iLine) + L"\n");
         l_vAssertMsgs.push_back(L"----------------------------------------------------------------");
-
-        GString l_sLogicErrorMsg;
-        for(auto l_It = l_vAssertMsgs.cbegin(); l_It < l_vAssertMsgs.cend(); ++l_It)
-        {
-            g_Joshua.Log(*l_It);
-            l_sLogicErrorMsg += *l_It;
-        }
 
         abort();
     }

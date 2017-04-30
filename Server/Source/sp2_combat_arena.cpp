@@ -804,8 +804,7 @@ bool SP2::GArena::RemoveGroup(SDK::Combat::GUnitGroup*  in_pGroup)
 {
 #ifdef GOLEM_DEBUG
    GDZLOG(GString(L"Removing group from combat : ") + GString(in_pGroup->Id() ),
-          EDZLogLevel::Info2,
-          EDZLogCat::UnitMovement | EDZLogCat::War);
+          EDZLogLevel::Info2);
 #endif
 
    //Remove the group from the unit group list

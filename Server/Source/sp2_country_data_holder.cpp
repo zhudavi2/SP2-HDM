@@ -1964,8 +1964,7 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
     const GCountryData* const l_pMasterData = g_ServerDAL.CountryData(in_iMaster);
     GDZLOG(L"Testing if " + NameAndIDForLog() + L" can be a client of " +
            l_pMasterData->NameAndIDForLog(),
-           EDZLogLevel::Info1,
-           EDZLogCat::ClientStates);
+           EDZLogLevel::Info1);
 
     //Check if the server allows human-controlled countries to become client states
     if(!g_SP2Server->AllowHumanClientStates())
@@ -1974,8 +1973,7 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
         if(l_pPlayer == nullptr || !l_pPlayer->AIControlled())
         {
             GDZLOG(NameAndIDForLog() + L" is ineligible to be a client because it is not AI-controlled, and the server disallows human-controlled countries from becoming client states",
-                   EDZLogLevel::Info1,
-                   EDZLogCat::ClientStates);
+                   EDZLogLevel::Info1);
             return false;
         }
     }
@@ -1992,8 +1990,7 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
            L"; " +
            l_pMasterData->NameAndIDForLog() + L" economic score: " +
            GString::FormatNumber(l_fMasterEconomicScore, L",", L".", L"$", L""),
-           EDZLogLevel::Info2,
-           EDZLogCat::ClientStates);
+           EDZLogLevel::Info2);
     if(l_fMasterEconomicScore / 2.0 < l_fClientOptimalEconomicScore)
         return false;
 
@@ -2004,8 +2001,7 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
            L"; " +
            l_pMasterData->NameAndIDForLog() + L" military: " +
            GString::FormatNumber(l_fMasterMilitaryStrength, L",", L".", L"$", L""),
-           EDZLogLevel::Info2,
-           EDZLogCat::ClientStates);
+           EDZLogLevel::Info2);
     if(m_fMilitaryStrength > l_fMasterMilitaryStrength / 10.f)
         return false;
 
@@ -2013,14 +2009,12 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
     const REAL32 l_fPercentageOccupied = PercentageOfPopulationOccupiedByCountry(in_iMaster);
     GDZLOG(NameAndIDForLog() + L" percentage occupied: " +
            GString(l_fPercentageOccupied * 100.f),
-           EDZLogLevel::Info2,
-           EDZLogCat::ClientStates);
+           EDZLogLevel::Info2);
     if(l_fPercentageOccupied < 0.8f)
         return false;
 
     GDZLOG(NameAndIDForLog() + L" is eligible", 
-           EDZLogLevel::Info2,
-           EDZLogCat::ClientStates);
+           EDZLogLevel::Info2);
     return true;
 }
 
@@ -2666,8 +2660,7 @@ void GCountryData::RemoveClient(ENTITY_ID in_iCountryID)
 
     GDZLOG(l_pClient->NameAndIDForLog() + L" is no longer a client of " +
            NameAndIDForLog(),
-           EDZLogLevel::Info2,
-           EDZLogCat::ClientStates);
+           EDZLogLevel::Info2);
 
     //Send country list to update the former client's name
     g_ServerDCL.SendCountryList();
