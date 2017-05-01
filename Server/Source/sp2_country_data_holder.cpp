@@ -24,6 +24,10 @@ GCountryData::GCountryData() : GCountryDataItf()
 
 
    m_pResearchInformation = new GResearchInformation();
+
+   //Unused
+   m_fGDPValueBase     = 0.f;
+   m_fEconomicActivity = 0.f;
 }
 
 //! destructor
@@ -97,7 +101,6 @@ void GCountryData::SynchronizeWithRegions()
 	m_iPop1565 = 0;
 	m_iPop65 = 0;	
 	m_fGDPValue = 0.f;
-	m_fGDPValueBase = 0.f;
 
 	m_iPopulationPoliticalControl = 0;
 	REAL32 l_fTempElevation = 0.0f;
@@ -148,7 +151,7 @@ void GCountryData::SynchronizeWithRegions()
 				m_pResourceProduction[j]	+= l_pRegion->ResourceProduction((SP2::EResources::Enum)j);
 				gassert(!_isnan(m_pResourceProduction[j]),"Production is NAN");
 				//m_pResourceDemand[j]			+= l_pRegion->ResourceDemand((SP2::EResources::Enum)j);
-            m_fGDPValueBase			+= (l_pRegion->ResourceProduction((SP2::EResources::Enum)j)*m_fResourceProductionModifier);
+                m_fGDPValue += l_pRegion->ResourceProduction((SP2::EResources::Enum)j);
 			}		
 
 		}
@@ -174,8 +177,6 @@ void GCountryData::SynchronizeWithRegions()
 			m_Languages[l_Itr->first] += l_Itr->second;
 		}		
 	}
-
-	m_fGDPValue = max(0.f,m_fGDPValueBase + (0.5*m_fEconomicActivity));
 
 	IterateDemand();
 	
@@ -443,7 +444,6 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 	m_fBudgetRevenueTrade = *((REAL64*)l_Table.Row(0)->Cell(15)->Data());	//192
 	m_fBudgetRevenueIMF = *((REAL64*)l_Table.Row(0)->Cell(16)->Data());	//193
 	m_fBudgetRevenueTourism = *((REAL64*)l_Table.Row(0)->Cell(17)->Data());	//194
-	m_fEconomicActivity = *((REAL64*)l_Table.Row(0)->Cell(18)->Data());	//194
 	m_fBudgetExpenseRatioTelecom = *((REAL64*)l_Table.Row(0)->Cell(19)->Data());	
 	m_fBudgetExpenseRatioIMF = *((REAL64*)l_Table.Row(0)->Cell(20)->Data());	//179
 	m_fBudgetExpenseRatioGovernment = *((REAL64*)l_Table.Row(0)->Cell(21)->Data());	//166
@@ -552,7 +552,7 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
         //Determine LE, MYS, and EYS, given just HDI and GDP per capita.
         REAL32 l_fHIEIMean = powf(m_fHumanDevelopment, 3);
 
-        const REAL32 l_fIncomeIndex = GCountryData::FindIncomeIndex(m_fGDPValueBase/m_iPopulation, true);
+        const REAL32 l_fIncomeIndex = GCountryData::FindIncomeIndex(m_fGDPValue/m_iPopulation, true);
         l_fHIEIMean /= (l_fIncomeIndex > 0) ? l_fIncomeIndex : 1;
 
         l_fHIEIMean = sqrt(l_fHIEIMean);
@@ -569,11 +569,11 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
         }
 
         //Log out some country data right as the game starts.
-        REAL64 l_fGDPPerCapita = (m_iPopulation > 0) ? (m_fGDPValueBase / m_iPopulation) : 0;
+        REAL64 l_fGDPPerCapita = (m_iPopulation > 0) ? (m_fGDPValue / m_iPopulation) : 0;
         g_Joshua.Log(
             NameAndIDForLog() + L": " +
             L"Population " + GString::FormatNumber(static_cast<REAL64>(m_iPopulation), L",", L".", L"", L"", 3, 0) + L"; " +
-            L"GDP " + GString::FormatNumber(m_fGDPValueBase, L",", L".", L"$", L"", 3) + L"; " +
+            L"GDP " + GString::FormatNumber(m_fGDPValue, L",", L".", L"$", L"", 3) + L"; " +
             L"LE " + GString::FormatNumber(m_fLifeExpectancy, 1) + L"; " +
             L"MYS " + GString::FormatNumber(m_fMeanYearsSchooling, 1) + L"; " +
             L"EYS " + GString::FormatNumber(m_fExpectedYearsSchooling, 1) + L"; " +

@@ -1570,7 +1570,7 @@ bool GWorldBehavior::Iterate_Pop_In_Poverty()
 		if(!l_pCountryData->Activated())
 			continue;
 
-		l_fAverageGDPPerCapita += l_pCountryData->GDPValueBase() / (REAL64)( max(1,l_pCountryData->Pop1565()) );
+		l_fAverageGDPPerCapita += l_pCountryData->GDPValue() / (REAL64)( max(1,l_pCountryData->Pop1565()) );
 		l_iNbActiveCountries++;
 	}
 
@@ -1579,7 +1579,7 @@ bool GWorldBehavior::Iterate_Pop_In_Poverty()
 
 	l_fAverageGDPPerCapita /= (REAL64)l_iNbActiveCountries;
 
-	if(( m_CountryData->GDPValueBase() / (REAL64)( max(1,m_CountryData->Pop1565()) ) ) > l_fAverageGDPPerCapita)
+	if(( m_CountryData->GDPValue() / (REAL64)( max(1,m_CountryData->Pop1565()) ) ) > l_fAverageGDPPerCapita)
 		l_fAverageEconomy = 0.f;
 	else
 		l_fAverageEconomy = 1.f;
@@ -3181,14 +3181,11 @@ void GWorldBehavior::IterateGlobalMarket()
 		if(!l_pCountryData->Activated())
 			continue;
 		l_pCountryData->IterateDemand();
-		l_vPoolOfImports[i] = l_pCountryData->GDPValueBase() * c_fGDPEconomicActivityRatio;
+		l_vPoolOfImports[i] = l_pCountryData->GDPValue() * c_fGDPEconomicActivityRatio;
 		for(UINT32 k=0; k<EResources::ItemCount; k++)
 		{
 			l_vPoolOfImports[i] += l_pCountryData->ResourceExport((EResources::Enum)k);
 		}
-
-		//Reset the economic activity
-		l_pCountryData->EconomicActivity(0.f);
 		
 		//let's put all exports and imports to 0
 		l_pCountryData->InitExportsImports();
@@ -3299,8 +3296,6 @@ void GWorldBehavior::IterateGlobalMarket()
 		g_ServerDCL.IterateDesiredExportsImports(i);
 	}
 
-	//vector<REAL64> l_vTotalEconomicActivity;
-	//l_vTotalEconomicActivity.resize(l_iNbCountry+1);
 	const hash_map<UINT32,GTreaty>& l_Treaties = g_ServerDAL.Treaties();	
 
 	UINT32 l_iNbCommonMarket = 0;
@@ -3426,10 +3421,6 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 				if(l_fNeededImport > 0.f)
 				{
 					l_fRealImport = min(l_fNeededImport, min(l_pExporter->ResourceExportDesired(l_iResource), l_pExporter->ResourceProduction(l_iResource))- l_fExporterExport);
-					//if(!l_pImporter->ResourceGvtCtrl(l_iResource) && l_pImporter->ResourceLegal(l_iResource))
-					//	l_fRealImport = min(l_fRealImport,l_fMaxEADifference - abs(out_vTotalEconomicActivity[l_pImporter->CountryID()]));
-					//if(!l_pExporter->ResourceGvtCtrl(l_iResource) && l_pExporter->ResourceLegal(l_iResource))
-					//	l_fRealImport = min(l_fRealImport,l_fMaxEADifference - abs(out_vTotalEconomicActivity[l_pExporter->CountryID()]));
 
 					if(l_fRealImport > 0.f)
 					{
@@ -3446,8 +3437,6 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 							{
 								l_pImporter->BudgetRevenueTrade(l_pImporter->BudgetRevenueTrade() + 
 									(l_fRealImport * (REAL64)(l_pImporter->ResourceTaxes(l_iResource) + l_pImporter->GlobalTaxMod())));
-								l_pImporter->EconomicActivity(l_pImporter->EconomicActivity() - l_fRealImport);
-								//out_vTotalEconomicActivity[l_pImporter->CountryID()] -= l_fRealImport;
 							}
 						}
 
@@ -3462,9 +3451,6 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 							{
 								l_pExporter->BudgetRevenueTrade(l_pExporter->BudgetRevenueTrade()
 									+ (l_fRealImport * (REAL64)(l_pExporter->ResourceTaxes(l_iResource) + l_pExporter->GlobalTaxMod() )));
-								l_pExporter->EconomicActivity(l_pExporter->EconomicActivity() 
-									+ (l_fRealImport * (1.f - (REAL64)(l_pExporter->ResourceTaxes(l_iResource) + l_pExporter->GlobalTaxMod()) )));
-								//out_vTotalEconomicActivity[l_pExporter->CountryID()] += l_fRealImport * (1.f - (REAL64)(l_pExporter->ResourceTaxes(l_iResource) + l_pExporter->GlobalTaxMod() ));
 							}
 						}	
 					}
