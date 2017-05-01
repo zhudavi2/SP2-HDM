@@ -7053,7 +7053,10 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		//Success?
 		Random::GQuick l_Rand;
 		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)(l_fSuccessRate*100.f) * time(NULL)) );
-		if(l_Rand.RandomReal() < l_fSuccessRate)
+        const REAL32 l_fRandomReal = l_Rand.RandomReal();
+        GDZLOG(L"Success rate " + GString(l_fSuccessRate) + L" vs random " + GString(l_fRandomReal),
+               EDZLogLevel::Info1);
+		if(l_fRandomReal < l_fSuccessRate)
 			l_bSuccess = true;
 	}
 	
@@ -8722,6 +8725,9 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 		return 0.f;
 	}
 
+    GDZLOG(L"Complexity modifier: " + GString(l_fDifficultyModifier),
+           EDZLogLevel::Info2);
+
 	// Cell training modifier
 	REAL32 l_fTrainingModifier = 0.f;
    switch(in_eTraining)
@@ -8739,10 +8745,16 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 		return 0.f;
 	}
 
-    // Additional cells
-    l_fTrainingModifier += (in_eTraining < ECovertActionCellTraining::Elite) ? 
-                           (0.5f - (0.5f / sqrt(in_fTotalTrainingOfAdditionalCells + 1.f))) :
-                           log((in_fTotalTrainingOfAdditionalCells / 5.f) + 1.f);
+   GDZLOG(L"Base training modifier: " + GString(l_fTrainingModifier),
+          EDZLogLevel::Info2);
+
+   // Additional cells
+   const REAL32 l_fAdditionalTrainingModifier = (in_eTraining < ECovertActionCellTraining::Elite) ?
+                                                (0.5f - (0.5f / sqrt(in_fTotalTrainingOfAdditionalCells + 1.f))) :
+                                                log((in_fTotalTrainingOfAdditionalCells / 5.f) + 1.f);
+   GDZLOG(L"Additional training modifier: " + GString(l_fAdditionalTrainingModifier),
+          EDZLogLevel::Info2);
+   l_fTrainingModifier += l_fAdditionalTrainingModifier;
 
 	// Mission type modifier && Stability rate
 	REAL32 l_fMissionBaseRate = 0.f;
@@ -8793,15 +8805,26 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 		return 0.f;
 	}
 		
+    GDZLOG(L"Mission base rate modifier: " + GString(l_fMissionBaseRate),
+           EDZLogLevel::Info2);
 
 	REAL32 l_fSecurity = FindNationalSecurity(in_iTarget);	
+
+    GDZLOG(L"Target security: " + GString(l_fSecurity),
+           EDZLogLevel::Info2);
 
 	//Framing modifier	
 	REAL32 l_fFrameModifier = 1.f;
 	if(in_bFraming)
 		l_fFrameModifier = SP2::c_fCountryToFrameModifier;
 
-	return min(l_fDifficultyModifier * l_fFrameModifier * l_fTrainingModifier * l_fMissionBaseRate * (1.f - l_fSecurity) * (1.f - l_fStabilityRate), SP2::c_fMaximumSuccessRateAllowed);
+    GDZLOG(L"Frame modifier: " + GString(l_fFrameModifier),
+           EDZLogLevel::Info2);
+
+	const REAL32 l_fSuccessRate = min(l_fDifficultyModifier * l_fFrameModifier * l_fTrainingModifier * l_fMissionBaseRate * (1.f - l_fSecurity) * (1.f - l_fStabilityRate), SP2::c_fMaximumSuccessRateAllowed);
+    GDZLOG(L"Success rate: " + GString(l_fSuccessRate),
+           EDZLogLevel::Info2);
+    return l_fSuccessRate;
 }
 
 void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
