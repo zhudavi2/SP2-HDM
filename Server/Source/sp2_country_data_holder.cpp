@@ -549,16 +549,58 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 	SynchronizeWithRegions();
 
     {
-        //Determine LE, MYS, and EYS, given just HDI and GDP per capita.
-        REAL32 l_fHIEIMean = powf(m_fHumanDevelopment, 3);
+        //Determine life expectancy, mean years schooling, and expected years schooling, given just HDI and GDP per capita.
+        const REAL32 l_fIndexProduct = powf(m_fHumanDevelopment, 3.f);
 
-        const REAL32 l_fIncomeIndex = GCountryData::FindIncomeIndex(m_fGDPValue/m_iPopulation, true);
-        l_fHIEIMean /= (l_fIncomeIndex > 0) ? l_fIncomeIndex : 1;
+        const REAL32 l_fIncomeIndex = FindIncomeIndex(m_fGDPValue / m_iPopulation, true);
+        REAL32 l_fHIEIProduct = l_fIndexProduct / ((l_fIncomeIndex > 0) ? l_fIncomeIndex : 1.f);
 
-        l_fHIEIMean = sqrt(l_fHIEIMean);
-        m_fLifeExpectancy = (l_fHIEIMean * 65) + 20;
-        m_fMeanYearsSchooling = l_fHIEIMean * 15;
-        m_fExpectedYearsSchooling = l_fHIEIMean * 18;
+        REAL32 l_fHI = 1.f;
+        REAL32 l_fEI = 1.f;
+
+        if(l_fHIEIProduct <= 1.f)
+        {
+            //Estimate health and education indices using quadratic
+            static const REAL32 l_fA = 0.996339245527081f;
+            static const REAL32 l_fB = -0.166249106711782f;
+            const REAL32 l_fC = -l_fHIEIProduct;
+
+            l_fHI = (-l_fB + sqrtf(powf(l_fB, 2.f) - (4 * l_fA * l_fC))) / (2 * l_fA);
+            gassert(l_fHI >= 0.f, L"HI (" + GString(l_fHI) + L") less than 0.000");
+
+            l_fEI = l_fA * l_fHI + l_fB;
+            gassert(l_fHI >= l_fEI, L"HI (" + GString(l_fHI) + L") less than EI (" + GString(l_fEI) +L")");
+
+            if(1.f < l_fHI || l_fEI < 0.f || 1.f < l_fEI)
+            {
+                l_fHI = sqrtf(l_fHIEIProduct);
+                l_fEI = sqrtf(l_fHIEIProduct);
+            }
+        }
+        else
+        {
+            GDZLOG(NameAndIDForLog() + L" has nonincome HDI > 1.000 (" + GString(l_fHIEIProduct) + L"), with HDI " + GString::FormatNumber(m_fHumanDevelopment) + L" and II " + GString(l_fIncomeIndex) + L"; capping HI and EI at 1.000 and recalculating HDI",
+                   EDZLogLevel::Warning);
+            m_fHumanDevelopment = powf(l_fIncomeIndex, 1.f / 3.f);
+        }
+
+        GDZLOG(L"HI: " + GString(l_fHI) + L", EI: " + GString(l_fEI),
+               EDZLogLevel::Info1);
+
+        m_fLifeExpectancy = (l_fHI * 65.f) + 20.f;
+
+        {
+            //Estimate MYS and EYS using linear
+            static const REAL32 l_fM = 1.49263332994651f;
+            m_fMeanYearsSchooling = (180.f * l_fEI) / ((5.f * l_fM) + 6.f);
+            m_fExpectedYearsSchooling = l_fM * m_fMeanYearsSchooling;
+
+            if(c_fMeanYearsSchoolingCap < m_fMeanYearsSchooling || c_fExpectedYearsSchoolingCap < m_fExpectedYearsSchooling)
+            {
+                m_fMeanYearsSchooling = l_fEI * c_fMeanYearsSchoolingCap;
+                m_fExpectedYearsSchooling = l_fEI * c_fExpectedYearsSchoolingCap;
+            }
+        }
 
         if(g_SP2Server->ShowHDIComponents())
         {

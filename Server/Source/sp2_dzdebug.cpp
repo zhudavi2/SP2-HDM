@@ -30,6 +30,7 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 {
     GLogLevelEnabled(L"AI",               0),
     GLogLevelEnabled(L"CombatPlanner",    0),
+    GLogLevelEnabled(L"CountryData",      0),
     GLogLevelEnabled(L"DataControlLayer", 0),
     GLogLevelEnabled(L"UnitGroupEx",      0),
     GLogLevelEnabled(L"UnitMover",        0),

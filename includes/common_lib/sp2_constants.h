@@ -2173,6 +2173,10 @@ const GColorRGBReal SP2_PAINT_MAP_HIGH_VALUE_COLOR     = GColorRGBReal(1.0f,0.0f
    {\
    gassert((in_Vector2D.x >= -180) && (in_Vector2D.x <= 180) &&  (in_Vector2D.y >= -90) && (in_Vector2D.y <= 90), "Invalid coordinate, lat, long" __FILE__);\
    }
+
+   //Human development constants
+   static const REAL32 c_fMeanYearsSchoolingCap = 15.f;
+   static const REAL32 c_fExpectedYearsSchoolingCap = 18.f;
 }
 
 
