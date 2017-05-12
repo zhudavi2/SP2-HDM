@@ -1239,23 +1239,50 @@ bool GWorldBehavior::Iterate_Pop_15_65_Unemployed()
 
 void GWorldBehavior::Iterate_Birth_Rate_Expected()
 {
-	const REAL32 c_fMaxBirthRate = 0.05f;
-	const REAL32 c_fMinBirthRate = 0.002f;
+    static const REAL32 c_fRelativeEysContrib    = 0.641159635450596f;
+    static const REAL32 c_fRelativeOver65Contrib = 0.746064534199632f;
 
-	const REAL32 PourcGvtStability		= 1.f/12.f;
-	const REAL32 PourcHumanDevelopment	= 11.f/21.f;
-	const REAL32 PourcGdpPop				= 11.f/28.f;
+    static const REAL32 c_fMinStabilityForNormalBirth = 0.5f;
+    static const REAL32 c_fMaxEffectiveTaxForNormalBirth = 0.4f;
 
-	REAL32 l_fGvtStability = m_CountryData->GvtStability();
-	REAL32 l_fHumanDevelopment = 1.f - FindHumanDevelopmentFactor(m_CountryData->CountryID());
-	REAL32 l_fGdpPop = 1.f - FindGDPPopulationFactor(m_CountryData->CountryID());
+    GDZLOG(L"Calculating for " + m_CountryData->NameAndIDForLog(),
+           EDZLogLevel::Info2);
 
-	REAL32 l_fResults = (PourcGvtStability * l_fGvtStability) 
-		+ (PourcHumanDevelopment * l_fHumanDevelopment)
-		+ (PourcGdpPop * l_fGdpPop);
+    const REAL32 l_fEys = m_CountryData->ExpectedYearsSchooling();
+    const REAL32 l_fExpectedFromEys = max(0.f, (-0.002655445944747f * l_fEys) + 0.043519905465958f);
+    GDZLOG(L"EYS " + GString::FormatNumber(l_fEys, 1) + L", expected BR " + GString::FormatNumber(l_fExpectedFromEys * 100.f, L"", L".", L"", L"%", 3, 1, false),
+           EDZLogLevel::Info2);
 
-	//Now, bring the value between 0 and 1 to between MinBirthRate & MaxBirthRate
-	REAL32 l_fExpected = c_fMinBirthRate + ((c_fMaxBirthRate - c_fMinBirthRate) * l_fResults);
+    const REAL32 l_fPopPercentOver65 = static_cast<REAL32>(m_CountryData->Pop65()) / static_cast<REAL32>(m_CountryData->Population());
+    const REAL32 l_fExpectedFromOver65 = min(0.00309363345249f * powf(l_fPopPercentOver65, -0.715877580330996f), 0.1f);
+    GDZLOG(L"% population over 65 " + GString::FormatNumber(l_fPopPercentOver65 * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", expected BR " + GString::FormatNumber(l_fExpectedFromOver65 * 100.f, L"", L".", L"", L"%", 3, 1, false),
+           EDZLogLevel::Info2);
+
+    REAL32 l_fExpected = ((l_fExpectedFromEys * c_fRelativeEysContrib) + (l_fExpectedFromOver65 * c_fRelativeOver65Contrib)) / (c_fRelativeEysContrib + c_fRelativeOver65Contrib);
+    GDZLOG(L"Raw BR from EYS and over 65 " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false),
+           EDZLogLevel::Info2);
+
+    static const REAL32 c_fStabilityParabolaAmplitude = -(1.f / powf(c_fMinStabilityForNormalBirth, 2.f));
+    const REAL32 l_fGvtStability = m_CountryData->GvtStability();
+    const REAL32 l_fStabilityScaling = (l_fGvtStability < c_fMinStabilityForNormalBirth) ? (c_fStabilityParabolaAmplitude * powf(l_fGvtStability - c_fMinStabilityForNormalBirth, 2.f) + 1.f) : 1.f;
+    GDZLOG(L"Stability " + GString::FormatNumber(l_fGvtStability * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", stability scaling " + GString::FormatNumber(l_fStabilityScaling, 3),
+           EDZLogLevel::Info2);
+    l_fExpected *= l_fStabilityScaling;
+
+    static const REAL32 c_fIncomeParabolaAmplitude = -(1.f / powf(1.f - c_fMaxEffectiveTaxForNormalBirth, 2.f));
+    const REAL64 l_fIncomeTax = m_CountryData->PersonalIncomeTax();
+    const REAL32 l_fHdi = m_CountryData->HumanDevelopment();
+    const REAL64 l_fEffectiveTaxRate = l_fIncomeTax * l_fHdi;
+    const REAL64 l_fTaxScaling = (c_fMaxEffectiveTaxForNormalBirth < l_fEffectiveTaxRate) ? (c_fIncomeParabolaAmplitude * pow(l_fEffectiveTaxRate - c_fMaxEffectiveTaxForNormalBirth, 2.0) + 1.0) : 1.0;
+    GDZLOG(L"Tax rate " + GString::FormatNumber(l_fIncomeTax * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", HDI " + GString::FormatNumber(l_fHdi, 3) + L", tax scaling " + GString::FormatNumber(l_fTaxScaling, 3),
+           EDZLogLevel::Info2);
+    l_fExpected *= static_cast<REAL32>(l_fTaxScaling);
+
+    gassert(0.f <= l_fExpected, L"Expected birth rate " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false) + L" below 0.0%");
+
+    GDZLOG(L"Expected BR " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false),
+           EDZLogLevel::Info2);
+
 	m_CountryData->BirthRateExpected(l_fExpected);
 }
 void GWorldBehavior::Iterate_Death_Rate_Expected()
