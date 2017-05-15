@@ -50,6 +50,9 @@ namespace SP2
                                   const GString& in_sFile,
                                   INT32 in_iLine);
 
+        //! Helper to add thousands separators to a large integer
+        static inline GString FormatInt(INT64 in_iInt);
+
     private:
         typedef pair<EDZLogLevel::Enum, GString> GLogLevelNamePair;
         typedef pair<GString, UINT32> GLogLevelEnabled;
@@ -126,6 +129,11 @@ void GDZDebug::Assert(const bool in_bExpr,
 
         abort();
     }
+}
+
+GString GDZDebug::FormatInt(const INT64 in_iInt)
+{
+    return GString::FormatNumber(static_cast<REAL64>(in_iInt), L",", L"", L"", L"", 3, 0, false);
 }
 
 #endif //_GOLEM_SP2_DZDEBUG_H_

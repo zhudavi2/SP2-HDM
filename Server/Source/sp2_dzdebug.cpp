@@ -34,6 +34,7 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
     GLogLevelEnabled(L"DataControlLayer", 0),
     GLogLevelEnabled(L"UnitGroupEx",      0),
     GLogLevelEnabled(L"UnitMover",        0),
+    GLogLevelEnabled(L"WorldBehavior",    0),
 };
 
 map<GString, UINT32> GDZDebug::m_mLogLevelsEnabled(c_LogLevelsEnabled, c_LogLevelsEnabled + sizeof(c_LogLevelsEnabled) / sizeof(GLogLevelEnabled));

@@ -182,15 +182,10 @@ bool GWorldBehavior::LoadConfigFile(const GString &in_sFilename, const GString &
 	return true;
 }
 
-bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
+bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15Deaths, INT64& in_iNewOver15)
 {	
-    //const UINT32 l_iRegionId = in_pRegion->Id();
-    /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
-                m_CountryData->NameAndIDForLog() + L": " +
-                L"Population15() "   + GString(in_pRegion->Population15()) + L", " +
-                L"Population1565() " + GString(in_pRegion->Population1565()) + L", " +
-                L"Population65() "   + GString(in_pRegion->Population65()) + L", " +
-                L"Population() "     + GString(in_pRegion->Population()));*/
+    GDZLOG(L"Region " + g_ServerDAL.RegionNameAndIDForLog(in_pRegion->Id()) + L" of " + m_CountryData->NameAndIDForLog(),
+           EDZLogLevel::Info2);
 
 	GReligionList l_Religions;
 	GLanguageList l_Languages;
@@ -201,7 +196,11 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 	const REAL32 PourcConvertsConstReligion = 0.05f;
 	const REAL32 PourcConvertsConstLanguage = 0.1f;
 
-	INT64 l_iInitialPopulation = in_pRegion->Population15() + in_pRegion->Population1565() + in_pRegion->Population65();
+    const INT64 l_iInitialOver15Pop = in_pRegion->Population1565() + in_pRegion->Population65();
+	const INT64 l_iInitialPopulation = in_pRegion->Population15() + l_iInitialOver15Pop;
+    GDZLOG(L"Initial population " + GDZDebug::FormatInt(l_iInitialPopulation) + L", initial over-15 population " + GDZDebug::FormatInt(l_iInitialOver15Pop),
+           EDZLogLevel::Info2);
+
 	INT64 l_iTemp15 = 0;
 	INT64 l_iTemp1565 = 0;
 	INT64 l_iTemp65 = 0;
@@ -239,8 +238,16 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 	else
 		l_iDeaths65 = l_iTotalDeaths;
 
+    GDZLOG(GDZDebug::FormatInt(l_iDeaths1565) + L" 15-65 deaths, " + GDZDebug::FormatInt(l_iDeaths65) + L" over-65 deaths",
+           EDZLogLevel::Info2);
+    in_iOver15Deaths = l_iDeaths1565 + l_iDeaths65;
+
 	// Remove 1/15 of the population under 15, and add them to the population of 15-65
 	l_iNew1565 = ReturnInteger64((1.0f/15.0f) * m_fFrequency * (REAL32)in_pRegion->Population15());
+    GDZLOG(GDZDebug::FormatInt(l_iNew1565) + L" new over-15",
+           EDZLogLevel::Info2);
+    in_iNewOver15 = l_iNew1565;
+
 	l_iTemp15 = in_pRegion->Population15() - l_iNew1565;
 	//add new born babies
 	l_iTemp15 += l_iBabies - l_iDeaths15;
@@ -273,11 +280,11 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion)
 	}
 	in_pRegion->Population65(l_iTemp65);
 
+    const INT64 l_iRemainingOver15Pop = l_iInitialOver15Pop - l_iDeaths1565 - l_iDeaths65;
+    const INT64 l_iTempOver15Pop = in_pRegion->Population1565() + in_pRegion->Population65();
+    gassert(l_iRemainingOver15Pop + l_iNew1565 == l_iTempOver15Pop, L"Over-15 population mismatch, remaining over-15 population " + GString(l_iRemainingOver15Pop) + L", new over-15 " + GString(l_iNew1565) + L", new over-15 population " + GString(l_iTempOver15Pop));
 
 	l_iDifference = in_pRegion->Population15() + in_pRegion->Population1565() + in_pRegion->Population65() - l_iInitialPopulation;
-    /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
-                m_CountryData->NameAndIDForLog() + L": " +
-                L"Birth and death difference " + GString(l_iDifference));*/
 
 	//Number of people that leave and enter the country
 	INT64 l_iLeavingPopulation15 = ReturnInteger64((REAL32)in_pRegion->Population15() * m_CountryData->EmigrationLevel() * m_fFrequency);
@@ -1335,7 +1342,6 @@ bool GWorldBehavior::Iterate_Human_Development()
 
     //Apply!
     REAL32 l_fLifeExpectancy = m_CountryData->LifeExpectancy();
-    REAL32 l_fMeanYearsSchooling = m_CountryData->MeanYearsSchooling();
     REAL32 l_fExpectedYearsSchooling = m_CountryData->ExpectedYearsSchooling();
 
     {
@@ -1344,8 +1350,6 @@ bool GWorldBehavior::Iterate_Human_Development()
         l_fLifeExpectancy += l_fLEGain * m_fFrequency;
     }
 
-    l_fMeanYearsSchooling += (l_fResults - 0.5f) * 0.4f * m_fFrequency;
-
     {
         REAL32 l_fEYSGain = (l_fResults - 0.5f) * 0.6f;
         l_fEYSGain += 0.1f * (1.f - FindHumanDevelopmentFactor(m_CountryData->CountryID()));
@@ -1353,21 +1357,18 @@ bool GWorldBehavior::Iterate_Human_Development()
     }
 
     l_fLifeExpectancy = max(0.f, l_fLifeExpectancy);
-    l_fMeanYearsSchooling = max(0.f, l_fMeanYearsSchooling);
     l_fExpectedYearsSchooling = max(0.f, l_fExpectedYearsSchooling);
 
     m_CountryData->LifeExpectancy(l_fLifeExpectancy);
-    m_CountryData->MeanYearsSchooling(l_fMeanYearsSchooling);
     m_CountryData->ExpectedYearsSchooling(l_fExpectedYearsSchooling);
 
-    REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, l_fMeanYearsSchooling, l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita(), true);
+    REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, m_CountryData->MeanYearsSchooling(), l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita(), true);
 	m_CountryData->HumanDevelopment(l_fNewHDLevel);
 
     if(g_SP2Server->ShowHDIComponents())
     {
         m_CountryData->ArableLandLevel(l_fNewHDLevel);
         m_CountryData->ForestLandLevel(l_fLifeExpectancy / 100.f);
-        m_CountryData->ParksLandLevel(l_fMeanYearsSchooling / 100.f);
         m_CountryData->NotUsedLandLevel(l_fExpectedYearsSchooling / 100.f);
     }
 
@@ -1734,6 +1735,8 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 		}
 	}
 	
+    GDZLOG(m_CountryData->NameAndIDForLog(),
+           EDZLogLevel::Info2);
 
 	REAL64 l_fGameTime = g_Joshua.GameTime();
 	m_fFrequency = (REAL32)((l_fGameTime - m_CountryData->LastIteration()) / 365.0f);	
@@ -1813,7 +1816,15 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 
 	Iterate_Infrastructure_Expected();
 	Iterate_Telecom_Expected();
+
 	INT64 l_iFinalPopulation = 0;
+
+    const INT64 l_iInitialOver15Pop = m_CountryData->Pop1565() + m_CountryData->Pop65();
+    GDZLOG(L"Initial over-15 population " + GDZDebug::FormatInt(l_iInitialOver15Pop),
+           EDZLogLevel::Info2);
+
+    INT64 l_iOver15Deaths = 0;
+    INT64 l_iNewOver15 = 0;
 
 	for(set<UINT32>::const_iterator l_RegionItr = l_vRegions.begin();
 		l_RegionItr != l_vRegions.end();
@@ -1828,10 +1839,17 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 
 		//! \todo Regions under military control don't grow as well as ordinary regions
 		INT64 l_iOldPopulation = l_pRegion->Population();
-		Iterate_Population(l_pRegion);
+        INT64 l_iRegionOver15Deaths = 0;
+        INT64 l_iRegionNewOver15 = 0;
+
+		Iterate_Population(l_pRegion, l_iRegionOver15Deaths, l_iRegionNewOver15);
+
 		REAL32 l_fPopRatio = 0.f;
 		if(l_iOldPopulation > 0)
 			l_fPopRatio = 1.f + ((REAL32)(l_pRegion->Population() - l_iOldPopulation) / (REAL32)l_iOldPopulation);
+
+        l_iOver15Deaths += l_iRegionOver15Deaths;
+        l_iNewOver15 += l_iRegionNewOver15;
 
 
 		for(UINT32 i=0; i<EResources::ItemCount; i++)
@@ -1852,6 +1870,32 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 			l_iFinalPopulation += l_pRegion->Population();
 
 	}
+
+    //Estimate new MYS, disregarding migration
+    const INT64 l_iRemainingOver15Pop = l_iInitialOver15Pop - l_iOver15Deaths;
+    GDZLOG(L"Total over-15 deaths " + GDZDebug::FormatInt(l_iOver15Deaths) + L", remaining " + GDZDebug::FormatInt(l_iRemainingOver15Pop),
+           EDZLogLevel::Info2);
+
+    const INT64 l_iNewOver15Pop = l_iRemainingOver15Pop + l_iNewOver15;
+    GDZLOG(L"Total new over-15 " + GDZDebug::FormatInt(l_iNewOver15) + L", now " + GDZDebug::FormatInt(l_iNewOver15Pop),
+           EDZLogLevel::Info2);
+
+    if(l_iNewOver15Pop > 0)
+    {
+        const REAL32 l_fOldMys = m_CountryData->MeanYearsSchooling();
+        const REAL32 l_fRemainingTotalYearsSchooling = l_iRemainingOver15Pop * l_fOldMys;
+        const REAL32 l_fEys = m_CountryData->ExpectedYearsSchooling();
+        GDZLOG(L"EYS " + GString::FormatNumber(l_fEys, 1),
+               EDZLogLevel::Info2);
+        const REAL32 l_fNewTotalYearsSchooling = l_fRemainingTotalYearsSchooling + (l_iNewOver15 * l_fEys);
+        const REAL32 l_fNewMys = l_fNewTotalYearsSchooling / l_iNewOver15Pop;
+        GDZLOG(L"Old MYS " + GString::FormatNumber(l_fOldMys, 6) + L", new MYS " + GString::FormatNumber(l_fNewMys, 6),
+               EDZLogLevel::Info2);
+        m_CountryData->MeanYearsSchooling(l_fNewMys);
+
+        if(g_SP2Server->ShowHDIComponents())
+            m_CountryData->ParksLandLevel(l_fNewMys / 100.f);
+    }
 
 	m_CountryData->PopulationPoliticalControl(l_iFinalPopulation);
 	m_CountryData->IterateDemand();
