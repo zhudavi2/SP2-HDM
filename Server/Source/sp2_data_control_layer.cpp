@@ -2112,6 +2112,20 @@ bool GDataControlLayer::DeclareWar(ENTITY_ID in_iAttackingCountry, ENTITY_ID in_
 	//Log the war declaration
 	LogNewAction(L"Country ID: (" + GString(in_iAttackingCountry) + L") has declared war to Country ID: (" + GString(in_iDefendingCountry) + L") !!");	
 
+    //Broadcast to chat
+    {
+        const GString l_sDeclarerName = g_ServerDAL.CountryData(in_bOffensiveWar ? in_iAttackingCountry : in_iDefendingCountry)->Name();
+        const GString l_sReceiverName = g_ServerDAL.CountryData(in_bOffensiveWar ? in_iDefendingCountry : in_iAttackingCountry)->Name();
+
+        SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
+        reinterpret_cast<SDK::Event::GChatEvent *>(l_Event.get())->Message(l_sDeclarerName + L" is now at war with " + l_sReceiverName);
+
+        l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
+        l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
+
+        g_Joshua.RaiseEvent(l_Event);
+    }
+
 	//Calculate the total of enemies this country has
 	UINT32 l_iNbCountries = (UINT32)g_ServerDAL.NbCountry();
 	m_TotalEnemiesByCountries[in_iAttackingCountry] = 0.f;
