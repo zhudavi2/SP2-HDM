@@ -731,6 +731,9 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 			l_CurrentDate.Seconds(),l_CurrentDate.Tenths());
 		l_pCountryData->NextElection(l_NextElection);
 	}
+
+    GString l_sChatMessage = l_pCountryData->Name();
+
 	if(in_NewGvtType != EGovernmentType::Anarchy)
 	{
 		LogNewAction(L"Country ID: (" + GString(in_iCountryID) + L") changes government type from " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(in_PreviousGvtType)) + L" to " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(in_NewGvtType)) + L".");
@@ -751,6 +754,8 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
          l_News.m_vStrings = l_vStrings;
          SendNews(l_News);
       }
+
+      l_sChatMessage += L" has changed its government type to " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(in_NewGvtType));
 
 		//Put back every party legal
 		for(UINT32 i=0; i<l_vParties.size(); i++)
@@ -816,7 +821,20 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
          l_News.m_eCategory = g_ServerDAL.NewsCategory(l_News.m_eType);
          SendNews(l_News);
       }
+
+      l_sChatMessage += L" has fallen into anarchy";
 	}
+
+    //Broadcast to chat
+    {
+        SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
+        reinterpret_cast<SDK::Event::GChatEvent *>(l_Event.get())->Message(l_sChatMessage);
+
+        l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
+        l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
+
+        g_Joshua.RaiseEvent(l_Event);
+    }
 
    g_ServerDAL.AddHistoricalMarker(in_iCountryID, 
                                    EHistoryMarkerType::ChangeGovermentType, 
