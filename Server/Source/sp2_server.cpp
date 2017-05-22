@@ -2889,7 +2889,7 @@ void GServer::LoadSP2HDMConfigXML()
                             else if(l_sName == L"the")
                                 l_eGovernmentType = EGovernmentType::Theocracy;
 
-                            m_IncomeTaxLimits[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL32() / 100.f;
+                            m_IncomeTaxLimits[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL64() / 100.0;
                             g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " +
                                          GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }

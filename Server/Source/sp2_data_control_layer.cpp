@@ -809,8 +809,8 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 		}
 
         //Adjust income tax based on gov't type, if maximum taxes per gov't type are configured
-        const REAL32 l_fIncomeTaxLimit = g_SP2Server->IncomeTaxLimit(in_NewGvtType);
-        const REAL32 l_fIncomeTax      = l_pCountryData->PersonalIncomeTax();
+        const REAL64 l_fIncomeTaxLimit = g_SP2Server->IncomeTaxLimit(in_NewGvtType);
+        const REAL64 l_fIncomeTax      = l_pCountryData->PersonalIncomeTax();
         if(l_fIncomeTaxLimit < l_fIncomeTax)
             ChangePersonalIncomeTax(in_iCountryID, l_fIncomeTax, l_fIncomeTaxLimit);
 	}

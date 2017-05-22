@@ -75,6 +75,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4996;4189;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>.;../includes/common_lib;../includes/RGAPI/core;../includes/RGAPI/external/zlib;../includes/RGAPI/public;../includes/SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Ginger_SDK.lib;unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
