@@ -1893,18 +1893,76 @@ REAL32 GCountryData::HierarchicalDistance() const {return m_fAIHierarchicalDista
 void  GCountryData::IterateCovertActionCells()
 {
 	bool l_bCellsHaveChanged = false;
-	INT32 l_iOldState = 0;
-	INT32 l_iNewState = 0;
-   for(UINT32 i = 0 ; i < m_vCovertActionCells.size() ; i++)
-   {
-		l_iOldState = m_vCovertActionCells[i].ActualState();
-      m_vCovertActionCells[i].Iterate();
-		l_iNewState = m_vCovertActionCells[i].ActualState();
-		
-		if(l_iOldState != l_iNewState)
-			l_bCellsHaveChanged = true;
-   }
-	if(l_bCellsHaveChanged)
+
+    SDK::GPlayer* const l_pPlayer = g_Joshua.ActivePlayerByModID(m_iCountryID);
+    const bool l_bIsHumanPlayer = l_pPlayer != nullptr && !l_pPlayer->AIControlled();
+    const bool l_bAutoCovertMissions = (l_bIsHumanPlayer && g_SP2Server->AutoCovertMissions());
+
+    set<UINT32> l_vCellsToRemove;
+
+    for(auto it = m_vCovertActionCells.begin(); it < m_vCovertActionCells.end(); ++it)
+    {
+        const INT32 l_iOldState = it->ActualState();
+        it->Iterate();
+        l_bCellsHaveChanged = (l_bCellsHaveChanged || l_iOldState != it->ActualState());
+
+        if(l_bAutoCovertMissions)
+        {
+            //Auto execute and repeat mission
+            if(it->ActualState() == ECovertActionsCellState::ReadyToExecute &&
+               it->MissionType() != SP2::ECovertActionsMissionType::CoupEtat)
+            {
+                const ENTITY_ID l_iTargetID = it->AssignedCountry();
+                const UINT32 l_iCellID = it->ID();
+                if(g_ServerDAL.CountryValidityArray(l_iTargetID))
+                {
+                    if(!g_ServerDCL.ExecuteMission(*it))
+                    {
+                        //Set the cell back to active before preparing the mission again
+                        //This is needed to force the cell to spend time preparing its next mission, rather than execute the next mission instantly
+                        it->ChangeState(ECovertActionsCellState::Active);
+
+                        GDZLOG(g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" wasn't captured after executing auto mission; restarting mission",
+                               EDZLogLevel::Info2);
+                        it->ChangeState(ECovertActionsCellState::PreparingMission);
+                    }
+                    else
+                    {
+                        GDZLOG(g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" was captured after executing auto mission; marking cell for removal",
+                               EDZLogLevel::Info2);
+                        l_vCellsToRemove.insert(l_iCellID);
+                    }
+                }
+                else
+                {
+                    GDZLOG(g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" is cancelling an automatic mission against " + GString(l_iTargetID) + L" due to target inactivity",
+                           EDZLogLevel::Info1);
+                    it->CancelAction();
+                    it->AssignedCountry(m_iCountryID);
+                }
+
+                m_bCovertActionCellsDirty = true;
+            }
+        }
+    }
+
+    gassert(l_vCellsToRemove.empty() || l_bAutoCovertMissions, L"Not possible for cells to require removal here, without auto covert missions");
+
+    for(auto it = l_vCellsToRemove.cbegin(); it != l_vCellsToRemove.cend(); ++it)
+    {
+        GDZLOG(L"Removing captured cell " + g_ServerDAL.CovertCellInfoForLog(m_iCountryID, *it),
+               EDZLogLevel::Info2);
+        RemoveCovertActionCell(CovertActionCell(*it));
+    }
+
+    //m_bCovertActionCellsDirty seems to get reset upon calling RemoveCovertActionCell, and it needs to be set after any RemoveCovertActionCell calls
+    m_bCovertActionCellsDirty = (m_bCovertActionCellsDirty || !l_vCellsToRemove.empty());
+
+    if(m_bCovertActionCellsDirty)
+        GDZLOG(L"m_bCovertActionCellsDirty TRUE",
+               EDZLogLevel::Info2);
+    
+    if(l_bCellsHaveChanged || m_bCovertActionCellsDirty)
 	{
 		g_ServerDAL.UpdateAccuracyOfInformation(m_iCountryID);
 		m_fNationalSecurity = g_ServerDCL.FindNationalSecurity(m_iCountryID);

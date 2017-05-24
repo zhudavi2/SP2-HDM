@@ -2810,6 +2810,11 @@ void GServer::LoadSP2HDMConfigXML()
                         m_fAnnexationRelationLossPercent = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"annexationRelationLossPercent: " + GString(m_fAnnexationRelationLossPercent));
                     }
+                    else if(l_sElementName == L"autoCovertMissions")
+                    {
+                        m_bAutoCovertMissions = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"autoCovertMissions: " + GString(m_bAutoCovertMissions));
+                    }
                     else if(l_sElementName == L"combatRangeDegrees")
                     {
                         const REAL32 l_fCombatRangeDegrees = l_sElementValue.ToREAL32();

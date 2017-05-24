@@ -131,6 +131,7 @@ namespace SP2
       inline bool    AllowHumanClientStates() const { return m_bAllowHumanClientStates; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
       inline REAL32  AnnexationRelationLossPercent() const { return m_fAnnexationRelationLossPercent; }
+      inline bool    AutoCovertMissions() const { return m_bAutoCovertMissions; }
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
       inline INT32   CountryNameChangeMode() const { return m_iCountryNameChangeMode; }
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
@@ -265,6 +266,7 @@ namespace SP2
       bool   m_bAllowHumanClientStates;
       bool   m_bAllowDefenderAttackAttackerTerritory;
       REAL32 m_fAnnexationRelationLossPercent;
+      bool   m_bAutoCovertMissions;
       REAL32 m_fCombatThresholdSquare;
       INT32  m_iCountryNameChangeMode;
       REAL32 m_fDedicatedServerAutosavePeriod;

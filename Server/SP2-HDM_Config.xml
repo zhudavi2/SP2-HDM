@@ -21,6 +21,13 @@
   Minimum value is 0. Default is 100. -->
   <annexationRelationLossPercent>100</annexationRelationLossPercent>
   
+  <!-- Set to 1 to enable covert cells of human-controlled countries to
+  automatically execute, re-prepare, and re-execute their missions when
+  assigned, until their mission preparation is cancelled or when they are captured.
+  Doesn't apply to coup missions.
+  Allowed values are 0 and 1. Default is 0. -->
+  <autoCovertMissions>0</autoCovertMissions>
+  
   <!-- Hostile military units in the same region must be at most this far from each other, in
   approximate degrees of latitude/longitude, in order to automatically engage in combat.
   Default is 0.70. -->
