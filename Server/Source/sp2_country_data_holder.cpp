@@ -595,10 +595,10 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
             m_fMeanYearsSchooling = (180.f * l_fEI) / ((5.f * l_fM) + 6.f);
             m_fExpectedYearsSchooling = l_fM * m_fMeanYearsSchooling;
 
-            if(c_fMeanYearsSchoolingCap < m_fMeanYearsSchooling || c_fExpectedYearsSchoolingCap < m_fExpectedYearsSchooling)
+            if(c_fMaxMeanYearsSchooling < m_fMeanYearsSchooling || c_fMaxExpectedYearsSchooling < m_fExpectedYearsSchooling)
             {
-                m_fMeanYearsSchooling = l_fEI * c_fMeanYearsSchoolingCap;
-                m_fExpectedYearsSchooling = l_fEI * c_fExpectedYearsSchoolingCap;
+                m_fMeanYearsSchooling = l_fEI * c_fMaxMeanYearsSchooling;
+                m_fExpectedYearsSchooling = l_fEI * c_fMaxExpectedYearsSchooling;
             }
         }
 

@@ -1255,6 +1255,7 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
     GDZLOG(L"Calculating for " + m_CountryData->NameAndIDForLog(),
            EDZLogLevel::Info2);
 
+    //Calculate initial BR via EYS and over-65 %
     const REAL32 l_fEys = m_CountryData->ExpectedYearsSchooling();
     const REAL32 l_fExpectedFromEys = max(0.f, (-0.002655445944747f * l_fEys) + 0.043519905465958f);
     GDZLOG(L"EYS " + GString::FormatNumber(l_fEys, 1) + L", expected BR " + GString::FormatNumber(l_fExpectedFromEys * 100.f, L"", L".", L"", L"%", 3, 1, false),
@@ -1269,6 +1270,7 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
     GDZLOG(L"Raw BR from EYS and over 65 " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false),
            EDZLogLevel::Info2);
 
+    // Scale by stability, effective tax rate, and life expectancy if under approximate minimum needed to sustain population
     static const REAL32 c_fStabilityParabolaAmplitude = -(1.f / powf(c_fMinStabilityForNormalBirth, 2.f));
     const REAL32 l_fGvtStability = m_CountryData->GvtStability();
     const REAL32 l_fStabilityScaling = (l_fGvtStability < c_fMinStabilityForNormalBirth) ? (c_fStabilityParabolaAmplitude * powf(l_fGvtStability - c_fMinStabilityForNormalBirth, 2.f) + 1.f) : 1.f;
@@ -1285,6 +1287,14 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
            EDZLogLevel::Info2);
     l_fExpected *= static_cast<REAL32>(l_fTaxScaling);
 
+    const REAL32 l_fLe = m_CountryData->LifeExpectancy();
+    if(l_fLe < c_fMinLifeExpectancy)
+    {
+        static const REAL32 l_fLeForZeroBr = 10.f;
+        const REAL32 l_fLeScaling = (l_fLe - l_fLeForZeroBr) / l_fLeForZeroBr;
+        l_fExpected *= l_fLeScaling;
+    }
+
     gassert(0.f <= l_fExpected, L"Expected birth rate " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false) + L" below 0.0%");
 
     GDZLOG(L"Expected BR " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false),
@@ -1294,23 +1304,25 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
 }
 void GWorldBehavior::Iterate_Death_Rate_Expected()
 {
-	const REAL32 c_fMaxDeathRate = 0.035f;
-	const REAL32 c_fMinDeathRate = 0.0015f;
+    //Limits for health spending and income index contributions only
+	static const REAL32 c_fMaxDeathRate = 0.035f;
+    static const REAL32 c_fMinDeathRate = 0.0015f;
 
-	const REAL32 PourcHealthCare			= 0.4f;
-	const REAL32 PourcHumanDevelopment	= 0.3f;
-	const REAL32 PourcGdpPop				= 0.3f;
+    static const REAL32 c_fRelativeHealthCareContrib = 0.4f;
+    static const REAL32 c_fRelativeLeContrib         = 0.30399243208597f;
+    static const REAL32 c_fRelativeIiContrib         = 0.3f;
 
-	REAL32 l_fHealthCare = 1.f - (REAL32)m_CountryData->BudgetExpenseHealthcareRatio();
-	REAL32 l_fHumanDevelopment = 1.f - FindHumanDevelopmentFactor(m_CountryData->CountryID());
-	REAL32 l_fGdpPop = 1.f - FindGDPPopulationFactor(m_CountryData->CountryID());
+    const REAL64 l_fHealthCare = m_CountryData->BudgetExpenseHealthcareRatio();
+    const REAL32 l_fExpectedFromHealthCare = c_fMinDeathRate + ((c_fMaxDeathRate - c_fMinDeathRate) * (1.f - static_cast<REAL32>(l_fHealthCare)));
 
-	REAL32 l_fResults = (PourcHealthCare * l_fHealthCare) 
-		+ (PourcHumanDevelopment * l_fHumanDevelopment)
-		+ (PourcGdpPop * l_fGdpPop);
+    const REAL32 l_fLe = m_CountryData->LifeExpectancy();
+    const REAL32 l_fExpectedFromLe = (0.0000135738106154153f * powf(l_fLe , 2.f)) - (0.002000994108639f * l_fLe) + 0.08052603614346f;
 
-	//Now, bring the value between 0 and 1 to between MinBirthRate & MaxBirthRate
-	REAL32 l_fExpected = c_fMinDeathRate + ((c_fMaxDeathRate - c_fMinDeathRate) * l_fResults);
+	const REAL32 l_fIi = FindGDPPopulationFactor(m_CountryData->CountryID());
+    const REAL32 l_fExpectedFromIi = c_fMinDeathRate + ((c_fMaxDeathRate - c_fMinDeathRate) * (1.f - l_fIi));
+
+    const REAL32 l_fExpected = ((c_fRelativeHealthCareContrib * l_fExpectedFromHealthCare) + (c_fRelativeLeContrib * l_fExpectedFromLe) + (c_fRelativeIiContrib * l_fExpectedFromIi)) / (c_fRelativeHealthCareContrib + c_fRelativeLeContrib + c_fRelativeIiContrib);
+
 	m_CountryData->DeathRateExpected(l_fExpected);
 }
 
