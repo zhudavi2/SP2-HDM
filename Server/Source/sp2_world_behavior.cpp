@@ -1321,7 +1321,16 @@ void GWorldBehavior::Iterate_Death_Rate_Expected()
 	const REAL32 l_fIi = FindGDPPopulationFactor(m_CountryData->CountryID());
     const REAL32 l_fExpectedFromIi = c_fMinDeathRate + ((c_fMaxDeathRate - c_fMinDeathRate) * (1.f - l_fIi));
 
-    const REAL32 l_fExpected = ((c_fRelativeHealthCareContrib * l_fExpectedFromHealthCare) + (c_fRelativeLeContrib * l_fExpectedFromLe) + (c_fRelativeIiContrib * l_fExpectedFromIi)) / (c_fRelativeHealthCareContrib + c_fRelativeLeContrib + c_fRelativeIiContrib);
+    REAL32 l_fExpected = ((c_fRelativeHealthCareContrib * l_fExpectedFromHealthCare) + (c_fRelativeLeContrib * l_fExpectedFromLe) + (c_fRelativeIiContrib * l_fExpectedFromIi)) / (c_fRelativeHealthCareContrib + c_fRelativeLeContrib + c_fRelativeIiContrib);
+
+    //If LE is increasing, then limit death rate so it doesn't cause the over-65 % of population to decrease
+    if(FindAnnualLifeExpectancyGain() >= 0.f)
+    {
+        const INT64 l_fNewOver65 = ReturnInteger64((1.f / 50.f) * m_CountryData->Pop1565());
+        const INT64 l_iPopOver65 = m_CountryData->Pop65();
+        const REAL32 l_fMaxDeathRate = (l_fNewOver65 - (m_CountryData->BirthRate() * l_iPopOver65)) / (m_CountryData->Population() - l_iPopOver65);
+        l_fExpected = min(l_fExpected, l_fMaxDeathRate);
+    }
 
 	m_CountryData->DeathRateExpected(l_fExpected);
 }
@@ -1356,11 +1365,7 @@ bool GWorldBehavior::Iterate_Human_Development()
     REAL32 l_fLifeExpectancy = m_CountryData->LifeExpectancy();
     REAL32 l_fExpectedYearsSchooling = m_CountryData->ExpectedYearsSchooling();
 
-    {
-        REAL32 l_fLEGain = -0.6f * powf(min(l_fResults, 13.f/12.f) - 13.f/12.f, 2) + 97.f/240.f;
-        l_fLEGain += 0.1f * (1.f - FindHumanDevelopmentFactor(m_CountryData->CountryID()));
-        l_fLifeExpectancy += l_fLEGain * m_fFrequency;
-    }
+    l_fLifeExpectancy += FindAnnualLifeExpectancyGain() * m_fFrequency;
 
     {
         REAL32 l_fEYSGain = (l_fResults - 0.5f) * 0.6f;
@@ -4570,6 +4575,37 @@ REAL32 GWorldBehavior::FindPopulationDensityFactor(ENTITY_ID in_iCountryID)
 		l_fPopDensity = 1.f;
 
 	return l_fPopDensity;
+}
+
+REAL32 GWorldBehavior::FindAnnualLifeExpectancyGain() const
+{
+    static const REAL32 c_fRelativeDemographicContrib = 0.4f;
+    static const REAL32 c_fRelativeResourcesContrib   = 0.35f;
+    static const REAL32 c_fRelativeStabilityContrib   = 0.25f;
+
+    static const REAL32 c_fResultsForMaxGain = 13.f / 12.f;
+
+    const ENTITY_ID l_iCountryId = m_CountryData->CountryID();
+
+    const REAL32 l_fDemographic = FindDemographicFinancingFactor(l_iCountryId);
+    const REAL32 l_fStability = m_CountryData->GvtStability();
+    const REAL32 l_fResources = FindResourceFactor(l_iCountryId);
+
+    REAL32 l_fResults = (c_fRelativeDemographicContrib * l_fDemographic) + (c_fRelativeResourcesContrib * l_fResources)
+        + (c_fRelativeStabilityContrib * l_fStability);
+
+    if(m_CountryData->InternalLaw(EInternalLaws::ChildLabor))
+        l_fResults -= 0.05f;
+
+    //Bonus from treaties
+    l_fResults += g_ServerDAL.HumanDevelopmentBonus(l_iCountryId);
+
+    l_fResults = min(l_fResults, c_fResultsForMaxGain);
+
+    REAL32 l_fGain = -0.6f * powf(l_fResults - c_fResultsForMaxGain, 2.f) + 97.f/240.f;
+    l_fGain += 0.1f * (1.f - FindHumanDevelopmentFactor(l_iCountryId));
+
+    return l_fGain;
 }
 
 INT64 GWorldBehavior::ReturnInteger64(REAL32 in_fValue)

@@ -150,6 +150,9 @@ private:
 	bool Iterate_Budget_Expense_Unit_Upkeep();
 	bool Iterate_Budget_Revenue_Tax();
 
+    //! Returns annual life expectancy increase, in years
+    REAL32 FindAnnualLifeExpectancyGain() const;
+
 	//! Returns number between 0 and 1
 	static REAL32 AdjustMod(REAL64 in_fMod);
 
