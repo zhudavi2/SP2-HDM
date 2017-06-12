@@ -7126,7 +7126,10 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		//Check if the cell has been captured
 		Random::GQuick l_Rand;
 		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryB * time(NULL)) );
-		if(l_Rand.RandomReal() < SP2::c_fChanceOfCapture)
+        const REAL32 l_fRandomReal = l_Rand.RandomReal();
+        GDZLOG(L"Capture rate " + GString(c_fChanceOfCapture) + L" vs random " + GString(l_fRandomReal),
+               EDZLogLevel::Info1);
+		if(l_fRandomReal < SP2::c_fChanceOfCapture)
 		{
 			l_bCaptured = true;
 		}
@@ -7154,7 +7157,10 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 			//Success?
 			Random::GQuick l_Rand;
 			l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * time(NULL)) );
-			if(l_Rand.RandomReal() < l_fChanceOfKnowingAttacker)
+            const REAL32 l_fRandomReal = l_Rand.RandomReal();
+            GDZLOG(L"Uncover rate " + GString(l_fChanceOfKnowingAttacker) + L" vs random " + GString(l_fRandomReal),
+                   EDZLogLevel::Info1);
+			if(l_fRandomReal < l_fChanceOfKnowingAttacker)
 			{
 				l_bKnowAttacker = true;
 			}
