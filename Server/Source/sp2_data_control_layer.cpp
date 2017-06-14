@@ -721,6 +721,9 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 
 	l_pCountryData->GvtType(in_NewGvtType);	
 
+    l_pCountryData->ResourceProductionModifier(c_pGvtTypeProductionModifier[in_NewGvtType]);
+    l_pCountryData->ResourceDemandModifier(c_pGvtTypeDemandModifier[in_NewGvtType]);
+
 	if( (in_NewGvtType == EGovernmentType::MultiPartyDemocracy) ||
 		 (in_NewGvtType == EGovernmentType::SinglePartyDemocracy))
 	{
@@ -8561,13 +8564,38 @@ void GDataControlLayer::IterateDesiredExportsImports(UINT32 in_iCountryID)
 	}
 }
 
-void GDataControlLayer::IterateBudgetRevenueTax(UINT32 in_iCountryID)
+void GDataControlLayer::IterateBudgetRevenueTax(const UINT32 in_iCountryID)
 {
-	GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
+	GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
+    const REAL64 l_fGdp = l_pCountryData->GDPValue();
 
-	//(GDP * HumanDev (0..1) * Corruption (0..1) * taxes (0..1)) / constante
-	REAL64 l_fRevenueTax = l_pCountryData->GDPValue() * (REAL64)l_pCountryData->HumanDevelopment()
-		* l_pCountryData->PersonalIncomeTax() / SP2::c_fPersonalIncomeTaxConstant;
+    REAL64 l_fRevenueTax = 0.0;
+
+    if(l_fGdp > 0.0)
+    {
+        REAL64 l_fGvtCtrlProportionOfGdp = 0.0;
+
+        for(INT32 i = 0; i < EResources::ItemCount; i++)
+        {
+            const EResources::Enum l_eResource = static_cast<EResources::Enum>(i);
+            l_fGvtCtrlProportionOfGdp += l_pCountryData->ResourceGvtCtrl(l_eResource) ? l_pCountryData->ResourceProduction(l_eResource) / l_fGdp : 0.0;
+        }
+
+        REAL32 l_fGdpTaxDivisorForGvtCtrl = 0.f;
+
+        if(l_fGvtCtrlProportionOfGdp > 0.0)
+        {
+            const REAL32 l_fApproval = l_pCountryData->GvtApproval();
+            const REAL32 l_fStability = l_pCountryData->GvtStability();
+            const REAL32 l_fFoodFactor = g_SP2Server->WorldBehavior().FindFoodResourceFactor(in_iCountryID);
+
+            const REAL32 l_fRatingForGvtCtrl = powf(l_fApproval * l_fStability * l_fFoodFactor, 1.f / 3.f);
+            l_fGdpTaxDivisorForGvtCtrl = (-5.f * l_fRatingForGvtCtrl) + 6.25f;
+        }
+
+        const REAL64 l_fGdpTaxDivisor = (l_fGvtCtrlProportionOfGdp * l_fGdpTaxDivisorForGvtCtrl) + ((1.0 - l_fGvtCtrlProportionOfGdp) * c_fPersonalIncomeTaxConstant);
+        l_fRevenueTax = l_fGdp * l_pCountryData->HumanDevelopment() * l_pCountryData->PersonalIncomeTax() / l_fGdpTaxDivisor;
+    }
 
 	l_pCountryData->BudgetRevenueTax(l_fRevenueTax);
 }

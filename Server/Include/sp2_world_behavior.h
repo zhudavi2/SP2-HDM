@@ -177,6 +177,8 @@ public:
 	static REAL32 FindPopulationDensityFactor(ENTITY_ID in_iCountryID);
 	//! Returns a number between 0 and 1, representing the resource status of a country, 1 being the best
 	static REAL32 FindResourceFactor(ENTITY_ID in_iCountryID);
+    //! Returns a number between 0 and 1, representing the primary resource status of a country, 1 being the best
+    static REAL32 FindFoodResourceFactor(ENTITY_ID in_iCountryID);
 	//! Returns a number between 0 and 1, representing the primary resource status of a country, 1 being the best
 	static REAL32 FindPrimaryResourceFactor(ENTITY_ID in_iCountryID);
 	//! Returns a number between 0 and 1, representing the tertiary resource status of a country, 1 being the best

@@ -151,7 +151,7 @@ void GCountryData::SynchronizeWithRegions()
 				m_pResourceProduction[j]	+= l_pRegion->ResourceProduction((SP2::EResources::Enum)j);
 				gassert(!_isnan(m_pResourceProduction[j]),"Production is NAN");
 				//m_pResourceDemand[j]			+= l_pRegion->ResourceDemand((SP2::EResources::Enum)j);
-                m_fGDPValue += l_pRegion->ResourceProduction((SP2::EResources::Enum)j);
+                m_fGDPValue += l_pRegion->ResourceProduction((SP2::EResources::Enum)j) * m_fResourceProductionModifier;
 			}		
 
 		}

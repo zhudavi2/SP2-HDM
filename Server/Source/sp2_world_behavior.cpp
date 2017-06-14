@@ -3868,6 +3868,47 @@ REAL32 GWorldBehavior::GetRandom(REAL32 in_fMaximumValue)
 	return m_QuickRandom.RandomReal(in_fMaximumValue);
 }
 
+REAL32 GWorldBehavior::FindFoodResourceFactor(const ENTITY_ID in_iCountryID)
+{
+    REAL32 l_fTotalFood = 0.f;
+
+    const GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
+    if(l_pCountryData != nullptr)
+    {
+        typedef pair<EResources::Enum, REAL32> GResImpPair;
+
+        static const GResImpPair c_FoodResImp[] =
+        {
+            GResImpPair(EResources::Cereals, ResImpCereals),
+            GResImpPair(EResources::Vegetable_Fruits, ResImpVegetablesFruits),
+            GResImpPair(EResources::Meat, ResImpMeat),
+            GResImpPair(EResources::Dairy, ResImpDairy),
+        };
+
+        static const INT32 c_iNumFoodRes = sizeof(c_FoodResImp) / sizeof(GResImpPair);
+
+        //All relative importance ratios may not add up to 1, so we need to scale it later
+        REAL32 l_fTotalImp = 0;
+
+        for(INT32 i = 0; i < c_iNumFoodRes; i++)
+        {
+            const EResources::Enum l_eResource = c_FoodResImp[i].first;
+            const REAL64 l_fResourcesAvailable = l_pCountryData->ResourceProduction(l_eResource) + l_pCountryData->ResourceImport(l_eResource) - l_pCountryData->ResourceExport(l_eResource);
+            gassert(l_fResourcesAvailable >= 0.0, L"Can't have " + GString::FormatNumber(l_fResourcesAvailable, L",", L".", L"$", L"", 3, 2, true) + L" worth of resources available");
+
+            const REAL32 l_fResImp = c_FoodResImp[i].second;
+
+            l_fTotalFood += l_fResImp * AdjustMod(l_fResourcesAvailable / (l_pCountryData->ResourceDemand(l_eResource) + 1.0));
+            l_fTotalImp += l_fResImp;
+        }
+
+        l_fTotalFood /= l_fTotalImp;
+    }
+
+    gassert(l_fTotalFood >= 0.f && l_fTotalFood <= 1.f, L"Invalid food factor " + GString::FormatNumber(l_fTotalFood, 3));
+    return l_fTotalFood;
+}
+
 /*!
 * Calculate the primary resource factor, which gives a number between 0 and 1.
 * It is not adjusted by the rich factor of the country
