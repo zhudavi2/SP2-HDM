@@ -44,5 +44,5 @@ UINT32 GDZDebug::m_iEnabledLogCategories = 0;
 #ifdef GOLEM_DEBUG
 bool GDZDebug::m_bAssertEnable = true;
 #else // GOLEM_DEBUG
-bool GDZDebug::m_bAssertEnable = false;
+bool GDZDebug::m_bAssertEnable = m_bLogEnable || false;
 #endif // GOLEM_DEBUG
