@@ -41,4 +41,8 @@ map<GString, UINT32> GDZDebug::m_mLogLevelsEnabled(c_LogLevelsEnabled, c_LogLeve
 
 UINT32 GDZDebug::m_iEnabledLogCategories = 0;
 
-bool GDZDebug::m_bAssertEnable = GOLEM_DEBUG || m_bLogEnable || false;
+#ifdef GOLEM_DEBUG
+bool GDZDebug::m_bAssertEnable = true;
+#else // GOLEM_DEBUG
+bool GDZDebug::m_bAssertEnable = m_bLogEnable || false;
+#endif // GOLEM_DEBUG
