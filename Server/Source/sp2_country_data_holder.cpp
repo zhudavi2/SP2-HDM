@@ -140,21 +140,20 @@ void GCountryData::SynchronizeWithRegions()
 		m_iPop1565 += (INT64)l_pRegion->Population1565();
 		m_iPop65 += (INT64)l_pRegion->Population65();
 
-		if(l_pRegion->OwnerId() == (INT64)l_pRegion->OwnerMilitaryId())
-		{
-			m_iPopulationPoliticalControl += (INT64)l_pRegion->Population();
-			m_fBudgetRevenueTourism += l_pRegion->TourismIncome();
+        if(l_pRegion->OwnerId() == (INT64)l_pRegion->OwnerMilitaryId())
+        {
+            m_iPopulationPoliticalControl += (INT64)l_pRegion->Population();
+            m_fBudgetRevenueTourism += l_pRegion->TourismIncome();
+        }
 			
-			//Calculate the production total of a country
-			for(UINT32 j=0; j < EResources::ItemCount; j++)
-			{
-				m_pResourceProduction[j]	+= l_pRegion->ResourceProduction((SP2::EResources::Enum)j);
-				gassert(!_isnan(m_pResourceProduction[j]),"Production is NAN");
-				//m_pResourceDemand[j]			+= l_pRegion->ResourceDemand((SP2::EResources::Enum)j);
-                m_fGDPValue += l_pRegion->ResourceProduction((SP2::EResources::Enum)j) * m_fResourceProductionModifier;
-			}		
-
-		}
+        //Calculate the production total of a country
+        for(UINT32 j=0; j < EResources::ItemCount; j++)
+        {
+            m_pResourceProduction[j]	+= l_pRegion->ResourceProduction((SP2::EResources::Enum)j);
+            gassert(!_isnan(m_pResourceProduction[j]), "Production is NAN");
+            //m_pResourceDemand[j]			+= l_pRegion->ResourceDemand((SP2::EResources::Enum)j);
+            m_fGDPValue += l_pRegion->ResourceProduction((SP2::EResources::Enum)j) * m_fResourceProductionModifier;
+        }
 
 		m_iHighestPoint = max(m_iHighestPoint,l_pRegion->HighestPoint());
 		m_iLowestPoint = min(m_iLowestPoint,l_pRegion->LowestPoint());
@@ -197,6 +196,8 @@ void GCountryData::SynchronizeWithRegions()
 				m_pResourceImportDesired[j] = (m_pResourceDemand[j]*m_fResourceDemandModifier) - (m_pResourceProduction[j]*m_fResourceProductionModifier);
 			}			
 		}
+        else
+            m_pResourceExportDesired[j] = min(m_pResourceExportDesired[j], m_pResourceProduction[j]*m_fResourceProductionModifier);
 	}
 
 	m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
@@ -260,53 +261,53 @@ void GCountryData::IterateDemand()
     //This ensures that a sane value will be used for the first IterateDemand(). After the game starts, uncapped HDI would never be lower than capped HDI.
     l_fUncappedHdi = max(m_fHumanDevelopment, l_fUncappedHdi);
 
-	REAL64 l_fTemp = (REAL64)m_iPopulationPoliticalControl * (REAL64)((1.f-m_fPopInPoverty) * l_fUncappedHdi);
-	m_pResourceDemand[EResources::Meat] = (l_fTemp * 498.2f) + ((REAL64)m_iPopulationPoliticalControl * 30.f);
-	m_pResourceDemand[EResources::Vegetable_Fruits] = (l_fTemp * 764.3f) + ((REAL64)m_iPopulationPoliticalControl * 40.f);
-	m_pResourceDemand[EResources::Dairy] = (l_fTemp * 830.9f) + ((REAL64)m_iPopulationPoliticalControl * 25.f);
-	m_pResourceDemand[EResources::Tobacco] = (l_fTemp * 143.49f) + ((REAL64)m_iPopulationPoliticalControl * 4.f);
-	m_pResourceDemand[EResources::Drugs] = (l_fTemp * 95.18f) + ((REAL64)m_iPopulationPoliticalControl * 5.f);
-	m_pResourceDemand[EResources::Minerals] = (l_fTemp * 567.25f) + ((REAL64)m_iPopulationPoliticalControl * 30.f);
-	m_pResourceDemand[EResources::Fossile_Fuels] = (l_fTemp * 1142.7f) + ((REAL64)m_iPopulationPoliticalControl * 40.f);
-	m_pResourceDemand[EResources::Precious_Stones] = (l_fTemp * 35.2f) + ((REAL64)m_iPopulationPoliticalControl * 0.8f);
-	m_pResourceDemand[EResources::Commodities] = (l_fTemp * 1198.f) + ((REAL64)m_iPopulationPoliticalControl * 10.f);
-	m_pResourceDemand[EResources::Appliances] = (l_fTemp * 685.05f) + ((REAL64)m_iPopulationPoliticalControl * 7.f);
-	m_pResourceDemand[EResources::Vehicules] = (l_fTemp * 826.15f) + ((REAL64)m_iPopulationPoliticalControl * 15.f);
-	m_pResourceDemand[EResources::Luxury_Commodities] = (l_fTemp * 247.4f) + ((REAL64)m_iPopulationPoliticalControl * 0.8f);
-	m_pResourceDemand[EResources::Construction] = (l_fTemp * 6473.3f) + ((REAL64)m_iPopulationPoliticalControl * 130.f);
-	m_pResourceDemand[EResources::Health_Care] = (l_fTemp * 11158.28f) + ((REAL64)m_iPopulationPoliticalControl * 30.f);
-	m_pResourceDemand[EResources::Retail] = (l_fTemp * 1456.18f) + ((REAL64)m_iPopulationPoliticalControl * 260.f);
-	m_pResourceDemand[EResources::Legal_Services] = (l_fTemp * 2739.6f) + ((REAL64)m_iPopulationPoliticalControl * 25.f);
-	m_pResourceDemand[EResources::Cereals] = (((l_fTemp * 592.46f) + ((REAL64)m_iPopulationPoliticalControl * 75.f))*0.94f) + 
+	REAL64 l_fTemp = m_iPopulation * (REAL64)((1.f-m_fPopInPoverty) * l_fUncappedHdi);
+	m_pResourceDemand[EResources::Meat] = (l_fTemp * 498.2f) + ((REAL64)m_iPopulation * 30.f);
+	m_pResourceDemand[EResources::Vegetable_Fruits] = (l_fTemp * 764.3f) + ((REAL64)m_iPopulation * 40.f);
+	m_pResourceDemand[EResources::Dairy] = (l_fTemp * 830.9f) + ((REAL64)m_iPopulation * 25.f);
+	m_pResourceDemand[EResources::Tobacco] = (l_fTemp * 143.49f) + ((REAL64)m_iPopulation * 4.f);
+	m_pResourceDemand[EResources::Drugs] = (l_fTemp * 95.18f) + ((REAL64)m_iPopulation * 5.f);
+	m_pResourceDemand[EResources::Minerals] = (l_fTemp * 567.25f) + ((REAL64)m_iPopulation * 30.f);
+	m_pResourceDemand[EResources::Fossile_Fuels] = (l_fTemp * 1142.7f) + ((REAL64)m_iPopulation * 40.f);
+	m_pResourceDemand[EResources::Precious_Stones] = (l_fTemp * 35.2f) + ((REAL64)m_iPopulation * 0.8f);
+	m_pResourceDemand[EResources::Commodities] = (l_fTemp * 1198.f) + ((REAL64)m_iPopulation * 10.f);
+	m_pResourceDemand[EResources::Appliances] = (l_fTemp * 685.05f) + ((REAL64)m_iPopulation * 7.f);
+	m_pResourceDemand[EResources::Vehicules] = (l_fTemp * 826.15f) + ((REAL64)m_iPopulation * 15.f);
+	m_pResourceDemand[EResources::Luxury_Commodities] = (l_fTemp * 247.4f) + ((REAL64)m_iPopulation * 0.8f);
+	m_pResourceDemand[EResources::Construction] = (l_fTemp * 6473.3f) + ((REAL64)m_iPopulation * 130.f);
+	m_pResourceDemand[EResources::Health_Care] = (l_fTemp * 11158.28f) + ((REAL64)m_iPopulation * 30.f);
+	m_pResourceDemand[EResources::Retail] = (l_fTemp * 1456.18f) + ((REAL64)m_iPopulation * 260.f);
+	m_pResourceDemand[EResources::Legal_Services] = (l_fTemp * 2739.6f) + ((REAL64)m_iPopulation * 25.f);
+	m_pResourceDemand[EResources::Cereals] = (((l_fTemp * 592.46f) + ((REAL64)m_iPopulation * 75.f))*0.94f) +
 		(0.01f * m_pResourceDemand[EResources::Dairy]) + (0.05f * m_pResourceDemand[EResources::Meat]);
-	m_pResourceDemand[EResources::Wood_Paper] = (((l_fTemp * 183.88f) + ((REAL64)m_iPopulationPoliticalControl * 10.f))*0.96f) + 
+	m_pResourceDemand[EResources::Wood_Paper] = (((l_fTemp * 183.88f) + ((REAL64)m_iPopulation * 10.f))*0.96f) +
 		(0.04f * m_pResourceDemand[EResources::Construction]);
-	m_pResourceDemand[EResources::Plastics] = (((l_fTemp * 615.9f) + ((REAL64)m_iPopulationPoliticalControl * 10.f))*0.97f) + 
+	m_pResourceDemand[EResources::Plastics] = (((l_fTemp * 615.9f) + ((REAL64)m_iPopulation * 10.f))*0.97f) +
 		(0.01f * m_pResourceDemand[EResources::Luxury_Commodities]) + (0.02f * m_pResourceDemand[EResources::Commodities]);
-	m_pResourceDemand[EResources::Fabrics] = (((l_fTemp * 1338.8f) + ((REAL64)m_iPopulationPoliticalControl * 75.f))*0.94f) + 
+	m_pResourceDemand[EResources::Fabrics] = (((l_fTemp * 1338.8f) + ((REAL64)m_iPopulation * 75.f))*0.94f) +
 		(0.01f * m_pResourceDemand[EResources::Commodities]) + (0.05f * m_pResourceDemand[EResources::Luxury_Commodities]);
-	m_pResourceDemand[EResources::Pharmaceuticals] = (((l_fTemp * 128.97f) + ((REAL64)m_iPopulationPoliticalControl * 5.f))*0.96f) + 
+	m_pResourceDemand[EResources::Pharmaceuticals] = (((l_fTemp * 128.97f) + ((REAL64)m_iPopulation * 5.f))*0.96f) +
 		(0.04f * m_pResourceDemand[EResources::Health_Care]);
-	m_pResourceDemand[EResources::Chemicals] = (((l_fTemp * 1517.f) + ((REAL64)m_iPopulationPoliticalControl * 40.f))*0.95f) + 
+	m_pResourceDemand[EResources::Chemicals] = (((l_fTemp * 1517.f) + ((REAL64)m_iPopulation * 40.f))*0.95f) +
 		(0.01f * m_pResourceDemand[EResources::Luxury_Commodities]) + (0.02f * m_pResourceDemand[EResources::Commodities]) +
 		(0.01f * m_pResourceDemand[EResources::Plastics]) + (0.01f * m_pResourceDemand[EResources::Pharmaceuticals]);	
-	m_pResourceDemand[EResources::Machinery] = (((l_fTemp * 413.81f) + ((REAL64)m_iPopulationPoliticalControl * 12.f))*0.84f) + 
+	m_pResourceDemand[EResources::Machinery] = (((l_fTemp * 413.81f) + ((REAL64)m_iPopulation * 12.f))*0.84f) +
 		(0.05f * m_pResourceDemand[EResources::Construction]) + (0.03f * m_pResourceDemand[EResources::Fossile_Fuels]) +
 		(0.02f * m_pResourceDemand[EResources::Wood_Paper]) + (0.05f * m_pResourceDemand[EResources::Minerals]) +
 		(0.01f * m_pResourceDemand[EResources::Precious_Stones]);	
-	m_pResourceDemand[EResources::Electricity] = (((l_fTemp * 1401.75f) + ((REAL64)m_iPopulationPoliticalControl * 35.f))*0.78f) + 
+	m_pResourceDemand[EResources::Electricity] = (((l_fTemp * 1401.75f) + ((REAL64)m_iPopulation * 35.f))*0.78f) +
 		(0.02f * m_pResourceDemand[EResources::Wood_Paper]) + (0.04f * m_pResourceDemand[EResources::Plastics]) +
 		(0.02f * m_pResourceDemand[EResources::Fabrics]) + (0.01f * m_pResourceDemand[EResources::Chemicals]) +
 		(0.02f * m_pResourceDemand[EResources::Pharmaceuticals]) + 
 		(0.04f * m_pResourceDemand[EResources::Appliances]) + (0.02f * m_pResourceDemand[EResources::Vehicules]) +
 		(0.02f * m_pResourceDemand[EResources::Machinery]) + (0.01f * m_pResourceDemand[EResources::Commodities]) +
 		(0.02f * m_pResourceDemand[EResources::Luxury_Commodities]);
-	m_pResourceDemand[EResources::Iron_Steel] = (((l_fTemp * 1078.88f) + ((REAL64)m_iPopulationPoliticalControl * 50.f))*0.82f) + 
+	m_pResourceDemand[EResources::Iron_Steel] = (((l_fTemp * 1078.88f) + ((REAL64)m_iPopulation * 50.f))*0.82f) +
 		(0.04f * m_pResourceDemand[EResources::Appliances]) + (0.04f * m_pResourceDemand[EResources::Vehicules]) +
 		(0.04f * m_pResourceDemand[EResources::Machinery]) + (0.06f * m_pResourceDemand[EResources::Construction]);	
-	m_pResourceDemand[EResources::Engineering] = (((l_fTemp * 2687.87f) + ((REAL64)m_iPopulationPoliticalControl * 20.f))*0.98f) + 
+	m_pResourceDemand[EResources::Engineering] = (((l_fTemp * 2687.87f) + ((REAL64)m_iPopulation * 20.f))*0.98f) +
 		(0.02f * m_pResourceDemand[EResources::Construction]);
-	m_pResourceDemand[EResources::Marketing_Advertising] = (((l_fTemp * 1349.f) + ((REAL64)m_iPopulationPoliticalControl * 8.f))*0.98f) + 
+	m_pResourceDemand[EResources::Marketing_Advertising] = (((l_fTemp * 1349.f) + ((REAL64)m_iPopulation * 8.f))*0.98f) +
 		(0.02f * m_pResourceDemand[EResources::Retail]);
 
 }

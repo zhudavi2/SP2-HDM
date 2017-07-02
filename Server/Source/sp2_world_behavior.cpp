@@ -891,18 +891,8 @@ bool GWorldBehavior::Iterate_Tourism(GRegion* in_pRegion)
     }
 
     // Battles in our region - 0.25
-    const vector<SDK::Combat::GArena*> l_vArenas = g_CombatManager.Arenas();
-    for(UINT32 i = 0 ; i < l_vArenas.size() ; i++)
-    {
-         SP2::GArena*     l_pArena      = (SP2::GArena*)l_vArenas[i];
-         SP2::GArenaInfo* l_pArenaInfo = (SP2::GArenaInfo*)l_pArena->Info();
-         if (l_pArenaInfo->m_iRegionID == in_pRegion->Id())
-         {
-             //g_Joshua.Log("Region is under attack");
-             l_fBattleMultiplier = 0.25f;
-             break;
-         }
-    }
+    if(g_ServerDAL.BattleOccurringInRegion(in_pRegion->Id()))
+        l_fBattleMultiplier = 0.25f;
 
     // Bombardment?
     if(l_fBattleMultiplier > 0.25f)
@@ -980,6 +970,15 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
 	if(m_CountryData->InternalLaw(EInternalLaws::ChildLabor))
 		l_fProductionBonusChildLabour = SP2::c_fProductionBonusChildLabour;
 
+    const UINT32 l_iRegionId = in_pRegion->Id();
+    const GString l_sRegionNameForLog = g_ServerDAL.RegionNameAndIDForLog(l_iRegionId);
+
+    const ENTITY_ID l_iOwnerId = in_pRegion->OwnerId();
+    const GCountryData* const l_pOwnerCountryData = g_ServerDAL.CountryData(l_iOwnerId);
+    const GString l_sCountryNameForLog = l_pOwnerCountryData->NameAndIDForLog();
+
+    const ENTITY_ID l_iOwnerMilitaryId = in_pRegion->OwnerMilitaryId();
+
 	for(UINT32 i=0; i < EResources::ItemCount; i++)
 	{		
 		REAL64 l_fBudgetModifier = 1.f;
@@ -1005,6 +1004,30 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
 
 			if(m_CountryData->ResourceGvtCtrl((EResources::Enum)i))
 				l_fProductionGrowth *= SP2::c_fPublicResourcePenalty;
+
+            //Reduce resource production if battle occurring or region not under political and military control of same country
+            //Loss due to bombardment already handled in bombardment iteration
+            const REAL64 l_fRegionControlPenalty = (4.0 / 3.0 * SP2::c_pResourcesYearlyGain[i]) + (14.0 / 75.0);
+
+			if(g_ServerDAL.BattleOccurringInRegion(l_iRegionId))
+			{
+                const REAL64 l_fBattlePenalty = l_fRegionControlPenalty + 0.2;
+				l_fProductionGrowth -= l_fBattlePenalty;
+
+				GDZLOG(l_sRegionNameForLog + L" of " + l_sCountryNameForLog + L"; battle penalty " + GString(l_fBattlePenalty) + L", production growth " + GString::FormatNumber(l_fProductionGrowth * 100.0, L",", L".", L"", L"%", 3, 1, false),
+					   EDZLogLevel::Info1);
+			}
+
+            if(l_iOwnerId != l_iOwnerMilitaryId)
+            {
+                //If owners don't match, adjust production growth depending own owners' relations
+                const REAL32 l_fRelations = g_ServerDAL.RelationBetweenCountries(l_iOwnerId, l_iOwnerMilitaryId);
+                const REAL32 l_fRelationsRating = 1.f - ((min(SP2::c_fRelationsLike, l_fRelations) + 100.f) / (SP2::c_fRelationsLike + 100.f));
+                l_fProductionGrowth -= l_fRegionControlPenalty * l_fRelationsRating;
+
+                GDZLOG(g_ServerDAL.CountryData(l_iOwnerMilitaryId)->NameAndIDForLog() + L" occupies " + l_sRegionNameForLog + L" of " + l_sCountryNameForLog + L"; region control penalty " + GString(l_fRegionControlPenalty) + L", DR " + GString(l_fRelations) + L", production growth " + GString::FormatNumber(l_fProductionGrowth * 100.0, L",", L".", L"", L"%", 3, 1, false),
+                       EDZLogLevel::Info2);
+            }
 
 			l_fTempProduction += (l_fTempProduction * l_fProductionGrowth * (REAL64)m_fFrequency);
 
@@ -3457,6 +3480,50 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 
 	const bool* l_pTradeEmbargos = g_ServerDAL.TradeEmbargos();
 
+    //Partly-occupied countries can't trade as much
+    vector<REAL64> l_vTradeRatios(l_iNbCountry, 1.0);
+    for(auto l_TradeRatioIt = l_vTradeRatios.begin(); l_TradeRatioIt < l_vTradeRatios.end(); ++l_TradeRatioIt)
+    {
+        const ENTITY_ID l_iCountryId = distance(l_vTradeRatios.begin(), l_TradeRatioIt);
+        if(g_ServerDAL.CountryValidityArray(l_iCountryId))
+        {
+            const GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_iCountryId);
+            const set<UINT32>& l_vRegionIds = g_ServerDAL.CountryPoliticalControl(l_iCountryId);
+            REAL64 l_fTotalPercentGdpOccupied = 0.0;
+            REAL64 l_fOccupiedRegionsTradeRatio = 0.0;
+            for(auto l_RegionIt = l_vRegionIds.cbegin(); l_RegionIt != l_vRegionIds.cend(); ++l_RegionIt)
+            {
+                const GRegion* const l_pRegion = g_ServerDAL.GetGRegion(*l_RegionIt);
+                const ENTITY_ID l_iRegionMilitaryId = l_pRegion->OwnerMilitaryId();
+                if(l_iRegionMilitaryId != l_iCountryId)
+                {
+                    REAL64 l_fRegionGdp = 0.0;
+                    for(UINT32 k = 0; k < EResources::ItemCount; k++)
+                    {
+                        const EResources::Enum l_eResource = static_cast<EResources::Enum>(k);
+                        l_fRegionGdp += l_pRegion->ResourceProduction(l_eResource);
+                    }
+
+                    const REAL64 l_fRegionPercentGdp = l_fRegionGdp / l_pCountryData->GDPValue();
+                    l_fTotalPercentGdpOccupied += l_fRegionPercentGdp;
+
+                    const REAL32 l_fRelationsForRating = min(SP2::c_fRelationsLike, g_ServerDAL.RelationBetweenCountries(l_iCountryId, l_iRegionMilitaryId));
+
+                    //Higher is better
+                    const REAL32 l_fRelationsRating = (l_fRelationsForRating + 100.f) / (SP2::c_fRelationsLike + 100.f);
+                    l_fOccupiedRegionsTradeRatio += l_fRelationsRating * l_fRegionPercentGdp;
+                }
+            }
+
+            l_fTotalPercentGdpOccupied = AdjustMod(l_fTotalPercentGdpOccupied);
+            *l_TradeRatioIt = (1.0 - l_fTotalPercentGdpOccupied) + (l_fTotalPercentGdpOccupied * l_fOccupiedRegionsTradeRatio);
+
+            if(in_bWorldMarket && *l_TradeRatioIt < 1.0)
+                GDZLOG(l_pCountryData->NameAndIDForLog() + L": Trade ratio " + GString(*l_TradeRatioIt),
+                       EDZLogLevel::Info1);
+        }
+    }
+
 	REAL64 l_fImportersImport = 0.f;
 	REAL64 l_fExporterExport = 0.f;
 	REAL64 l_fNeededImport = 0.f;
@@ -3471,6 +3538,8 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 	{
 		l_pImporter = i->second;
 		gassert(l_pImporter != NULL,"WORLD_BEHAVIOR::ExecuteMarket(): No country has that rank!");
+
+        const ENTITY_ID l_iImporterId = l_pImporter->CountryID();
 
 		if(in_vPool[l_pImporter->CountryID()] <= 0.f)
 			continue;
@@ -3508,7 +3577,11 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 
 				if(l_fNeededImport > 0.f)
 				{
-					l_fRealImport = min(l_fNeededImport, min(l_pExporter->ResourceExportDesired(l_iResource), l_pExporter->ResourceProduction(l_iResource))- l_fExporterExport);
+                    l_fNeededImport *= l_vTradeRatios[l_iImporterId];
+
+                    const REAL64 l_fTotalExportable = min(l_pExporter->ResourceExportDesired(l_iResource), l_pExporter->ResourceProduction(l_iResource)) * l_vTradeRatios[l_pExporter->CountryID()];
+
+					l_fRealImport = min(l_fNeededImport, l_fTotalExportable - l_fExporterExport);
 
 					if(l_fRealImport > 0.f)
 					{

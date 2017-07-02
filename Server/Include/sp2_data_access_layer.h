@@ -330,6 +330,9 @@ namespace SP2
       //! Checks if country can assign more cells to a target country, based on server config
       bool CountryCanAssignCovertCellToTarget(UINT32 in_iSource, UINT32 in_iTarget);
 
+      //! Checks if battle is occurring in given region
+      bool BattleOccurringInRegion(UINT32 in_iRegionId) const;
+
       //! Helper method to get region name and ID. Non-const because GetString() is non-const
       GString RegionNameAndIDForLog(UINT32 in_iRegionID);
 

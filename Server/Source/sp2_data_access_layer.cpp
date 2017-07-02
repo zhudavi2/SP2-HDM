@@ -3797,6 +3797,24 @@ bool GDataAccessLayerServer::CountryCanAssignCovertCellToTarget(UINT32 in_iSourc
     return l_bCanMove;
 }
 
+bool GDataAccessLayerServer::BattleOccurringInRegion(UINT32 in_iRegionId) const
+{
+    const vector<SDK::Combat::GArena*> l_vArenas = g_CombatManager.Arenas();
+    bool l_bBattleOccurring = false;
+
+    for(auto it = l_vArenas.cbegin(); it < l_vArenas.cend(); ++it)
+    {
+        const GArenaInfo* const l_pArenaInfo = dynamic_cast<GArenaInfo*>((*it)->Info());
+        if(l_pArenaInfo->m_iRegionID == in_iRegionId)
+        {
+            l_bBattleOccurring = true;
+            break;
+        }
+    }
+
+    return l_bBattleOccurring;
+}
+
 GString GDataAccessLayerServer::RegionNameAndIDForLog(UINT32 in_iRegionID)
 {
     return GetString(StringIdRegion(in_iRegionID)) +

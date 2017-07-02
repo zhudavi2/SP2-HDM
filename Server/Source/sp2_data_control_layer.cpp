@@ -370,6 +370,16 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
       CancelRegionAnnex(in_iRegionID);
    }
 
+   //Reduce resource production depending on who just took control
+   //-1% if political owner gained the region, -5% if another country did
+   for(INT32 i=0; i<EResources::ItemCount; i++)
+   {
+       const EResources::Enum l_eResource = static_cast<EResources::Enum>(i);
+       REAL64 l_fResourceProduction = l_pRegion->ResourceProduction(l_eResource);
+       l_fResourceProduction *= (l_CurrentControl.m_iPolitical == in_iNewControl) ? 0.99 : 0.95;
+       l_pRegion->ResourceProduction(l_eResource, l_fResourceProduction);
+   }
+
    return true;
 }
 
