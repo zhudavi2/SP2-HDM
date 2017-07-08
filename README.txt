@@ -1,4 +1,4 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V8
+SuperPower 2 Human Development Modification (SP2-HDM) V9
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -19,13 +19,18 @@ Client state changes:
 - (V8) Your client state will be able to unilaterally free itself from you if its military strength exceeds yours (e.g., if you lose so many units that your military strength drops below your client state's).
 - (V8) A country that economically fails, or is conquered, automatically releases its client states.
 
-Internal political sphere changes:
+Political changes:
+- (V9) A player who fails to create a treaty (i.e., not that other parties don't accept the treaty, but the treaty itself can't be created) will receive a chat notification of that fact.
+- (V9) A chat message is broadcast to every player when a country changes its government type. Thanks to memento mori for initial code.
 - (V5) When a country gains a region, it will lose stability based on the ratio of the region's population to the gaining country's population. The stability penalty is lower if the region is gained through trade.
 - (V5) The Free Region treaty now only gives relations bonuses between the original owner of the region(s) and the former occupier of the region(s), instead of between everyone and the former occupier. Thanks to Fenix for the suggestion.
+- (V5) It's possible to create 10 covert cells at a time. In the cell name field, type "MULTIPLE" followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "MULTIPLE 21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
 - Reduce how much government stability contributes to birth rate. This is partially to prevent highly-developed and stable countries having unrealistic population booms.
 - Maximum possible immigration rate has been raised to equal the maximum emigration rate.
 
-Internal military sphere changes:
+Military changes:
+- (V9) A player who executes a covert mission while trying to frame someone else, but is found out as the true attacker, will receive a chat notification of that fact.
+- (V9) A chat message is broadcast to every player when a country joins a war. Thanks to memento mori for initial code.
 - (V6) When a country declares war on another country, and both countries are in the same Weapons Trade treaty, then the declarer will now automatically leave the treaty.
 - (V6) When a country declares war on another country, any military units in progress, that the declarer requested from the other country or vice versa, are now automatically cancelled.
 - (V5) Nuclear strikes against civilians now affect regional populations that are not attached to any specific cities. This effectively increases the amount of people that nuclear strikes can kill at once. Thanks to Fenix for the suggestion.
@@ -37,7 +42,14 @@ Internal military sphere changes:
 - The number of covert cells that a country needs, in order to maintain a constant security level, increases more gradually along with population.
 - A country's covert mission will have a higher chance of succeeding if it has other active cells in the target country.
 
-Internal economic sphere changes:
+Economic changes:
+- (V9) A region's resource production growth now depends on whether or not a battle is occurring in the region and whether or not it's foreign-occupied. Better relations with occupier leads to more normal growth.
+- (V9) A country's ability to trade now depends on how much of its production is in foreign-occupied regions. Better relations with occupiers leads to more normal trading ability.
+- (V9) A region keeps its original level of resource demand when it becomes foreign-occupied.
+- (V9) For a country whose economy is at least partially state-controlled, its approval, stability, and food resource demand satisfaction will affect its tax revenue.
+- (V9) Removed government type modifiers for resource production and GDP, so GDP itself is no longer dependent on government type.
+- (V9) Removed imports and exports from contributing to GDP, as they weren't consistent with the GDP calculation method otherwise used in the game.
+- (V9) Domestic demand is no longer capped by HDI.
 - (V5) Unemployment now changes more gradually than before.
 - Income tax revenue relative to GDP is more in line with what such a ratio would be in the real world. The most noticeable effect is that budgets will be easier to balance, especially for highly-developed countries.
 - A country's domestic demand level for resources is no longer dependent on its government type.
@@ -52,11 +64,13 @@ AI changes:
 - An AI country will be more willing to join an existing war on the attacking side if it hates the defending side, but its willingness will now be dependent on the AI aggressiveness level.
 - The number of military units that an AI country builds or buys now depends on how high the country's revenue is.
 
-UI changes:
-- (V5) It's possible to create 10 covert cells at a time. In the cell name field, type "MULTIPLE" followed by a whole number; this will create 10 cells, named in sequence according to the whole number that you specified. For example, if you type "MULTIPLE 21" into the name field and confirm, you will create 10 cells, named "21", "22", "23", ..., "30".
-
 Configurable settings:
 - SP2-HDM_Config.xml is the configuration XML file.
+- (V9) Enable or disable automatic covert mission execution. Covert cells, when given a mission, will continuously prepare and execute the given mission until cell capture, cell disbanding, or mission cancellation; some restrictions apply. Thanks to memento mori for initial code.
+- (V9) Adjust relations loss upon annexing regions.
+- (V9) Adjust military unit upkeep, as a percentage of default, based on training level. Thanks to Fenix for the suggestion
+- (V9) Adjust how much tribute a client state must give as a percentage of GDP. Thanks to Mr Monday for the suggestion.
+- (V9) Enable or disable logging of country bankruptcies.
 - (V8) Enable or disable human-controlled countries from becoming client states. This is in response to some players reporting crashes when a human-controlled country becomes a client state.
 - (V7) Enable or disable country name changing. However, due to SDK limitations, in order to prevent a country name change from affecting player nicknames, player nicknames can only be changed via the covert window once in the game; this is done in the same way as changing a country name, just with "PLAYER" and a space, followed by the desired name, instead of "NAME" and a space, followed by the desired name.
 - (V6) Control whether to disallow a country on the defending side of a war from occupying the home territory of a country on the attacking side, unless the occupying country is also currently in an offensive war against the owning country.
@@ -80,15 +94,37 @@ Configurable settings:
 - (V3) Resource tax limit.
 - (V3) HDI component (LE, MYS, EYS) viewing through the country info window.
 
-Experimental changes:
+Other changes:
+- (V9) Death rate now depends on LE instead of HDI as a whole. In addition, if LE is increasing while LE and the percentage of population over 65 are high enough, then the death rate will be limited to prevent the percentage of population over 65 from decreasing (increasing LE should lead to aging population).
+- (V9) Birth rate is now sharply reduced when LE is under 20.
+- (V9) Expected birth rate now depends on EYS and percentage of population over 65.
+- (V9) Added a console command, print_military_control, to list all regions under a country's military control.
+- (V9) Added a console command, print_foreign_presence, to list all foreign military units in a country.
+- (V9) Added a console command, print_regions_in_area, to list all regions in an area bounded by given latitudes and longitudes.
+- (V9) Added a console command, declare_peace, to end all current wars. Thanks to p2 for the suggestion.
+- (V9) The game will detect and fix database errors as it finds them.
+- (V8) A successful military removal treaty now only improves relations between the parties to the treaty, instead of affecting relations between the military unit mover and the rest of the world.
+- (V6) Added a console command, print_players, to list all active players. Thanks to Fenix for the suggestion.
+- (V6) Added a console command, set_admin_country, that sets the server's admin player by country ID.
+- (V6) Added a console command, set_admin_player, that sets the server's admin player by player ID.
 - (V1) You can change your country's name. Just create a new covert cell with the name, "NAME", followed by a space, followed by your desired new name; a new covert cell won't actually be created when doing this. For example, if you type "NAME New Name" in the covert cell name blank and click "Confirm", then instead of creating a new covert cell, your country's name will be changed to "New Name". However, the new name will not automatically update in the any in-game windows you have open, unless you close and reopen those windows.
+- Minimum possible birth and death rates have been lowered slightly.
+- When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous SP2-HDM releases:
+- (V9) A player who tries and fails to attack a country, because they're fighting a non-offensive war against that country, will receive a chat notification of that fact.
+- (V9) When a country changes its government type, its income tax rate will be automatically set to no more than its new government type's tax limit, if configured and if necessary. Thanks to memento mori for initial code.
+- (V9) MYS now automatically trends towards EYS, instead of being affected directly by other factors that affect HDI components.
+- (V9) Estimate HDI components more accurately at game start.
+- (V9) Fixed an issue where client state relationships would persist after loading a game that didn't have them.
 - (V6) When performing covert actions against a target country, the positive effect on success rate of having additional cells in the target country has been lessened, further than it was in V5. Thanks to Fenix for the suggestion.
 - (V5) Fixed an issue in which if a country is conquered, and then another country changes its name, then the conquered country would reappear in country listings.
 - (V5) Fixed a potential issue in which countries with extremely low revenue wouldn't be able to build or buy non-infantry units.
 
 Fixes to SP2 V1.5.1 issues:
+- (V9) The Big-time Friend achievement is now obtainable.
+- (V9) Fixed an issue where the AI would unintentionally execute covert missions against the conqueror of the originally-intended target.
+- (V9) Fixed an issue where covert cells could travel to and execute missions in a conquered country.
 - (V8) Fixed an issue where cells in the covert cell window may appear to "overwrite" each other when being created. (Issue #10)
 - (V8) Fixed an issue where deploying units to a capital, while having other units ready to be deployed or while having other units deployed in the capital, would sometimes cause the in-deployment units to disappear after deployment. (Issue #46)
 - (V8) Fixed an issue where a military removal treaty would boost diplomatic relations even if no units moved countries as a result. (Issue #37)
@@ -103,14 +139,6 @@ Fixes to SP2 V1.5.1 issues:
 - High government approval and stability now decrease your emigration rate instead of increasing it.
 - A country can no longer (net) export more of a resource than its own production of that resource.
 
-Other changes:
-- (V8) A successful military removal treaty now only improves relations between the parties to the treaty, instead of affecting relations between the military unit mover and the rest of the world.
-- (V6) Added a console command, print_players, to list all active players. Thanks to Fenix for the suggestion.
-- (V6) Added a console command, set_admin_country, that sets the server's admin player by country ID.
-- (V6) Added a console command, set_admin_player, that sets the server's admin player by player ID.
-- Minimum possible birth and death rates have been lowered slightly.
-- When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
-
 Known issues and possible future changes:
 - Please see https://github.com/zhudavi2/SP2-HDM/issues.
 
@@ -118,15 +146,16 @@ SDK notes:
 - The source code is at https://github.com/zhudavi2/SP2-HDM.
 - The includes/RGAPI and lib folders, that come with the SDK, are not on GitHub; you must provide your own. The RGAPI and lib files were not modified in making SP2-HDM.
 - The "Debug_In_Release" and "Release" build configurations are known to build correctly and produce working DLLs.
-- A Post-Build Event will automatically copy the built DLL to a default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder. 
+- A Post-Build Event will automatically copy the built DLL to a default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder.
 - The Release DLL is included with each commit for those interested in testing out the latest changes.
-- Added a new class, GDZDebug, which offers debug logging logic.
+- Added a new class, GDZDebug, which offers assert and logging logic. Please see https://github.com/zhudavi2/SP2-HDM/wiki/DZDebug.
 - Changed debug console commands: print_relations
-- New debug console commands: build_amds, print_amds, force_occupy, research_nuclear, print_nuclear_research
+- New debug console commands: build_amds, print_amds, force_occupy, research_nuclear, print_nuclear_research, declare_war_2v2
 - Please credit the below people and entities, and me, if you release your own work that's based on this mod. Thanks!
 
 Credits:
-- Fenix for code suggestions and support.
-- Illuminati, Mr Monday, Radu, and thereversedguy for suggestions and support.
+- Fenix/memento mori for code suggestions and support.
+- awolfska for testing help.
+- IceyVVind, Illuminati, Mr Monday, p2, Radu, Tannman, The Patriot, and thereversedguy for suggestions and support.
 - Many more people on the SP2-HDM discussion thread and the SP2 Discussion forum.
 - Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.
