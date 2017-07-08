@@ -1346,8 +1346,9 @@ void GWorldBehavior::Iterate_Death_Rate_Expected()
 
     REAL32 l_fExpected = ((c_fRelativeHealthCareContrib * l_fExpectedFromHealthCare) + (c_fRelativeLeContrib * l_fExpectedFromLe) + (c_fRelativeIiContrib * l_fExpectedFromIi)) / (c_fRelativeHealthCareContrib + c_fRelativeLeContrib + c_fRelativeIiContrib);
 
-    //If LE is increasing, then limit death rate so it doesn't cause the over-65 % of population to decrease
-    if(FindAnnualLifeExpectancyGain() >= 0.f)
+    //If LE is over 70 and the % population over 65 is at least 5%, and LE is increasing, then limit death rate so it doesn't cause the over-65 % of population to decrease
+    const REAL32 l_fPopOver65Percent = m_CountryData->Pop65() / static_cast<REAL32>(m_CountryData->Population());
+    if(l_fLe >= 70.f && l_fPopOver65Percent >= 0.05f && FindAnnualLifeExpectancyGain() >= 0.f)
     {
         const INT64 l_fNewOver65 = ReturnInteger64((1.f / 50.f) * m_CountryData->Pop1565());
         const INT64 l_iPopOver65 = m_CountryData->Pop65();
