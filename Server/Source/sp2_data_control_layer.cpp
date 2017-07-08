@@ -9560,6 +9560,15 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
                EDZLogLevel::Info1);
 
         //Leave all wars, but join wars on same side as master
+        set<ENTITY_ID> l_vHostileCountries;
+        g_ServerDAL.IsAtWarWith(in_iClient, l_vHostileCountries);
+        for(auto it = l_vHostileCountries.cbegin(); it != l_vHostileCountries.end(); ++it)
+        {
+            GDZLOG(l_pClientData->NameAndIDForLog() + L" will no longer be hostile against " + g_ServerDAL.CountryData(*it)->NameAndIDForLog(),
+                   EDZLogLevel::Info1);
+            g_ServerDAL.RemoveWarStatus(in_iClient, *it);
+        }
+
         auto& l_mWars = g_ServerDAL.m_CurrentWars;
         for(auto it = l_mWars.begin(); it != l_mWars.end(); ++it)
         {
