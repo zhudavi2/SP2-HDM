@@ -1678,7 +1678,7 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
        m_DCL.DeclareNewWar(l_vAttackers, l_iMasterAttacker, in_vArgs[2].ToINT32());
 
        //m_iNextWarID actually holds the ID of the last-successfully-declared war
-       m_DAL.War(m_DAL.m_iNextWarID)->AddCountryToDefendingSide(in_vArgs[3].ToINT32());
+       m_DCL.JoinAWar(in_vArgs[3].ToINT32(), m_DAL.m_iNextWarID, 2, false);
    }
 	else if(in_sCommand == L"print_wars")
    {		
