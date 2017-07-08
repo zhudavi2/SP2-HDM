@@ -71,9 +71,6 @@ namespace SP2
         static const GLogLevelEnabled c_LogLevelsEnabled[];
         static map<GString, UINT32> m_mLogLevelsEnabled;
 
-        //! Bitfield to enable log categories.
-        static UINT32 m_iEnabledLogCategories;
-
         //! Must be enabled for gassert
         static bool m_bAssertEnable;
     };
