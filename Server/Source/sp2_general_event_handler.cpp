@@ -461,16 +461,8 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
    {
        const GString l_sMessage = g_SP2Server->Message();
        if(!l_sMessage.empty())
-       {
-           SDK::GGameEventSPtr l_pChatEvent = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
+           g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_player->Id(), l_sMessage);
 
-           // reinterpret_cast, CREATE_GAME_EVENT doesn't "actually" create a GChatEvent object for some reason
-           reinterpret_cast<SDK::Event::GChatEvent *>(l_pChatEvent.get())->Message(l_sMessage);
-
-           l_pChatEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
-           l_pChatEvent->m_iTarget = l_player->Id();
-           g_Joshua.RaiseEvent(l_pChatEvent);
-       }
        g_SP2Server->AddPlayerID(l_player->Id());
    }
 

@@ -2663,13 +2663,7 @@ void GServer::NewGame()
 void GServer::InformPlayerJoined(SDK::GPlayer* in_pPlayer)
 {
    const UINT32 c_StrIdPlayerJoined = 102304;
-   // message sent through chat
-   SDK::GGameEventSPtr l_event = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
-   ((SDK::Event::GChatEvent *)l_event.get())->Message(g_ServerDAL.GetString(c_StrIdPlayerJoined));   
-   l_event->m_iSource = in_pPlayer->Id();
-   // send to every active human players
-   l_event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
-	g_Joshua.RaiseEvent(l_event);
+   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerJoined));
 }
 
 /*!
@@ -2678,13 +2672,7 @@ void GServer::InformPlayerJoined(SDK::GPlayer* in_pPlayer)
 void GServer::InformPlayerLeft(SDK::GPlayer* in_pPlayer)
 {
    const UINT32 c_StrIdPlayerLeft = 102305;
-   // message sent through chat
-   SDK::GGameEventSPtr l_event = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
-   ((SDK::Event::GChatEvent *)l_event.get())->Message(g_ServerDAL.GetString(c_StrIdPlayerLeft));   
-   l_event->m_iSource = in_pPlayer->Id();
-   // send to every human players
-	l_event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastHumanPlayers;
-	g_Joshua.RaiseEvent(l_event);
+   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerLeft));
 }
 
 
@@ -2701,6 +2689,18 @@ void GServer::AIAggressiveness(REAL32 in_fAIAggressiveness)
 		
 }
 
+void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, const GString& in_sMessage) const
+{
+    SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
+
+    // reinterpret_cast, CREATE_GAME_EVENT doesn't "actually" create a GChatEvent object for some reason
+    reinterpret_cast<SDK::Event::GChatEvent*>(l_pEvent.get())->Message(in_sMessage);
+
+    l_pEvent->m_iSource = in_iSource;
+    l_pEvent->m_iTarget = in_iTarget;
+
+    g_Joshua.RaiseEvent(l_pEvent);
+}
 
 /*!
 * Load default server options.

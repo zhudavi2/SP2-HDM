@@ -127,6 +127,8 @@ namespace SP2
 		REAL32 AIAggressiveness();
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
+      void SendChatMessage(INT32 in_iSource, INT32 in_iTarget, const GString& in_sMessage) const;
+
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline bool    AllowHumanClientStates() const { return m_bAllowHumanClientStates; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }

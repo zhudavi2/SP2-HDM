@@ -2401,6 +2401,11 @@ bool GUnitMover::MoveUnits(const vector<SDK::Combat::GUnitGroup* >& in_vUnitGrou
                          EDZLogLevel::Info2);
 
                   m_pRefusedMoveEvent->m_vRefusedMoves.push_back(make_pair(l_pUnitGroup->Id(), ERefusedMoveReason::NoMilitarySupport) );
+
+                  SDK::GPlayer* const l_pOwnerPlayer = g_Joshua.ActivePlayerByModID(l_iOwner);
+                  const bool l_bOwnerIsHuman = l_pOwnerPlayer != nullptr && !l_pOwnerPlayer->AIControlled();
+                  if(l_bOwnerIsHuman)
+                      g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pOwnerPlayer->Id(), L"Can't move to territory of " + l_pDestOwnerCountry->Name() + L"; not in an offensive war with that country");
               }
             }
             else
