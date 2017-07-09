@@ -143,7 +143,7 @@ namespace SP2
 
       bool EligibleToBeClientOf(ENTITY_ID in_iMaster) const;
 
-      inline pair<ENTITY_ID, UINT32> Master() const { return m_Master; }
+      inline pair<ENTITY_ID, UINT32> Master() const { return pair<ENTITY_ID, UINT32>(m_Master.first, m_Master.second); }
       inline map<ENTITY_ID, UINT32>  Clients() const { return m_mClients; }
 
       //! Calculate the optimal GDP, if it had all of its regions
