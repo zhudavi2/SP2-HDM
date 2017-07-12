@@ -545,6 +545,13 @@ SDK::GAME_MSG GServer::Initialize()
           L"first country creates client treaty with second country",
           (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
           this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"force_anarchy",
+          L"I",
+          L"country falls into anarchy",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+          this);
    } 
 #endif
 
@@ -1879,6 +1886,12 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
        const vector<UINT32> l_vConditions(ETreatyConditions::ItemCount, 0);
 
        m_DCL.CreateNewTreaty(l_iMaster, l_vSideA, l_vSideB, set<ENTITY_ID>(), ETreatyType::MilitaryAccess, true, l_sName, l_vConditions.data());
+   }
+   else if(in_sCommand == L"force_anarchy")
+   {
+       const ENTITY_ID l_iCountryId = in_vArgs[0].ToINT32();
+       if(m_DAL.CountryValidityArray(l_iCountryId))
+           m_DCL.ChangeGovernmentType(l_iCountryId, static_cast<EGovernmentType::Enum>(m_DAL.CountryData(l_iCountryId)->GvtType()), EGovernmentType::Anarchy);
    }
 #endif //#define GOLEM_DEBUG
    return L"";
