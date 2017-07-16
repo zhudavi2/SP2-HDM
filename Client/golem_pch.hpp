@@ -17,6 +17,11 @@
 
 #include "../golem_pch.hpp"
 
+#ifdef gassert
+#undef gassert
+#define gassert(expr, msg)
+#endif // gassert
+
 #include "../includes/MapEngine/map_engine.h"
 #include "../includes/SDK/golem_sdk.h"
 #include "../includes/common_lib/sp2_constants.h"
