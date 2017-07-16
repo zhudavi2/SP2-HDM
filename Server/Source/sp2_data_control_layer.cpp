@@ -4685,6 +4685,9 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 				l_News.m_iPriority = g_ServerDAL.NewsPriority(l_News.m_eType);
 				l_News.m_eCategory = g_ServerDAL.NewsCategory(l_News.m_eType);
 				SendNews(l_News);
+
+                const GString l_sChatMessage = g_ServerDAL.CountryData(l_iMilitaryControl)->Name() + L" has begun annexing regions from " + g_ServerDAL.CountryData(l_iPoliticControl)->Name();
+                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
 			}			
 		}
 		break;
@@ -9669,6 +9672,7 @@ void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
             const set<UINT32>& l_vRegions = g_ServerDAL.CountryPoliticalControl(in_iCountryId);
             bool l_bDirtyUnitGroups = false;
             bool l_bDeclareWar = false;
+            bool l_bAnnexRegions = false;
             SDK::Combat::GUnitManager& l_UnitManager = g_Joshua.UnitManager();
             for(auto l_RegionIt = l_vRegions.cbegin(); l_RegionIt != l_vRegions.cend(); ++l_RegionIt)
             {
@@ -9729,11 +9733,15 @@ void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
                         AnnexRegion(l_iRebelsId, *l_RegionIt);
                         GDZLOG(l_sRebelsName + L" is annexing " + l_sRegionName,
                                EDZLogLevel::Info1);
+                        l_bAnnexRegions = true;
                     }
                 }
             }
 
-            gassert(l_bDeclareWar || !l_bDirtyUnitGroups, g_ServerDAL.CountryData(in_iCountryId)->NameAndIDForLog() + L" isn't declaring war against rebels in civil war, but unit groups have defected");
+            const GCountryData* const l_pOriginalCountryData = g_ServerDAL.CountryData(in_iCountryId);
+            const GString l_sOriginalCountryName = l_pOriginalCountryData->NameAndIDForLog();
+            gassert(l_bDeclareWar || !l_bDirtyUnitGroups, l_sOriginalCountryName + L" isn't declaring war against rebels in civil war, but unit groups have defected");
+            gassert(l_bDeclareWar || !l_bAnnexRegions, l_sOriginalCountryName + L" isn't declaring war against rebels in civil war, but at least one region is being annexed");
 
             if(l_bDeclareWar)
             {
@@ -9746,6 +9754,12 @@ void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
                 set<ENTITY_ID> l_vAttackers;
                 l_vAttackers.insert(l_iRebelsId);
                 DeclareNewWar(l_vAttackers, l_iRebelsId, in_iCountryId);
+            }
+
+            if(l_bAnnexRegions)
+            {
+                const GString l_sChatMessage = GString(L"Rebels have begun annexing regions from ") + l_pOriginalCountryData->Name();
+                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
             }
         }
     }
