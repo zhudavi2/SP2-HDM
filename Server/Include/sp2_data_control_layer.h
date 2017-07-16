@@ -594,6 +594,8 @@ namespace SP2
 
       //! Make client state; non-const because ChangeRegionMilitaryControl() is non-const
       void MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClient, UINT32 in_iTreaty, bool in_bLoadingGame = false);
+
+      void CheckForCivilWar(ENTITY_ID in_iCountryId);
    };
 };
 

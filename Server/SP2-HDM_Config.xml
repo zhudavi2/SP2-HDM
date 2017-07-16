@@ -28,6 +28,40 @@
   Allowed values are 0 and 1. Default is 0. -->
   <autoCovertMissions>0</autoCovertMissions>
   
+  <!-- Civil-war-related parameters.
+  A civil war may occur if a country falls into anarchy. If so, some of the
+  country's regions and military units may fall under the military control of
+  the "rebel" country, with some of *those* regions possibly undergoing rebel
+  annexation.
+  If the "rebel" country doesn't exist, then civil wars won't occur. -->
+  <civilWar>
+  
+    <!-- Country ID for the designated "rebel" country.
+    Default is 194, which is Rebels in SP2 V1.5.1. -->
+    <rebelsId>194</rebelsId>
+    
+    <!-- Percentage chance of a civil war occurring in a country that falls into
+    anarchy.
+    If this is 0, then controlChance and annexChance have no effect.
+    Allowed values are 0-100. Default is 0. -->
+    <chance>0</chance>
+    
+    <!-- Percentage chance of any given region of a country, under civil war, to
+    fall under rebel military control. All deployed military units of the
+    original country, in that region, will also defect to the rebel side.
+    If this is 0, then annexChance has no effect.
+    Allowed values are 0-100. Default is 40. -->
+    <controlChance>40</controlChance>
+    
+    <!-- Percentage chance of any rebel-occupied region, of a country under
+    civil war, to undergo annexation by the rebels.
+    This is multiplicative with controlChance; for example, if a civil war
+    happens, and controlChance is 40 and annexChance is 50, then the total
+    chance of any region being rebel-annexed would be 20%.
+    Allowed values are 0-100. Default is 50. -->
+    <annexChance>50</annexChance>
+  </civilWar>
+  
   <!-- Hostile military units in the same region must be at most this far from each other, in
   approximate degrees of latitude/longitude, in order to automatically engage in combat.
   Default is 0.70. -->

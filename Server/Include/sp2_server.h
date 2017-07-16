@@ -46,6 +46,14 @@ namespace SP2
       };
    }
 
+   struct GCivilWarConfig
+   {
+       ENTITY_ID m_iRebelsId;
+       REAL32 m_fChance;
+       REAL32 m_fControlChance;
+       REAL32 m_fAnnexChance;
+   };
+
    /*!
    * Superpower 2 Game Server Main class
    **/
@@ -134,6 +142,9 @@ namespace SP2
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
       inline REAL32  AnnexationRelationLossPercent() const { return m_fAnnexationRelationLossPercent; }
       inline bool    AutoCovertMissions() const { return m_bAutoCovertMissions; }
+
+      inline GCivilWarConfig CivilWarConfig() const { return m_CivilWarConfig; }
+
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
       inline INT32   CountryNameChangeMode() const { return m_iCountryNameChangeMode; }
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
@@ -269,6 +280,9 @@ namespace SP2
       bool   m_bAllowDefenderAttackAttackerTerritory;
       REAL32 m_fAnnexationRelationLossPercent;
       bool   m_bAutoCovertMissions;
+      
+      GCivilWarConfig m_CivilWarConfig;
+
       REAL32 m_fCombatThresholdSquare;
       INT32  m_iCountryNameChangeMode;
       REAL32 m_fDedicatedServerAutosavePeriod;

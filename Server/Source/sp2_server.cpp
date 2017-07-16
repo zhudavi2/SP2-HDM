@@ -2725,6 +2725,13 @@ void GServer::InitializeDefaultConfig()
     m_bAllowHumanClientStates                = false;
     m_bAllowAIAssumeDebt                     = true;
     m_fAnnexationRelationLossPercent         = 1.f;
+
+    // Rebels are ID 194 in SP2 V1.5.1 database
+    m_CivilWarConfig.m_iRebelsId      = 194;
+    m_CivilWarConfig.m_fChance        = 0.f;
+    m_CivilWarConfig.m_fControlChance = 0.f;
+    m_CivilWarConfig.m_fAnnexChance   = 0.f;
+
     m_fCombatThresholdSquare                 = 0.7f*0.7f;
     m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
     m_bDedicatedServerAutosaveToJoshuaFolder = false;
@@ -2827,6 +2834,39 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_bAutoCovertMissions = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"autoCovertMissions: " + GString(m_bAutoCovertMissions));
+                    }
+                    else if(l_sElementName == L"civilWar")
+                    {
+                        for(UINT32 j=0; j<objectNode->NbChilds(); j++)
+                        {
+                            const GXMLNode& l_CivilWarNode = objectNode->Child(j)->Data();
+                            const GString l_sName = l_CivilWarNode.m_sName;
+                            const GString l_sValue = l_CivilWarNode.m_value;
+
+                            GString l_sValueString(L"");
+                            if(l_sName == L"rebelsId")
+                            {
+                                m_CivilWarConfig.m_iRebelsId = l_sValue.ToINT32();
+                                l_sValueString = l_sValue;
+                            }
+                            else if(l_sName == L"chance")
+                            {
+                                m_CivilWarConfig.m_fChance = l_sValue.ToREAL32() / 100.f;
+                                l_sValueString = GString::FormatNumber(m_CivilWarConfig.m_fChance, 2);
+                            }
+                            else if(l_sName == L"controlChance")
+                            {
+                                m_CivilWarConfig.m_fControlChance = l_sValue.ToREAL32() / 100.f;
+                                l_sValueString = GString::FormatNumber(m_CivilWarConfig.m_fControlChance, 2);
+                            }
+                            else if(l_sName == L"annexChance")
+                            {
+                                m_CivilWarConfig.m_fAnnexChance = l_sValue.ToREAL32() / 100.f;
+                                l_sValueString = GString::FormatNumber(m_CivilWarConfig.m_fAnnexChance, 2);
+                            }
+
+                            g_Joshua.Log(l_sElementName + L"." + l_sName + L": " + l_sValueString);
+                        }
                     }
                     else if(l_sElementName == L"combatRangeDegrees")
                     {
