@@ -127,7 +127,7 @@ void GCovertActionsNewMissionWindow::UpdateCountryToFrameCbo()
             }
          }
       }
-      gassert(i < l_vCells.size(),"Cell should be in the list");
+      gassert(j < l_vCells.size(),"Cell should be in the list");
       m_pObjTypeCbo->Update();
    }
 

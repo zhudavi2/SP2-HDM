@@ -481,11 +481,9 @@ void GThemeManager::LoadThemes(void)
                   // Extract the file
                   GString l_FilePath;
                   l_MusicFile.Extract(l_FilePath);
-                  #ifdef GOLEM_DEBUG
-                  {
-                     gassert(PathFileExists(l_FilePath.c_str()) == TRUE,"File referenced by AdaptiveMusic doesnt exist");
-                  }
-                  #endif
+
+                  //! \todo PathFileExists is a #define for PathFileExistsW, which triggers a link error. #64
+                  //gassert(PathFileExists(l_FilePath.c_str()) == TRUE,"File referenced by AdaptiveMusic doesnt exist");
 
 
                   l_pNewMusic->AddVariation(l_FilePath);

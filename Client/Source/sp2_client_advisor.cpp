@@ -126,10 +126,8 @@ void GClientAdvisor::Initialize()
    //Load the client advisor configuration file and parse it
    {
       GFile l_AdvisorConfig;
-#ifdef GOLEM_DEBUG
-      bool l_bResult = 
-#endif       
-      g_Joshua.FileManager()->File(c_sClientAdvisorConfig,l_AdvisorConfig);
+  
+      const bool l_bResult = g_Joshua.FileManager()->File(c_sClientAdvisorConfig,l_AdvisorConfig);
       gassert(l_bResult,"Client Advisor config file must be found");
 
       //Parse the xml file

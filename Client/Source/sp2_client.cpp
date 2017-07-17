@@ -681,17 +681,17 @@ void GClient::RegisterElements()
    //Todo: remove this
    g_Joshua.RegisterConsoleCommand(L"show", L"S",  
       L"show window_name - (temp) shows a window, given its name", 
-      (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleMainCommandsHandler, this);
+      (CALLBACK_HANDLER_GS_crGS_cvrGS)&GClient::ConsoleMainCommandsHandler, this);
 
    //Todo: remove this
    g_Joshua.RegisterConsoleCommand(L"realistic", L"F",  
       L"realistic real_value - (temp) switch background view to realistic mode", 
-      (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleMainCommandsHandler, this);
+      (CALLBACK_HANDLER_GS_crGS_cvrGS)&GClient::ConsoleMainCommandsHandler, this);
 
    //Todo: remove this
    g_Joshua.RegisterConsoleCommand(L"strategic", L"F",  
       L"strategic value - (temp) switch background view to strategic mode", 
-      (CALLBACK_HANDLER_GS_crGS_cvrGS)ConsoleMainCommandsHandler, this);
+      (CALLBACK_HANDLER_GS_crGS_cvrGS)&GClient::ConsoleMainCommandsHandler, this);
 
 #endif
 }

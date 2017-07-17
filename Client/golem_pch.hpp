@@ -17,11 +17,6 @@
 
 #include "../golem_pch.hpp"
 
-#ifdef gassert
-#undef gassert
-#define gassert(expr, msg)
-#endif // gassert
-
 #include "../includes/MapEngine/map_engine.h"
 #include "../includes/SDK/golem_sdk.h"
 #include "../includes/common_lib/sp2_constants.h"
@@ -34,6 +29,8 @@ using namespace SDK;
 
 #include <deque>
 
+//! \todo Better way to share DZDebug between Client and Server. #63
+#include "../../Server/Include/sp2_dzdebug.h"
 #include "include/sp2_sound.h"
 #include "../includes/common_lib/sp2_constants.h"
 #include "../includes/common_lib/sp2_data_access_layer.h"
