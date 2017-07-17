@@ -2733,6 +2733,7 @@ void GServer::InitializeDefaultConfig()
     m_CivilWarConfig.m_fAnnexChance   = 0.f;
 
     m_fCombatThresholdSquare                 = 0.7f*0.7f;
+    m_bContinueAfterEconomicFailure          = false;
     m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
     m_bDedicatedServerAutosaveToJoshuaFolder = false;
     m_fDedicatedServerAutosavePeriod         = 0.f;
@@ -2873,6 +2874,11 @@ void GServer::LoadSP2HDMConfigXML()
                         const REAL32 l_fCombatRangeDegrees = l_sElementValue.ToREAL32();
                         m_fCombatThresholdSquare = l_fCombatRangeDegrees*l_fCombatRangeDegrees;
                         g_Joshua.Log(L"combatRangeDegrees: " + GString::FormatNumber(l_fCombatRangeDegrees, 2));
+                    }
+                    else if(l_sElementName == L"continueAfterEconomicFailure")
+                    {
+                        m_bContinueAfterEconomicFailure = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"continueAfterEconomicFailure: " + GString(m_bContinueAfterEconomicFailure));
                     }
                     else if(l_sElementName == L"countryNameChangeMode")
                     {

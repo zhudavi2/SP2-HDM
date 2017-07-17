@@ -67,6 +67,11 @@
   Default is 0.70. -->
   <combatRangeDegrees>0.70</combatRangeDegrees>
   
+  <!-- Set to 1 to enable a human player to continue playing after their
+  economy fails.
+  Allowed values are 0 and 1. Default is 0. -->
+  <continueAfterEconomicFailure>0</continueAfterEconomicFailure>
+  
   <!-- Control how country name changes work in conjunction with player name changes.
   0 disables country name changes, and you may change your player name via the Multiplayer Lobby. (Default SP2 V1.5.1)
   1 allows you to change your country name via the Covert Actions New Cell window. In the name text box, type "NAME", followed by a space, followed by your desired country name, and click "Create"; instead of creating a new cell, your country name will change. For example, if you type "NAME This is my new country name", then your country name will change to "This is my new country name". You may change your player name via the Game Lobby window. However, if you have the Game Lobby open at the same time that someone, including you, changes country name, then your player name will reset to what you specified in your Game Options. (Default SP2-HDM V6 and earlier)

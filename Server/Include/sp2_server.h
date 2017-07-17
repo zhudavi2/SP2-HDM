@@ -146,6 +146,7 @@ namespace SP2
       inline GCivilWarConfig CivilWarConfig() const { return m_CivilWarConfig; }
 
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
+      inline bool    ContinueAfterEconomicFailure() const { return m_bContinueAfterEconomicFailure; }
       inline INT32   CountryNameChangeMode() const { return m_iCountryNameChangeMode; }
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
       inline bool    DisbandAMDSOnOccupy() const { return m_bDisbandAMDSOnOccupy; }
@@ -284,6 +285,7 @@ namespace SP2
       GCivilWarConfig m_CivilWarConfig;
 
       REAL32 m_fCombatThresholdSquare;
+      bool   m_bContinueAfterEconomicFailure;
       INT32  m_iCountryNameChangeMode;
       REAL32 m_fDedicatedServerAutosavePeriod;
       bool   m_bDedicatedServerAutosaveToJoshuaFolder;

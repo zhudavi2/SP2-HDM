@@ -753,18 +753,22 @@ EObjectiveStatus::Enum GGameObjectiveEvaluator::EvalEconomicFailure(SDK::GPlayer
 {
    //That objective has no timeout.
 
-   //Fetch country data
-   GCountryData* l_pData = g_ServerDAL.CountryData(in_pPlayer->ModID());
-   gassert(l_pData,"GGameObjectiveEvaluator::EvalEconomicFailure invalid country data (NULL)");
+   EObjectiveStatus::Enum l_eStatus = EObjectiveStatus::NotReached;
+   if(g_SP2Server->ContinueAfterEconomicFailure())
+   {
+       //Fetch country data
+       GCountryData* l_pData = g_ServerDAL.CountryData(in_pPlayer->ModID());
+       gassert(l_pData, "GGameObjectiveEvaluator::EvalEconomicFailure invalid country data (NULL)");
 
-   //Economic failure is when your expenses on your debt are higher than your revenues
-   REAL64 l_fDebtExpenses = l_pData->BudgetExpenseDebt();
-   REAL64 l_fRevenues     = g_ServerDCL.GetRevenuesForEconomicFailure(in_pPlayer->ModID());
+       //Economic failure is when your expenses on your debt are higher than your revenues
+       REAL64 l_fDebtExpenses = l_pData->BudgetExpenseDebt();
+       REAL64 l_fRevenues     = g_ServerDCL.GetRevenuesForEconomicFailure(in_pPlayer->ModID());
 
-   if(l_fDebtExpenses > l_fRevenues)
-      return EObjectiveStatus::Reached;
-   else
-      return EObjectiveStatus::NotReached;
+       if(l_fDebtExpenses > l_fRevenues)
+           l_eStatus = EObjectiveStatus::Reached;
+   }
+
+   return l_eStatus;
 }
 
 
