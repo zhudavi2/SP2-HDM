@@ -37,8 +37,10 @@ bool GEditBoxNumeric::OnCreate()
 {
    __super::OnCreate();
 
+#ifndef GOLEM_DEBUG
    //This is used to override ESCAPE hot key that brings main menu
    m_iHotKeyID = g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_ESCAPE, false, false, false), this);
+#endif //GOLEM_DEBUG
 
    return true;
 }

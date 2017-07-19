@@ -9283,8 +9283,10 @@ void GBackgroundEarth::SendOverlayToBack()
 **/
 void GBackgroundEarth::RegisterHotkeys()
 {
+#ifndef GOLEM_DEBUG
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_HOME,   false, false, false), this);
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo('B',       false, true,  false), this);
+#endif // GOLEM_DEBUG
 }
 
 /*!
@@ -9292,5 +9294,7 @@ void GBackgroundEarth::RegisterHotkeys()
 **/
 void GBackgroundEarth::UnregisterHotkeys()
 {
+#ifndef GOLEM_DEBUG
    g_Joshua.GUIManager()->Hotkeys.UnregisterHotkeysBoundTo(this);
+#endif // GOLEM_DEBUG
 }

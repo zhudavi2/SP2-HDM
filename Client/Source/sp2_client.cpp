@@ -165,6 +165,12 @@ GAME_MSG GClient::Iterate(void* param)
       m_bCheckForEngineConnection = false;
    }
 
+#ifdef GOLEM_DEBUG
+   // \todo More elegant way to skip intro movies. #65
+   if(m_pStateMachine->CurrentState() == 2)
+       m_pStateMachine->SendEvent(FSM::EEvents::CancelMovie);
+#endif // GOLEM_DEBUG
+
    m_pStateMachine->Iterate();
    
    g_Joshua.IterateSteam();//

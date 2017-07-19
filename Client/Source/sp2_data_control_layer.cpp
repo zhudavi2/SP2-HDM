@@ -1564,7 +1564,9 @@ void GDataControlLayer::ConnectToGame(EGameTypes::Enum in_eGameType)
 
 void GDataControlLayer::InitGame()
 {
+#ifndef GOLEM_DEBUG
    m_iEscapeKeyId = g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_ESCAPE, false, false, false));
+#endif //GOLEM_DEBUG
 }
 
 void GDataControlLayer::LoadGameData()
@@ -1717,12 +1719,15 @@ void GDataControlLayer::LoadGameData()
 
    g_ClientDDL.ResetMousePointer();
 
+#ifndef GOLEM_DEBUG
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_F10, false, false, false));
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_F9, false, false, false));
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_F2, false, false, false));
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_F3, false, false, false));
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_F4, false, false, false));
    g_Joshua.GUIManager()->Hotkeys.Register(GKeyboardInfo(VK_F5, false, false, false));
+#endif // GOLEM_DEBUG
+
    g_Joshua.GUIManager()->Hotkeys.Unregister(m_iEscapeKeyId);
 
    // Init some memory

@@ -87,6 +87,12 @@
       <ImportLibrary>$(OutDir)client.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "D:\\SteamLibrary\\SteamApps\\common\\SuperPower 2\\MODS\\SP2-HDM"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
