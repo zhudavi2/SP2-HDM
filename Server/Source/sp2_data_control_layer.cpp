@@ -8726,8 +8726,9 @@ REAL32 GDataControlLayer::UpkeepFeeForSingleUnit(const SP2::GUnit* in_pUnit) con
 		l_fUnitModifier *= SP2::TRAINING;
 
     const GUnitDesign* const l_pDesign = dynamic_cast<const GUnitDesign*>(in_pUnit->Design());
+    const EUnitCategory::Enum l_eCategory = l_pDesign->Type()->Category();
     REAL32 l_fUpkeep = l_pDesign->Cost() * in_pUnit->Qty() * (l_fUnitModifier * l_fCountryModifier);
-    REAL32 l_fUpkeepModifier = g_SP2Server->MilitaryUpkeepPercentages(l_pDesign->Type()->Category(), in_pUnit->Training());
+    REAL32 l_fUpkeepModifier = l_eCategory != EUnitCategory::Nuclear ? g_SP2Server->MilitaryUpkeepPercentages(l_eCategory, in_pUnit->Training()) : g_SP2Server->NuclearUpkeepPercentage();
 
     /*GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
            GString(in_pUnit->Qty()) + L" " + l_pDesign->Name() + L" " + g_ServerDAL.GetString(c_iUnitCategoryStringID[l_pDesign->Type()->Category()]) + L": " +
