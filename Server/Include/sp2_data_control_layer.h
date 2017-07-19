@@ -37,6 +37,9 @@ namespace SP2
 
 		hash_map<UINT32,REAL32>		m_TotalEnemiesByCountries;
 
+        //! To track which regions have already had their population mismatches fixed
+        mutable map<UINT32, pair<bool, bool>> m_mRegionPopMismatchFixed;
+
 		void LogNewAction(GString in_sNewAction);
 
 		//! It will verify if that war should be ended or not. Return true if treaty needs to be removed

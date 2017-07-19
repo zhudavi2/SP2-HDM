@@ -5955,15 +5955,28 @@ INT64 GDataControlLayer::RemovePopulationFromCountry(UINT32 in_iCountryID, INT64
 
 bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in_iNbPopulation, bool in_bEnroll)
 {	  
+    GDZLOG(L"in_iRegionID " + GString(in_iRegionID) + L", in_iNbPopulation " + GDZDebug::FormatInt(in_iNbPopulation) + L", in_bEnroll " + GString(in_bEnroll),
+           EDZLogLevel::Entry);
+
 	GRegion* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
+    const GString l_sRegionName = g_ServerDAL.RegionNameAndIDForLog(in_iRegionID);
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_pRegion->OwnerId());
+    GDZLOG(l_sRegionName + L" of " + l_pCountryData->NameAndIDForLog(),
+           EDZLogLevel::Info2);
 
 	INT64 l_iPop15 = l_pRegion->Population15();
 	INT64 l_iPop1565 = l_pRegion->Population1565();
 	INT64 l_iPop65 = l_pRegion->Population65();
 	INT64 l_iPop = l_pRegion->Population();
-   if(l_iPop == 0)
-      return false;
+    GDZLOG(L"Total population by age, before: " + GDZDebug::FormatInt(l_iPop),
+           EDZLogLevel::Info2);
+
+    if(l_iPop == 0)
+    {
+        GDZLOG(L"Returning false",
+               EDZLogLevel::Exit);
+        return false;
+    }
 
 	gassert(in_iNbPopulation <= l_iPop,"GDataControlLayer::RemovePopulationFromRegion: Removing more population than there is.");
 
@@ -6041,8 +6054,14 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 			continue;
 		}
 		g_Joshua.Log(L"Error while removing population. Should never happen!",MSGTYPE_FATAL_ERROR);
+        GDZLOG(L"Returning false",
+               EDZLogLevel::Exit);
 		return false;
 	}
+
+    const INT64 l_iTotalNewPop = l_iPop15 + l_iPop1565 + l_iPop65;
+    GDZLOG(L"New population by age: " + GDZDebug::FormatInt(l_iTotalNewPop),
+           EDZLogLevel::Info2);
 
 	l_pRegion->Population15(l_iPop15);
 	l_pRegion->Population1565(l_iPop1565);
@@ -6051,79 +6070,108 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 	/*
 		Now remove people from religions
 	*/
-	l_iTempCasualties = in_iNbPopulation;
-	GReligionList l_Religions;
-	l_pRegion->GetReligions(l_Religions);	
-	for(GReligionList::iterator l_Itr = l_Religions.begin();
-			l_Itr != l_Religions.end();
-			l_Itr++)
-	{
-		l_iTempRemoval = (INT64)(((REAL32)l_Itr->second / (REAL32)max(l_iPop,1)) * (REAL32)in_iNbPopulation);
-		if(l_iTempRemoval > l_Itr->second)
-			l_iTempRemoval = l_Itr->second;
-		l_pRegion->ReligionChangePopulation(l_Itr->first,l_Itr->second - l_iTempRemoval);
-		l_iTempCasualties -= l_iTempRemoval;
-	}
-	if(l_iTempCasualties != 0)
-	{		
-		l_pRegion->GetReligions(l_Religions);	
-		for(GReligionList::iterator l_Itr = l_Religions.begin();
-				l_Itr != l_Religions.end();
-				l_Itr++)
-			{
-				l_iTempRemoval = l_iTempCasualties;
-				if(l_iTempRemoval > l_Itr->second)
-					l_iTempRemoval = l_Itr->second;
-				l_pRegion->ReligionChangePopulation(l_Itr->first,l_Itr->second - l_iTempRemoval);
-				l_iTempCasualties -= l_iTempRemoval;
-				if(l_iTempCasualties == 0)
-					break;
-			}
-			if(l_iTempCasualties != 0)
-			{
-				g_Joshua.Log(L"Error while removing population. Should never happen!",MSGTYPE_FATAL_ERROR);
-				return false;
-			}
+    {
+        INT64 l_iPopByReligionLeftToRemove = in_iNbPopulation;
+        INT64 l_iTotalPopByReligion = 0;
 
-	}
+        GReligionList l_Religions;
+        l_pRegion->GetReligions(l_Religions);
+        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
+        {
+            INT64 l_iReligionPop = it->second;
+            if(l_iPopByReligionLeftToRemove > 0)
+            {
+                INT64 l_iPopToRemove = static_cast<INT64>(static_cast<REAL32>(it->second) / max(l_iPop, 1) * in_iNbPopulation);
+                l_iPopToRemove = min(l_iPopToRemove, it->second);
+                l_iPopToRemove = min(l_iPopToRemove, l_iPopByReligionLeftToRemove);
+                l_iReligionPop -= l_iPopToRemove;
+                l_pRegion->ReligionChangePopulation(it->first, l_iReligionPop);
+                l_iPopByReligionLeftToRemove -= l_iPopToRemove;
+            }
+            l_iTotalPopByReligion += l_iReligionPop;
+        }
+
+        gassert(l_iPopByReligionLeftToRemove >= 0, L"Removed too much population by religion");
+
+        if(l_iPopByReligionLeftToRemove > 0)
+        {
+            //If we didn't remove all the population that we should've
+            l_pRegion->GetReligions(l_Religions);
+            l_iTotalPopByReligion = 0;
+            for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
+            {
+                INT64 l_iReligionPop = it->second;
+                if(l_iPopByReligionLeftToRemove > 0)
+                {
+                    INT64 l_iPopToRemove = min(it->second, l_iPopByReligionLeftToRemove);
+                    l_iReligionPop -= l_iPopToRemove;
+                    l_pRegion->ReligionChangePopulation(it->first, l_iReligionPop);
+                    l_iPopByReligionLeftToRemove -= l_iPopToRemove;
+                }
+                l_iTotalPopByReligion += l_iReligionPop;
+            }
+        }
+
+        if(l_iTotalPopByReligion != l_iTotalNewPop)
+        {
+            GDZLOG(l_sRegionName + L" population mismatch by religion in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByReligion) + L" by religion",
+                   EDZLogLevel::Error);
+            FixRegionPopulationMismatch(true, *l_pRegion);
+        }
+    }
+
 	/*
 		Now remove people from languages
 	*/
-	l_iTempCasualties = in_iNbPopulation;
-	GLanguageList l_Languages;
-	l_pRegion->GetLanguages(l_Languages);
-	for(GLanguageList::iterator l_Itr = l_Languages.begin();
-			l_Itr != l_Languages.end();
-			l_Itr++)
-	{
-		l_iTempRemoval = (INT64)(((REAL32)l_Itr->second / (REAL32)max(l_iPop,1)) * (REAL32)in_iNbPopulation);
-		if(l_iTempRemoval > l_Itr->second)
-			l_iTempRemoval = l_Itr->second;
-		l_pRegion->LanguageChangePopulation(l_Itr->first,l_Itr->second - l_iTempRemoval);
-		l_iTempCasualties -= l_iTempRemoval;
-	}
-	if(l_iTempCasualties != 0)
-	{		
-		l_pRegion->GetLanguages(l_Languages);
-		for(GLanguageList::iterator l_Itr = l_Languages.begin();
-				l_Itr != l_Languages.end();
-				l_Itr++)
-			{
-				l_iTempRemoval = l_iTempCasualties;
-				if(l_iTempRemoval > l_Itr->second)
-					l_iTempRemoval = l_Itr->second;
-				l_pRegion->LanguageChangePopulation(l_Itr->first,l_Itr->second - l_iTempRemoval);
-				l_iTempCasualties -= l_iTempRemoval;
-				if(l_iTempCasualties == 0)
-					break;
-			}
-			if(l_iTempCasualties != 0)
-			{
-				g_Joshua.Log(L"Error while removing population. Should never happen!",MSGTYPE_FATAL_ERROR);
-				return false;
-			}
+    {
+        INT64 l_iPopByLanguageLeftToRemove = in_iNbPopulation;
+        INT64 l_iTotalPopByLanguage = 0;
 
-	}
+        GLanguageList l_Languages;
+        l_pRegion->GetLanguages(l_Languages);
+        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); it++)
+        {
+            INT64 l_iLanguagePop = it->second;
+            if(l_iPopByLanguageLeftToRemove > 0)
+            {
+                INT64 l_iPopToRemove = static_cast<INT64>(static_cast<REAL32>(it->second) / max(l_iPop, 1) * in_iNbPopulation);
+                l_iPopToRemove = min(l_iPopToRemove, it->second);
+                l_iPopToRemove = min(l_iPopToRemove, l_iPopByLanguageLeftToRemove);
+                l_iLanguagePop -= l_iPopToRemove;
+                l_pRegion->LanguageChangePopulation(it->first, l_iLanguagePop);
+                l_iPopByLanguageLeftToRemove -= l_iPopToRemove;
+            }
+            l_iTotalPopByLanguage += l_iLanguagePop;
+        }
+
+        gassert(l_iPopByLanguageLeftToRemove >= 0, L"Removed too much population by religion");
+
+        if(l_iPopByLanguageLeftToRemove > 0)
+        {
+            //If we didn't remove all the population that we should've
+            l_pRegion->GetLanguages(l_Languages);
+            l_iTotalPopByLanguage = 0;
+            for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
+            {
+                INT64 l_iLanguagePop = it->second;
+                if(l_iPopByLanguageLeftToRemove > 0)
+                {
+                    INT64 l_iPopToRemove = min(it->second, l_iPopByLanguageLeftToRemove);
+                    l_iLanguagePop -= l_iPopToRemove;
+                    l_pRegion->LanguageChangePopulation(it->first, l_iLanguagePop);
+                    l_iPopByLanguageLeftToRemove -= l_iPopToRemove;
+                }
+                l_iTotalPopByLanguage += l_iLanguagePop;
+            }
+        }
+
+        if(l_iTotalPopByLanguage != l_iTotalNewPop)
+        {
+            GDZLOG(l_sRegionName + L" population mismatch by language in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByLanguage) + L" by language",
+                   EDZLogLevel::Error);
+            FixRegionPopulationMismatch(false, *l_pRegion);
+        }
+    }
 
 	//Now remove production, and demand, for that region;
 	REAL32 l_fPopRatio = -((REAL32)in_iNbPopulation / (REAL32)max(l_iPop,1)) + 1.f;
@@ -6134,6 +6182,9 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 		//If the country is losing people, it will lose production
 		l_pRegion->ResourceProduction((EResources::Enum)i,l_pRegion->ResourceProduction((EResources::Enum)i)*l_fPopRatio);
 	}
+
+    GDZLOG(L"Returning true",
+           EDZLogLevel::Exit);
 	return true;
 }
 
@@ -9381,6 +9432,19 @@ void GDataControlLayer::LiberateRegions(UINT32 in_iCountryLiberating,
 
 void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, GRegion& in_Region) const
 {
+    const UINT32 l_iId = in_Region.Id();
+    auto l_RegionFixedIt = m_mRegionPopMismatchFixed.find(l_iId);
+    if(l_RegionFixedIt == m_mRegionPopMismatchFixed.cend())
+    {
+        m_mRegionPopMismatchFixed[l_iId] = pair<bool, bool>(false, false);
+        l_RegionFixedIt = m_mRegionPopMismatchFixed.find(l_iId);
+    }
+    gassert((!l_RegionFixedIt->second.first && in_bIsReligion) || (!l_RegionFixedIt->second.second && !in_bIsReligion), "Fixing an already-fixed region");
+    if(in_bIsReligion)
+        l_RegionFixedIt->second.first = true;
+    else
+        l_RegionFixedIt->second.second = true;
+
     stdext::hash_map<INT32, INT64> l_mPopMap;
     if(in_bIsReligion)
         in_Region.GetReligions(l_mPopMap);
@@ -9392,11 +9456,11 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
         l_iIncorrectPop += it->second;
 
     const INT64 l_iPopulation = in_Region.Population();
-    GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L": Correct population " + GString(l_iPopulation) + L", incorrect population " + GString(l_iIncorrectPop),
+    GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L": Correct population " + GDZDebug::FormatInt(l_iPopulation) + L", incorrect population " + GString(l_iIncorrectPop),
            EDZLogLevel::Always);
 
     if(l_iIncorrectPop == l_iPopulation)
-        GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L" population seems consistent at " + GString(l_iPopulation) + L", continuing anyway",
+        GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L" population seems consistent at " + GDZDebug::FormatInt(l_iPopulation) + L", continuing anyway",
                EDZLogLevel::Warning);
 
     INT64 l_iFixedPop = 0;
@@ -9407,7 +9471,7 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
         const REAL32 l_fPopRatio = static_cast<REAL32>(it->second) / static_cast<REAL32>(l_iIncorrectPop);
         const INT64 l_iActualPop = static_cast<INT64>(l_fPopRatio * l_iPopulation);
 
-        GDZLOG(L"Current group " + GString(it->first) + L" population is " + GString(it->second) + L", changing to " + GString(l_iActualPop),
+        GDZLOG(L"Current group " + GString(it->first) + L" population is " + GDZDebug::FormatInt(it->second) + L", changing to " + GDZDebug::FormatInt(l_iActualPop),
                EDZLogLevel::Always);
 
         if(in_bIsReligion)
@@ -9419,7 +9483,7 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
         l_iLargestGroup = (l_mPopMap.at(l_iLargestGroup) < it->second) ? it->first : l_iLargestGroup;
     }
 
-    GDZLOG(L"Population by group after fix: " + GString(l_iFixedPop),
+    GDZLOG(L"Population by group after fix: " + GDZDebug::FormatInt(l_iFixedPop),
            EDZLogLevel::Always);
 
     //If there's still any discrepancy, add or remove from the largest group
@@ -9434,7 +9498,7 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
             l_iNewLargestGroupPop = in_Region.LanguageGetPopulation(l_iLargestGroup);
         l_iNewLargestGroupPop +=  + l_iLeftoverPop;
 
-        GDZLOG(GString(l_iLeftoverPop) + L" left over, modifying group " + GString(l_iLargestGroup) + L" to compensate",
+        GDZLOG(GDZDebug::FormatInt(l_iLeftoverPop) + L" left over, modifying group " + GDZDebug::FormatInt(l_iLargestGroup) + L" to compensate",
                EDZLogLevel::Always);
         
         if(in_bIsReligion)
