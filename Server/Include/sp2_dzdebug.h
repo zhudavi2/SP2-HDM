@@ -32,6 +32,9 @@ namespace SP2
             Warning = 1 << 2,
             Info1   = 1 << 3,
             Info2   = 1 << 4,
+            Entry   = 1 << 5,
+            Exit    = 1 << 6,
+            Trace   = Entry | Exit,
         };
     }
 
@@ -93,10 +96,26 @@ void GDZDebug::Log(const GString& in_sMsg,
 
         if((l_iLogLevelsEnabled & in_iLogLevel) != 0)
         {
+            GString l_sTraceString(L"");
+            switch(in_iLogLevel)
+            {
+            case EDZLogLevel::Entry:
+                l_sTraceString = L">>> ";
+                break;
+
+            case EDZLogLevel::Exit:
+                l_sTraceString = L"<<< ";
+                break;
+
+            default:
+                break;
+            }
+
             g_Joshua.Log(L"(DZLOG) [" + c_mLogLevelNames.at(in_iLogLevel) + L"] " +
                          l_sModuleName + L" - " +
                          in_sFunc + L" - " +
                          GString(in_iLine) + L": " +
+                         l_sTraceString +
                          in_sMsg);
         }
     }

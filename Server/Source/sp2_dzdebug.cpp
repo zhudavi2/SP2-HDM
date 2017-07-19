@@ -20,6 +20,8 @@ const GDZDebug::GLogLevelNamePair GDZDebug::c_LogLevelNames[] =
     GLogLevelNamePair(EDZLogLevel::Warning, L"WARNING"),
     GLogLevelNamePair(EDZLogLevel::Info1,   L"INFO1"),
     GLogLevelNamePair(EDZLogLevel::Info2,   L"INFO2"),
+    GLogLevelNamePair(EDZLogLevel::Entry,   L"TRACE"),
+    GLogLevelNamePair(EDZLogLevel::Exit,    L"TRACE"),
 };
 
 const map<EDZLogLevel::Enum, GString> GDZDebug::c_mLogLevelNames(GDZDebug::c_LogLevelNames, GDZDebug::c_LogLevelNames + sizeof(c_LogLevelNames) / sizeof(GLogLevelNamePair));
