@@ -3005,12 +3005,15 @@ bool SP2::GUnitMover::RemoveBombardingGroup(UINT32 in_iId)
    if(l_It != m_BombardingGroups.end())
    {
        SP2::GUnitGroupEx* l_pGroup = (SP2::GUnitGroupEx*)g_Joshua.UnitManager().UnitGroup(in_iId);
+       const UINT16 l_iBombardedRegionId = l_pGroup->RegionToBombard();
+       gassert(l_iBombardedRegionId > 0 && l_iBombardedRegionId <= g_ServerDAL.NbRegion(), L"Invalid region being bombarded");
+
       //Notify a bombardment as ended
       SDK::GGameEventSPtr l_Evt                    = CREATE_GAME_EVENT(SP2::Event::GBombardmentNotification);
       SP2::Event::GBombardmentNotification* l_pEvt = (SP2::Event::GBombardmentNotification*)l_Evt.get();
       l_pEvt->m_bStarting                          = false;
       l_pEvt->m_iSource                            = SDK::Event::ESpecialTargets::Server;
-      l_pEvt->m_iTargetRegion                      = l_pGroup->RegionToBombard();
+      l_pEvt->m_iTargetRegion                      = l_iBombardedRegionId;
       l_pEvt->m_iTarget                            = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
       g_Joshua.RaiseEvent(l_Evt);
       m_BombardingGroups.erase(l_It);
@@ -3392,10 +3395,11 @@ void GUnitMover::PerformOffShoreBombardment()
                                    l_It++)
    {
       SP2::GUnitGroupEx* l_pGroup = (SP2::GUnitGroupEx*)g_Joshua.UnitManager().UnitGroup(*l_It);
+      RemoveBombardingGroup(*l_It);
+      //Clear RegionToBombard to 0 after calling RemoveBombardingGroup, because RemoveBombardingGroup still needs to know what region the group was bombarding
       l_pGroup->RegionToBombard(0);
       l_pGroup->m_ActionAtDest &= ~EMilitaryAction::BombardRegion;
       g_Joshua.UnitManager().ModifyUnitGroup(l_pGroup);
-      RemoveBombardingGroup(*l_It);
    }
 
 
