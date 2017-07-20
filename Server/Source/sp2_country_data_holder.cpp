@@ -580,13 +580,11 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
         }
         else
         {
-            GDZLOG(NameAndIDForLog() + L" has nonincome HDI > 1.000 (" + GString(l_fHIEIProduct) + L"), with HDI " + GString::FormatNumber(m_fHumanDevelopment) + L" and II " + GString(l_fIncomeIndex) + L"; capping HI and EI at 1.000 and recalculating HDI",
-                   EDZLogLevel::Warning);
+            GDZLOG(EDZLogLevel::Warning, NameAndIDForLog() + L" has nonincome HDI > 1.000 (" + GString(l_fHIEIProduct) + L"), with HDI " + GString::FormatNumber(m_fHumanDevelopment) + L" and II " + GString(l_fIncomeIndex) + L"; capping HI and EI at 1.000 and recalculating HDI");
             m_fHumanDevelopment = powf(l_fIncomeIndex, 1.f / 3.f);
         }
 
-        GDZLOG(L"HI: " + GString(l_fHI) + L", EI: " + GString(l_fEI),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, L"HI: " + GString(l_fHI) + L", EI: " + GString(l_fEI));
 
         m_fLifeExpectancy = (l_fHI * 65.f) + 20.f;
 
@@ -1923,21 +1921,18 @@ void  GCountryData::IterateCovertActionCells()
                         //This is needed to force the cell to spend time preparing its next mission, rather than execute the next mission instantly
                         it->ChangeState(ECovertActionsCellState::Active);
 
-                        GDZLOG(g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" wasn't captured after executing auto mission; restarting mission",
-                               EDZLogLevel::Info2);
+                        GDZLOG(EDZLogLevel::Info2, g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" wasn't captured after executing auto mission; restarting mission");
                         it->ChangeState(ECovertActionsCellState::PreparingMission);
                     }
                     else
                     {
-                        GDZLOG(g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" was captured after executing auto mission; marking cell for removal",
-                               EDZLogLevel::Info2);
+                        GDZLOG(EDZLogLevel::Info2, g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" was captured after executing auto mission; marking cell for removal");
                         l_vCellsToRemove.insert(l_iCellID);
                     }
                 }
                 else
                 {
-                    GDZLOG(g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" is cancelling an automatic mission against " + GString(l_iTargetID) + L" due to target inactivity",
-                           EDZLogLevel::Info1);
+                    GDZLOG(EDZLogLevel::Info1, g_ServerDAL.CovertCellInfoForLog(m_iCountryID, l_iCellID) + L" is cancelling an automatic mission against " + GString(l_iTargetID) + L" due to target inactivity");
                     it->CancelAction();
                     it->AssignedCountry(m_iCountryID);
                 }
@@ -1951,8 +1946,7 @@ void  GCountryData::IterateCovertActionCells()
 
     for(auto it = l_vCellsToRemove.cbegin(); it != l_vCellsToRemove.cend(); ++it)
     {
-        GDZLOG(L"Removing captured cell " + g_ServerDAL.CovertCellInfoForLog(m_iCountryID, *it),
-               EDZLogLevel::Info2);
+        GDZLOG(EDZLogLevel::Info2, L"Removing captured cell " + g_ServerDAL.CovertCellInfoForLog(m_iCountryID, *it));
         RemoveCovertActionCell(CovertActionCell(*it));
     }
 
@@ -1960,8 +1954,7 @@ void  GCountryData::IterateCovertActionCells()
     m_bCovertActionCellsDirty = (m_bCovertActionCellsDirty || !l_vCellsToRemove.empty());
 
     if(m_bCovertActionCellsDirty)
-        GDZLOG(L"m_bCovertActionCellsDirty TRUE",
-               EDZLogLevel::Info2);
+        GDZLOG(EDZLogLevel::Info2, L"m_bCovertActionCellsDirty TRUE");
     
     if(l_bCellsHaveChanged || m_bCovertActionCellsDirty)
 	{
@@ -2063,9 +2056,8 @@ INT32 GCountryData::NumberOfPoliticallyControlledRegions() const
 bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
 {
     const GCountryData* const l_pMasterData = g_ServerDAL.CountryData(in_iMaster);
-    GDZLOG(L"Testing if " + NameAndIDForLog() + L" can be a client of " +
-           l_pMasterData->NameAndIDForLog(),
-           EDZLogLevel::Info1);
+    GDZLOG(EDZLogLevel::Info1, L"Testing if " + NameAndIDForLog() + L" can be a client of " +
+           l_pMasterData->NameAndIDForLog());
 
     //Check if the server allows human-controlled countries to become client states
     if(!g_SP2Server->AllowHumanClientStates())
@@ -2073,8 +2065,7 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
         SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayerByModID(m_iCountryID);
         if(l_pPlayer == nullptr || !l_pPlayer->AIControlled())
         {
-            GDZLOG(NameAndIDForLog() + L" is ineligible to be a client because it is not AI-controlled, and the server disallows human-controlled countries from becoming client states",
-                   EDZLogLevel::Info1);
+            GDZLOG(EDZLogLevel::Info1, NameAndIDForLog() + L" is ineligible to be a client because it is not AI-controlled, and the server disallows human-controlled countries from becoming client states");
             return false;
         }
     }
@@ -2086,36 +2077,32 @@ bool GCountryData::EligibleToBeClientOf(ENTITY_ID in_iMaster) const
     //Client state can't have an economic score higher than half the master's
     const REAL64 l_fClientOptimalEconomicScore = OptimalGDPValue() * m_fEconomicHealth;
     const REAL64 l_fMasterEconomicScore = l_pMasterData->GDPValue() * l_pMasterData->EconomicHealth();
-    GDZLOG(NameAndIDForLog() + L" economic score: " +
+    GDZLOG(EDZLogLevel::Info2, NameAndIDForLog() + L" economic score: " +
            GString::FormatNumber(l_fClientOptimalEconomicScore, L",", L".", L"$", L"") +
            L"; " +
            l_pMasterData->NameAndIDForLog() + L" economic score: " +
-           GString::FormatNumber(l_fMasterEconomicScore, L",", L".", L"$", L""),
-           EDZLogLevel::Info2);
+           GString::FormatNumber(l_fMasterEconomicScore, L",", L".", L"$", L""));
     if(l_fMasterEconomicScore / 2.0 < l_fClientOptimalEconomicScore)
         return false;
 
     //Client must have less than or equal to 1/10 of master's military strength
     const REAL32 l_fMasterMilitaryStrength = l_pMasterData->MilitaryStrength();
-    GDZLOG(NameAndIDForLog() + L" military: " +
+    GDZLOG(EDZLogLevel::Info2, NameAndIDForLog() + L" military: " +
            GString::FormatNumber(m_fMilitaryStrength, L",", L".", L"$", L"") +
            L"; " +
            l_pMasterData->NameAndIDForLog() + L" military: " +
-           GString::FormatNumber(l_fMasterMilitaryStrength, L",", L".", L"$", L""),
-           EDZLogLevel::Info2);
+           GString::FormatNumber(l_fMasterMilitaryStrength, L",", L".", L"$", L""));
     if(m_fMilitaryStrength > l_fMasterMilitaryStrength / 10.f)
         return false;
 
     //Client must be occupied sufficiently
     const REAL32 l_fPercentageOccupied = PercentageOfPopulationOccupiedByCountry(in_iMaster);
-    GDZLOG(NameAndIDForLog() + L" percentage occupied: " +
-           GString(l_fPercentageOccupied * 100.f),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, NameAndIDForLog() + L" percentage occupied: " +
+           GString(l_fPercentageOccupied * 100.f));
     if(l_fPercentageOccupied < 0.8f)
         return false;
 
-    GDZLOG(NameAndIDForLog() + L" is eligible", 
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, NameAndIDForLog() + L" is eligible");
     return true;
 }
 
@@ -2759,9 +2746,7 @@ void GCountryData::RemoveClient(ENTITY_ID in_iCountryID)
             GString(l_iTreatyID) + L" master");
     l_pClient->Master(0, 0);
 
-    GDZLOG(l_pClient->NameAndIDForLog() + L" is no longer a client of " +
-           NameAndIDForLog(),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, l_pClient->NameAndIDForLog() + L" is no longer a client of " + NameAndIDForLog());
 
     //Send country list to update the former client's name
     g_ServerDCL.SendCountryList();

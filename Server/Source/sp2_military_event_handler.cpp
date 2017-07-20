@@ -317,13 +317,11 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
            l_Cell.ExperienceLevel( (REAL32)l_pEvent->m_eTraining );
            l_Cell.Initialize();
 
-           GDZLOG(L"Next ID before add: " + GString(GCovertActionCell::m_iNextId),
-                  EDZLogLevel::Info2);
+           GDZLOG(EDZLogLevel::Info2, L"Next ID before add: " + GString(GCovertActionCell::m_iNextId));
 
            l_pData->AddCovertActionCell(l_Cell);
 
-           GDZLOG(L"Next ID after add: " + GString(GCovertActionCell::m_iNextId),
-                  EDZLogLevel::Info2);
+           GDZLOG(EDZLogLevel::Info2, L"Next ID after add: " + GString(GCovertActionCell::m_iNextId));
 
            l_iNumCellsCreated++;
 	   } while (l_iNumCellsCreated < l_iNumCellsToCreate);
@@ -335,11 +333,10 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
        for(auto it = l_vCells.cbegin(); it < l_vCells.cend(); ++it)
        {
-           GDZLOG(l_pData->NameAndIDForLog() + L" " +
+           GDZLOG(EDZLogLevel::Info2, l_pData->NameAndIDForLog() + L" " +
                   L"cell " + GString(distance(l_vCells.cbegin(),it) + 1) + L" of " +
                   GString(l_vCells.size()) + L": " +
-                  L"ID " + GString(it->ID()) + L"; " + L"name " + it->Name(),
-                  EDZLogLevel::Info2);
+                  L"ID " + GString(it->ID()) + L"; " + L"name " + it->Name());
        }
    }
 }
@@ -453,8 +450,7 @@ void GMilitaryEventHandler::HandleCellUpdate(SDK::GGameEventSPtr in_Event)
        }
        else
        {
-           GDZLOG(L"Fixing save: " + l_pData->NameAndIDForLog() + L" is cancelling a mission against " + GString(l_iTarget) + L" due to target inactivity",
-                  EDZLogLevel::Warning);
+           GDZLOG(EDZLogLevel::Warning, L"Fixing save: " + l_pData->NameAndIDForLog() + L" is cancelling a mission against " + GString(l_iTarget) + L" due to target inactivity");
            l_Cells[i].CancelAction();
            l_Cells[i].AssignedCountry(l_iCurPlayerID);
        }

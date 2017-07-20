@@ -11,8 +11,8 @@
 #ifndef _GOLEM_SP2_DZDEBUG_H_
 #define _GOLEM_SP2_DZDEBUG_H_
 
-#define GDZLOG(msg, logLevel)\
-    GDZDebug::Log((msg), (logLevel), __FUNCTION__, __LINE__)
+#define GDZLOG(logLevel, msg)\
+    GDZDebug::Log((logLevel), (msg), __FUNCTION__, __LINE__)
 
 #ifdef gassert
 #undef gassert
@@ -41,8 +41,8 @@ namespace SP2
     class GDZDebug
     {
     public:
-        static inline void Log(const GString& in_sMsg,
-                               EDZLogLevel::Enum in_iLogLevel,
+        static inline void Log(EDZLogLevel::Enum in_iLogLevel,
+                               const GString& in_sMsg,
                                const GString& in_sFunc,
                                INT32 in_iLine);
 
@@ -79,18 +79,18 @@ namespace SP2
     };
 }
 
-void GDZDebug::Log(const GString& in_sMsg,
-                   EDZLogLevel::Enum in_iLogLevel,
+void GDZDebug::Log(EDZLogLevel::Enum in_iLogLevel,
+                   const GString& in_sMsg,
                    const GString& in_sFunc,
                    INT32 in_iLine)
 {
-    static const wregex l_rModuleNameRegex(L"::G(\\w+)::\\w+$");
-    wsmatch l_vMatches;
-    regex_search(in_sFunc, l_vMatches, l_rModuleNameRegex);
-    const GString l_sModuleName(l_vMatches[1]);
-
     if(m_bLogEnable)
     {
+        static const wregex l_rModuleNameRegex(L"::G(\\w+)::\\w+$");
+        wsmatch l_vMatches;
+        regex_search(in_sFunc, l_vMatches, l_rModuleNameRegex);
+        const GString l_sModuleName(l_vMatches[1]);
+    
         const auto l_LogLevel = m_mLogLevelsEnabled.find(l_sModuleName);
         const UINT32 l_iLogLevelsEnabled = c_iDefaultLogLevel | ((l_LogLevel == m_mLogLevelsEnabled.cend()) ? 0 : l_LogLevel->second);
 

@@ -195,10 +195,9 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                                                     const UINT32 in_iNewControl,
                                                     bool in_bTestConquer)
 {
-    GDZLOG(L"in_iRegionID: " + GString(in_iRegionID) + L", " +
+    GDZLOG(EDZLogLevel::Info2, L"in_iRegionID: " + GString(in_iRegionID) + L", " +
            L"in_iNewControl: " + GString(in_iNewControl) + L", " +
-           L"in_bTestConquer: " + GString(in_bTestConquer),
-           EDZLogLevel::Info2);
+           L"in_bTestConquer: " + GString(in_bTestConquer));
 
    if(in_iRegionID == 0)
 		return true;
@@ -247,9 +246,8 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
          // Disband nuclear missiles if country is now fully occupied
          if(l_pCountryData->NumberOfPoliticallyControlledRegions() == 0)
          {
-             GDZLOG(l_pCountryData->NameAndIDForLog() + L" is fully occupied; " +
-                    L"disbanding nuclear missiles and AMDS",
-                    EDZLogLevel::Info1);
+             GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" is fully occupied; " +
+                    L"disbanding nuclear missiles and AMDS");
 
              // remove nuclear missiles of our country
              vector<GNuclearMissile> l_vEmptyList; l_vEmptyList.clear();
@@ -273,19 +271,17 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                          l_mRequestsToCancel[l_RequestIt->m_iID] = l_RequestIt->m_iDestinationCountryID;
                  }
 
-                 GDZLOG(L"Number of requests to cancel: " +
-                        GString(l_mRequestsToCancel.size()),
-                        EDZLogLevel::Info1);
+                 GDZLOG(EDZLogLevel::Info1, L"Number of requests to cancel: " +
+                        GString(l_mRequestsToCancel.size()));
                  for(auto it = l_mRequestsToCancel.cbegin();
                      it != l_mRequestsToCancel.cend();
                      ++it)
                  {
                      const auto l_iRequestID = it->first;
                      const auto l_iDestinationID = it->second;
-                     GDZLOG(L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
+                     GDZLOG(EDZLogLevel::Info1, L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
                             L"Built by " + l_pCountryData->NameAndIDForLog() +
-                            L" and destined for " + g_ServerDAL.CountryData(l_iDestinationID)->NameAndIDForLog(),
-                            EDZLogLevel::Info1);
+                            L" and destined for " + g_ServerDAL.CountryData(l_iDestinationID)->NameAndIDForLog());
                      CancelUnitProduction(l_iCountryID, l_iDestinationID, l_iRequestID);
                  }
 
@@ -296,9 +292,8 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                      i <= EUnitDesignCharacteristics::MissileDamage;
                      i++)
                  {
-                     GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
-                            g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" " + GString(l_pNuclearValues[i]),
-                            EDZLogLevel::Info1);
+                     GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L": " +
+                            g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" " + GString(l_pNuclearValues[i]));
                      l_pNuclearValues[i] = max(0.f, l_pNuclearValues[i] - 1.f);
                      l_fHighestTechLevel = max(l_pNuclearValues[i], l_fHighestTechLevel);
                  }
@@ -306,9 +301,8 @@ bool GDataControlLayer::ChangeRegionMilitaryControl(const UINT32 in_iRegionID,
                  // If all nuclear research would go below 0, then require country to restart nuclear research
                  if(fabs(l_fHighestTechLevel) <= 0.0000005f)
                  {
-                     GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
-                            L"Removing nuclear readiness",
-                            EDZLogLevel::Info1);
+                     GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L": " +
+                            L"Removing nuclear readiness");
 
                      l_pCountryData->NuclearReady(-1.f);
                  }
@@ -446,15 +440,14 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
            const GCountryData* l_pFormerCountryData = g_ServerDAL.CountryData(l_CurrentControl.m_iPolitical);
            gassert(l_pFormerCountryData,"Country data is NULL");
 
-           GDZLOG(l_pCountryData->Name() + L": Under-15 population " +
+           GDZLOG(EDZLogLevel::Info1, l_pCountryData->Name() + L": Under-15 population " +
                   GString::FormatNumber(static_cast<REAL64>(l_iCurrentCountryPop15), L",", L".", L"", L"", 3, 0) + L", " +
                   L"over-15 population " +
                   GString::FormatNumber(static_cast<REAL64>(l_iCurrentCountryPopOver15), L",", L".", L"", L"", 3, 0) + L"; " +
                   L"gaining region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L" with under-15 population " +
                   GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population15()), L",", L".", L"", L"", 3, 0) + L", " +
                   L"over-15 population " +
-                  GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population() - l_pRegion->Population15()), L",", L".", L"", L"", 3, 0),
-                  EDZLogLevel::Info1);
+                  GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population() - l_pRegion->Population15()), L",", L".", L"", L"", 3, 0));
 
            REAL32 l_fFormerBirths = l_pFormerCountryData->BirthRate() * l_pRegion->Population();
            REAL32 l_fCurrentBirths = l_fCurrentCountryBirthRate * (l_iCurrentCountryPop15 + l_iCurrentCountryPopOver15);
@@ -501,12 +494,11 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
            //Lose stability, lose 0.25f of usual if region gained through trade.
            REAL32 l_fStabilityLoss = static_cast<REAL32>(l_pRegion->Population()) / static_cast<REAL32>(l_iCurrentCountryPop15 + l_iCurrentCountryPopOver15);
            l_fStabilityLoss *= in_bForceChange ? 0.25f : 1;
-           GDZLOG(L"Country " + GString(in_iNewControl) + L", " +
+           GDZLOG(EDZLogLevel::Info1, L"Country " + GString(in_iNewControl) + L", " +
                   g_SP2Server->Countries().at(in_iNewControl - 1).Name() + L" gains region " +
                   g_ServerDAL.GetString(g_ServerDAL.StringIdRegion(in_iRegionID)) +
                   L" with population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0) + L"; " +
-                  L"loses " + GString::FormatNumber(l_fStabilityLoss, 3) + L" stability",
-                  EDZLogLevel::Info1);
+                  L"loses " + GString::FormatNumber(l_fStabilityLoss, 3) + L" stability");
            ChangeCountryStability(in_iNewControl, -l_fStabilityLoss, false);
        }
    }
@@ -1869,10 +1861,9 @@ bool GDataControlLayer::DeclareNewWar(const set<UINT32>& in_AttackingCountries, 
         {
             if(cit->first != in_iDefendingCountry && l_vAttackers.count(cit->first) == 0)
             {
-                GDZLOG(g_ServerDAL.CountryData(cit->first)->NameAndIDForLog() +
+                GDZLOG(EDZLogLevel::Info2, g_ServerDAL.CountryData(cit->first)->NameAndIDForLog() +
                        L" joins war on the same side as its master, " +
-                       l_pCountryData->NameAndIDForLog(),
-                       EDZLogLevel::Info2);
+                       l_pCountryData->NameAndIDForLog());
                 l_vAttackers.insert(l_vAttackers.cend(), cit->first);
             }
         }
@@ -2124,10 +2115,9 @@ bool GDataControlLayer::DeclareWar(ENTITY_ID in_iAttackingCountry, ENTITY_ID in_
             const auto l_iBuilderID = l_UnitIt->first.first;
             const auto l_iDestinationID = l_UnitIt->first.second;
             const auto l_iRequestID = l_UnitIt->second;
-            GDZLOG(L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
+            GDZLOG(EDZLogLevel::Info1, L"Cancelling units in production: Request ID " + GString(l_iRequestID) + L": " +
                    L"Built by " + g_ServerDAL.CountryData(l_iBuilderID)->NameAndIDForLog() +
-                   L" and destined for " + g_ServerDAL.CountryData(l_iDestinationID)->NameAndIDForLog(),
-                   EDZLogLevel::Info1);
+                   L" and destined for " + g_ServerDAL.CountryData(l_iDestinationID)->NameAndIDForLog());
             CancelUnitProduction(l_iBuilderID, l_iDestinationID, l_iRequestID);
         }
 
@@ -2618,22 +2608,20 @@ INT32 GDataControlLayer::BuildUnits(UINT32 in_iBuildingCountryID,
         //Try removing population from country
         //Check available manpower
         const INT64 l_iMiliManpowerAvailable = l_pDestinationCountryData->MiliManpowerAvailable();
-        GDZLOG(l_pDestinationCountryData->NameAndIDForLog() +
+        GDZLOG(EDZLogLevel::Info2, l_pDestinationCountryData->NameAndIDForLog() +
                L" is requesting " + GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
                L" infantry; has " + GString::FormatNumber(static_cast<REAL64>(l_iMiliManpowerAvailable), L",", L".", L"", L"", 3, 0) +
-               L" people available",
-               EDZLogLevel::Info2);
+               L" people available");
 
         in_iQty = min(static_cast<UINT32>(l_iMiliManpowerAvailable), in_iQty);
         if(in_iQty == 0)
             return 0;
 
         //Check if we actually succeed in removing population
-        GDZLOG(L"Will try to remove " +
+        GDZLOG(EDZLogLevel::Info2, L"Will try to remove " +
                GString::FormatNumber(static_cast<REAL64>(in_iQty), L",", L".", L"", L"", 3, 0) +
                L" people from " + l_pDestinationCountryData->NameAndIDForLog() +
-               L" due to enrolling infantry",
-               EDZLogLevel::Info2);
+               L" due to enrolling infantry");
         const INT64 l_iRemovedPeople = g_ServerDCL.RemovePopulationFromCountry(in_iDestinationCountryID,in_iQty,true);
         in_iQty = min(static_cast<UINT32>(l_iRemovedPeople), in_iQty);
         if(in_iQty == 0)
@@ -2873,11 +2861,10 @@ bool GDataControlLayer::CancelUnitProduction(UINT32 in_iBuildingCountryID,
 
    const GCountryData* const l_pCancellingCountry = g_ServerDAL.CountryData(in_iCancellingCountryID);
 
-   GDZLOG(L"Cancelling units in production: Request ID " + GString(in_iProductionRequestID) + L": " +
+   GDZLOG(EDZLogLevel::Info2, L"Cancelling units in production: Request ID " + GString(in_iProductionRequestID) + L": " +
           L"Built by " + g_ServerDAL.CountryData(in_iBuildingCountryID)->NameAndIDForLog() + L" " +
           L"and destined for " + l_pCancellingCountry->NameAndIDForLog() + L": " +
-          GString(l_Request.m_iQtyWanted) + L" units of " + l_pDesign->Name(),
-          EDZLogLevel::Info2);
+          GString(l_Request.m_iQtyWanted) + L" units of " + l_pDesign->Name());
 
    // Decrease population if we just ship some infantry
    SP2::GUnitDesign* l_pUnitToShipDesign = (SP2::GUnitDesign*)g_Joshua.UnitManager().UnitDesign(l_Request.m_iDesignID);
@@ -2885,9 +2872,8 @@ bool GDataControlLayer::CancelUnitProduction(UINT32 in_iBuildingCountryID,
    {
       const UINT32 l_iPopulationToAdd = l_Request.m_iQtyWanted - l_Request.m_iQtyShipped;
       g_ServerDCL.AddPopulationAfterDisbandInfantry(l_Request.m_iDestinationCountryID,(UINT32)(l_iPopulationToAdd));
-      GDZLOG(l_pCancellingCountry->NameAndIDForLog() + L" will gain " +
-             GString(l_iPopulationToAdd) + L" population",
-             EDZLogLevel::Info2);
+      GDZLOG(EDZLogLevel::Info2, l_pCancellingCountry->NameAndIDForLog() + L" will gain " +
+             GString(l_iPopulationToAdd) + L" population");
    }
 
 
@@ -3264,9 +3250,8 @@ void GDataControlLayer::IterateResearch(REAL64 in_fClock)
                  if(g_SP2Server->DisableNuclearOnOccupy()                       &&
                     l_pCountryData->NumberOfPoliticallyControlledRegions() == 0)
                  {
-                     GDZLOG(l_pCountryData->NameAndIDForLog() + L" is fully occupied; " +
-                            L"halting nuclear " + g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" research",
-                            EDZLogLevel::Info1);
+                     GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" is fully occupied; " +
+                            L"halting nuclear " + g_ServerDAL.GetString(c_iUnitDesignCharacteristicsStringID[i]) + L" research");
                      l_pNuclearValues[i] = l_vOldNuclearValues[i];
                  }
              }
@@ -3295,25 +3280,22 @@ bool GDataControlLayer::StartAMDSResearch(UINT32 in_iCountryID)
    if(g_SP2Server->DisbandAMDSOnOccupy() && l_pCountryData->NumberOfPoliticallyControlledRegions() == 0)
    {
        gassert(l_pCountryData->AMDSLevel() == 0,"Occupied country has AMDS research");
-       GDZLOG(l_pCountryData->NameAndIDForLog() + L" can't research AMDS due to being fully occupied",
-              EDZLogLevel::Info1);
+       GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" can't research AMDS due to being fully occupied");
        return false;
    }
 
 	//If AMDS research is already started
 	if(l_pCountryData->AMDSLevel())
     {
-        GDZLOG(l_pCountryData->NameAndIDForLog() + L" can't research AMDS " +
-               L"due to already having an AMDS level of " + GString::FormatNumber(l_pCountryData->AMDSLevel(), 3),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" can't research AMDS " +
+               L"due to already having an AMDS level of " + GString::FormatNumber(l_pCountryData->AMDSLevel(), 3));
 		return true;
     }
 
 	TakeMoney(in_iCountryID, g_ServerDAL.AMDSResearchCost());
 	l_pCountryData->m_fAMDSLevel = 0.000000001f;
 
-    GDZLOG(l_pCountryData->NameAndIDForLog() + L" has started AMDS research",
-           EDZLogLevel::Info1);
+    GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" has started AMDS research");
 
 	//Lose Relations
 	UINT32 l_iNbCountries = (UINT32)g_ServerDAL.NbCountry();
@@ -3842,11 +3824,10 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
                 if(l_pRegion != NULL && l_pRegion->Population() > 0 && l_mRegionsInRange.find(l_iRegionId) == l_mRegionsInRange.cend())
                 {
                     l_mRegionsInRange[l_iRegionId] = l_pRegion->Population();
-                    GDZLOG(L"Adding affected region " +
+                    GDZLOG(EDZLogLevel::Info1, L"Adding affected region " +
                            g_ServerDAL.GetString(l_pRegion->NameId()) + L" of " +
                            L"country " + g_SP2Server->Countries().at(l_pRegion->OwnerId() - 1).Name() + L" with " +
-                           L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0),
-                           EDZLogLevel::Info1);
+                           L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0));
                 }
             }
          }//end if city has a valid id
@@ -3863,11 +3844,10 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
         if(l_pRegion != NULL && l_pRegion->Population() > 0 && l_mRegionsInRange.find(l_iRegionId) == l_mRegionsInRange.cend())
         {
             l_mRegionsInRange[l_iRegionId] = l_pRegion->Population();
-            GDZLOG(L"Adding affected region (not from city) " +
+            GDZLOG(EDZLogLevel::Info1, L"Adding affected region (not from city) " +
                    g_ServerDAL.GetString(l_pRegion->NameId()) + L" of " +
                    L"country " + g_SP2Server->Countries().at(l_pRegion->OwnerId() - 1).Name() + L" with " +
-                   L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0),
-                   EDZLogLevel::Info1);
+                   L"population " + GString::FormatNumber(static_cast<const REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0));
         }
    }
 
@@ -3926,9 +3906,8 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
         GRegion* l_pRegion = g_ServerDAL.GetGRegion(l_RegionIt->first);
         const REAL32 l_fRegionAreaTotal = l_pRegion->AreaTotal();
 
-        GDZLOG(L"Region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L": " +
-               L"Current population is " + GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, L"Region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L": " +
+               L"Current population is " + GString::FormatNumber(static_cast<REAL64>(l_pRegion->Population()), L",", L".", L"", L"", 3, 0));
 
         INT64 l_iRegionCasualtiesTotal = 0;
 
@@ -3942,11 +3921,10 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
                 REAL64 l_fRegionLandAreaPercentage = (l_fMissileAreaKm / l_fRegionAreaTotal) *
                     (l_pRegion->AreaLand() / l_fRegionAreaTotal);
                 l_fRegionLandAreaPercentage = min(max(0, l_fRegionLandAreaPercentage), 1);
-                GDZLOG(L"Region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L": " +
+                GDZLOG(EDZLogLevel::Info1, L"Region " + g_ServerDAL.GetString(l_pRegion->NameId()) + L": " +
                        L"Missile area: " + GString::FormatNumber(l_fMissileAreaKm, L",", L".", L"", L"", 3, 2) + L"; " +
                        L"total region area: " + GString::FormatNumber(l_fRegionAreaTotal, L",", L".", L"", L"", 3, 2) + L"; " +
-                       L"percentage: " + GString::FormatNumber(l_fRegionLandAreaPercentage * 100, 2),
-                       EDZLogLevel::Info1);
+                       L"percentage: " + GString::FormatNumber(l_fRegionLandAreaPercentage * 100, 2));
 
                 INT64 l_iRegionCasualtiesFromMissile = static_cast<INT64>(l_RegionIt->second * l_fRegionLandAreaPercentage);
                 l_iRegionCasualtiesFromMissile = min(max(0, l_iRegionCasualtiesFromMissile), l_pRegion->Population());
@@ -3962,10 +3940,9 @@ UINT32 GDataControlLayer::NuclearCasualtiesCivilExecute(const GNukeTarget& in_Ta
             l_pRegion->TelecomLevel( l_pRegion->TelecomLevel() * 0.9f );
         }
 
-        GDZLOG(L"Removed " +
+        GDZLOG(EDZLogLevel::Info1, L"Removed " +
                GString::FormatNumber(static_cast<REAL64>(l_iRegionCasualtiesTotal), L",", L".", L"", L"", 3, 0) + L" population " +
-               L"from region " + g_ServerDAL.GetString(l_pRegion->NameId()),
-               EDZLogLevel::Info1);
+               L"from region " + g_ServerDAL.GetString(l_pRegion->NameId()));
    }
 
 	for(set<UINT32>::const_iterator l_Itr = l_vCountriesHit.begin();
@@ -4329,10 +4306,9 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 	UINT32 l_iTreatyID = l_NewTreaty.ID();
 	SetEligibleCountries(l_iTreatyID, true);
 
-    GDZLOG(g_ServerDAL.CountryData(in_iCountryCreator)->NameAndIDForLog() +
+    GDZLOG(EDZLogLevel::Info2, g_ServerDAL.CountryData(in_iCountryCreator)->NameAndIDForLog() +
            L" has created treaty: " + in_sName +
-           L" with ID: " + GString(l_iTreatyID),
-           EDZLogLevel::Info2);
+           L" with ID: " + GString(l_iTreatyID));
 
 	//Then, send the game events
 	for(set<ENTITY_ID>::const_iterator l_Itr = in_vSideA.begin();
@@ -4374,10 +4350,9 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
 	}
 	
 	//Execute treaty
-    GDZLOG(L"Treaty ID " + GString(l_iTreatyID) + L": " +
+    GDZLOG(EDZLogLevel::Info2, L"Treaty ID " + GString(l_iTreatyID) + L": " +
            L"Active " + GString(l_NewTreaty.Active()) + L", " +
-           L"should be active " + GString(l_NewTreaty.ShouldBeActive()),
-           EDZLogLevel::Info2);
+           L"should be active " + GString(l_NewTreaty.ShouldBeActive()));
 	if(!l_NewTreaty.Active() && l_NewTreaty.ShouldBeActive())
 	{
         gassert(l_bIsClientStateTreaty != (l_pClientData == nullptr),
@@ -4524,10 +4499,9 @@ void GDataControlLayer::LeaveTreaty(ENTITY_ID in_iCountry, UINT32 in_iTreatyID, 
                     if(l_pCountryData->MilitaryStrength() <
                        g_ServerDAL.CountryData(*l_vMasters.cbegin())->MilitaryStrength())
                     {
-                        GDZLOG(g_ServerDAL.CountryData(in_iCountry)->NameAndIDForLog() +
+                        GDZLOG(EDZLogLevel::Warning, g_ServerDAL.CountryData(in_iCountry)->NameAndIDForLog() +
                                L" is trying to leave a client state treaty, " +
-                               L"but can't because it's the client",
-                               EDZLogLevel::Warning);
+                               L"but can't because it's the client");
                         return;
                     }
                     else
@@ -4650,8 +4624,7 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
                 }
                 else
                 {
-                    GDZLOG(L"Military removal treaty " + GString(in_iTreatyID) + L" has no effect",
-                           EDZLogLevel::Warning);
+                    GDZLOG(EDZLogLevel::Warning, L"Military removal treaty " + GString(in_iTreatyID) + L" has no effect");
                 }
 			}
 		}
@@ -5019,10 +4992,9 @@ bool GDataControlLayer::ConfirmChangeMilitaryControl(UINT32 in_iRegionID, UINT32
 		return false;
 
 	bool l_bResult = g_ServerDAL.ChangeMilitaryControl(in_iRegionID,in_iNewControlID);
-    GDZLOG(L"g_ServerDAL.ChangeMilitaryControl() returned " + GString(l_bResult) +
+    GDZLOG(EDZLogLevel::Info2, L"g_ServerDAL.ChangeMilitaryControl() returned " + GString(l_bResult) +
            L" for " + g_ServerDAL.CountryData(in_iNewControlID)->NameAndIDForLog() + 
-           L" to occupy region " + GString(in_iRegionID),
-           EDZLogLevel::Info2);
+           L" to occupy region " + GString(in_iRegionID));
 
 	if(l_bResult)
 	{
@@ -5707,8 +5679,7 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
         for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
             l_iExpectedPop += it->second;
 
-        GDZLOG(l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
-               EDZLogLevel::Warning);
+        GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
 
         FixRegionPopulationMismatch(true, *l_pRegion);
     }
@@ -5721,8 +5692,7 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 
         if(l_iCurrentPop != l_iExpectedPop)
         {
-            GDZLOG(l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
-                   EDZLogLevel::Warning);
+            GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
 
             FixRegionPopulationMismatch(true, *l_pRegion);
         }
@@ -5777,8 +5747,7 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
         for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
             l_iExpectedPop += it->second;
 
-        GDZLOG(l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
-               EDZLogLevel::Warning);
+        GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
 
         FixRegionPopulationMismatch(false, *l_pRegion);
     }
@@ -5791,8 +5760,7 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 
         if(l_iCurrentPop != l_iExpectedPop)
         {
-            GDZLOG(l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop),
-                   EDZLogLevel::Warning);
+            GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
 
             FixRegionPopulationMismatch(false, *l_pRegion);
         }
@@ -5955,26 +5923,22 @@ INT64 GDataControlLayer::RemovePopulationFromCountry(UINT32 in_iCountryID, INT64
 
 bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in_iNbPopulation, bool in_bEnroll)
 {	  
-    GDZLOG(L"in_iRegionID " + GString(in_iRegionID) + L", in_iNbPopulation " + GDZDebug::FormatInt(in_iNbPopulation) + L", in_bEnroll " + GString(in_bEnroll),
-           EDZLogLevel::Entry);
+    GDZLOG(EDZLogLevel::Entry, L"in_iRegionID " + GString(in_iRegionID) + L", in_iNbPopulation " + GDZDebug::FormatInt(in_iNbPopulation) + L", in_bEnroll " + GString(in_bEnroll));
 
 	GRegion* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
     const GString l_sRegionName = g_ServerDAL.RegionNameAndIDForLog(in_iRegionID);
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_pRegion->OwnerId());
-    GDZLOG(l_sRegionName + L" of " + l_pCountryData->NameAndIDForLog(),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, l_sRegionName + L" of " + l_pCountryData->NameAndIDForLog());
 
 	INT64 l_iPop15 = l_pRegion->Population15();
 	INT64 l_iPop1565 = l_pRegion->Population1565();
 	INT64 l_iPop65 = l_pRegion->Population65();
 	INT64 l_iPop = l_pRegion->Population();
-    GDZLOG(L"Total population by age, before: " + GDZDebug::FormatInt(l_iPop),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Total population by age, before: " + GDZDebug::FormatInt(l_iPop));
 
     if(l_iPop == 0)
     {
-        GDZLOG(L"Returning false",
-               EDZLogLevel::Exit);
+        GDZLOG(EDZLogLevel::Exit, L"Returning false");
         return false;
     }
 
@@ -5993,10 +5957,9 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 	}
 
 	l_pCountryData->MiliManpowerAvailable(l_pCountryData->MiliManpowerAvailable() - l_iNbOfEnrollToRemove);
-    GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
+    GDZLOG(EDZLogLevel::Info2, l_pCountryData->NameAndIDForLog() + L": " +
            L"Removing " + GString::FormatNumber(static_cast<REAL64>(in_iNbPopulation), L",", L".", L"", L"", 3, 0) + L" population; " +
-           L"new manpower available " + GString::FormatNumber(static_cast<REAL64>(l_pCountryData->MiliManpowerAvailable()), L",", L".", L"", L"", 3, 0),
-           EDZLogLevel::Info2);
+           L"new manpower available " + GString::FormatNumber(static_cast<REAL64>(l_pCountryData->MiliManpowerAvailable()), L",", L".", L"", L"", 3, 0));
 
 	//military manpower available portion done
 
@@ -6054,14 +6017,12 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 			continue;
 		}
 		g_Joshua.Log(L"Error while removing population. Should never happen!",MSGTYPE_FATAL_ERROR);
-        GDZLOG(L"Returning false",
-               EDZLogLevel::Exit);
+        GDZLOG(EDZLogLevel::Exit, L"Returning false");
 		return false;
 	}
 
     const INT64 l_iTotalNewPop = l_iPop15 + l_iPop1565 + l_iPop65;
-    GDZLOG(L"New population by age: " + GDZDebug::FormatInt(l_iTotalNewPop),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"New population by age: " + GDZDebug::FormatInt(l_iTotalNewPop));
 
 	l_pRegion->Population15(l_iPop15);
 	l_pRegion->Population1565(l_iPop1565);
@@ -6114,8 +6075,7 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 
         if(l_iTotalPopByReligion != l_iTotalNewPop)
         {
-            GDZLOG(l_sRegionName + L" population mismatch by religion in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByReligion) + L" by religion",
-                   EDZLogLevel::Error);
+            GDZLOG(EDZLogLevel::Error, l_sRegionName + L" population mismatch by religion in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByReligion) + L" by religion");
             FixRegionPopulationMismatch(true, *l_pRegion);
         }
     }
@@ -6167,8 +6127,7 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 
         if(l_iTotalPopByLanguage != l_iTotalNewPop)
         {
-            GDZLOG(l_sRegionName + L" population mismatch by language in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByLanguage) + L" by language",
-                   EDZLogLevel::Error);
+            GDZLOG(EDZLogLevel::Error, l_sRegionName + L" population mismatch by language in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByLanguage) + L" by language");
             FixRegionPopulationMismatch(false, *l_pRegion);
         }
     }
@@ -6183,8 +6142,7 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 		l_pRegion->ResourceProduction((EResources::Enum)i,l_pRegion->ResourceProduction((EResources::Enum)i)*l_fPopRatio);
 	}
 
-    GDZLOG(L"Returning true",
-           EDZLogLevel::Exit);
+    GDZLOG(EDZLogLevel::Exit, L"Returning true");
 	return true;
 }
 
@@ -7178,8 +7136,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		Random::GQuick l_Rand;
 		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)(l_fSuccessRate*100.f) * time(NULL)) );
         const REAL32 l_fRandomReal = l_Rand.RandomReal();
-        GDZLOG(L"Success rate " + GString(l_fSuccessRate) + L" vs random " + GString(l_fRandomReal),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, L"Success rate " + GString(l_fSuccessRate) + L" vs random " + GString(l_fRandomReal));
 		if(l_fRandomReal < l_fSuccessRate)
 			l_bSuccess = true;
 	}
@@ -7213,8 +7170,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		Random::GQuick l_Rand;
 		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryB * time(NULL)) );
         const REAL32 l_fRandomReal = l_Rand.RandomReal();
-        GDZLOG(L"Capture rate " + GString(c_fChanceOfCapture) + L" vs random " + GString(l_fRandomReal),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, L"Capture rate " + GString(c_fChanceOfCapture) + L" vs random " + GString(l_fRandomReal));
 		if(l_fRandomReal < SP2::c_fChanceOfCapture)
 		{
 			l_bCaptured = true;
@@ -7244,8 +7200,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 			Random::GQuick l_Rand;
 			l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * time(NULL)) );
             const REAL32 l_fRandomReal = l_Rand.RandomReal();
-            GDZLOG(L"Uncover rate " + GString(l_fChanceOfKnowingAttacker) + L" vs random " + GString(l_fRandomReal),
-                   EDZLogLevel::Info1);
+            GDZLOG(EDZLogLevel::Info1, L"Uncover rate " + GString(l_fChanceOfKnowingAttacker) + L" vs random " + GString(l_fRandomReal));
 			if(l_fRandomReal < l_fChanceOfKnowingAttacker)
 			{
 				l_bKnowAttacker = true;
@@ -8703,10 +8658,9 @@ void GDataControlLayer::IterateBudgetUnitUpkeep(UINT32 in_iCountryID)
     REAL32 l_fMissileValue = g_ServerDAL.TotalMissileValue(l_pCountryData->CountryID());
     REAL32 l_fNuclearModifier = g_SP2Server->NuclearUpkeepPercentage();
     /*if(l_fMissileValue > 0.f)
-        GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
+        GDZLOG(EDZLogLevel::Info2, l_pCountryData->NameAndIDForLog() + L": " +
                L" Missile value " + GString::FormatNumber(l_fMissileValue/1000000.f, L",", L".", L"$", L"M", 3, 3) + L"; " +
-               L" modified value " + GString::FormatNumber(l_fMissileValue*l_fNuclearModifier/1000000.f, L",", L".", L"$", L"M", 3, 3),
-               EDZLogLevel::Info2);*/
+               L" modified value " + GString::FormatNumber(l_fMissileValue*l_fNuclearModifier/1000000.f, L",", L".", L"$", L"M", 3, 3));*/
     l_fMissileValue *= l_fNuclearModifier;
 
 	const set<UINT32>& l_vUnitGroupsID = g_Joshua.UnitManager().CountryUnitGroups(l_pCountryData->CountryID());
@@ -8781,11 +8735,10 @@ REAL32 GDataControlLayer::UpkeepFeeForSingleUnit(const SP2::GUnit* in_pUnit) con
     REAL32 l_fUpkeep = l_pDesign->Cost() * in_pUnit->Qty() * (l_fUnitModifier * l_fCountryModifier);
     REAL32 l_fUpkeepModifier = l_eCategory != EUnitCategory::Nuclear ? g_SP2Server->MilitaryUpkeepPercentages(l_eCategory, in_pUnit->Training()) : g_SP2Server->NuclearUpkeepPercentage();
 
-    /*GDZLOG(l_pCountryData->NameAndIDForLog() + L": " +
+    /*GDZLOG(EDZLogLevel::Info2, l_pCountryData->NameAndIDForLog() + L": " +
            GString(in_pUnit->Qty()) + L" " + l_pDesign->Name() + L" " + g_ServerDAL.GetString(c_iUnitCategoryStringID[l_pDesign->Type()->Category()]) + L": " +
            L" Units value " + GString::FormatNumber(l_fUpkeep/1000000.f, L",", L".", L"$", L"M", 3, 3) + L"; " +
-           L" modified value " + GString::FormatNumber(l_fUpkeep*l_fUpkeepModifier/1000000.f, L",", L".", L"$", L"M", 3, 3),
-           EDZLogLevel::Info2);*/
+           L" modified value " + GString::FormatNumber(l_fUpkeep*l_fUpkeepModifier/1000000.f, L",", L".", L"$", L"M", 3, 3));*/
 
 	return l_fUpkeep * l_fUpkeepModifier;
 }
@@ -8887,8 +8840,7 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 		return 0.f;
 	}
 
-    GDZLOG(L"Complexity modifier: " + GString(l_fDifficultyModifier),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Complexity modifier: " + GString(l_fDifficultyModifier));
 
 	// Cell training modifier
 	REAL32 l_fTrainingModifier = 0.f;
@@ -8907,15 +8859,13 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 		return 0.f;
 	}
 
-   GDZLOG(L"Base training modifier: " + GString(l_fTrainingModifier),
-          EDZLogLevel::Info2);
+   GDZLOG(EDZLogLevel::Info2, L"Base training modifier: " + GString(l_fTrainingModifier));
 
    // Additional cells
    const REAL32 l_fAdditionalTrainingModifier = (in_eTraining < ECovertActionCellTraining::Elite) ?
                                                 (0.5f - (0.5f / sqrt(in_fTotalTrainingOfAdditionalCells + 1.f))) :
                                                 log((in_fTotalTrainingOfAdditionalCells / 5.f) + 1.f);
-   GDZLOG(L"Additional training modifier: " + GString(l_fAdditionalTrainingModifier),
-          EDZLogLevel::Info2);
+   GDZLOG(EDZLogLevel::Info2, L"Additional training modifier: " + GString(l_fAdditionalTrainingModifier));
    l_fTrainingModifier += l_fAdditionalTrainingModifier;
 
 	// Mission type modifier && Stability rate
@@ -8967,25 +8917,21 @@ REAL32 GDataControlLayer::FindCovertOpsSuccessRate(ECovertActionsMissionComplexi
 		return 0.f;
 	}
 		
-    GDZLOG(L"Mission base rate modifier: " + GString(l_fMissionBaseRate),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Mission base rate modifier: " + GString(l_fMissionBaseRate));
 
 	REAL32 l_fSecurity = FindNationalSecurity(in_iTarget);	
 
-    GDZLOG(L"Target security: " + GString(l_fSecurity),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Target security: " + GString(l_fSecurity));
 
 	//Framing modifier	
 	REAL32 l_fFrameModifier = 1.f;
 	if(in_bFraming)
 		l_fFrameModifier = SP2::c_fCountryToFrameModifier;
 
-    GDZLOG(L"Frame modifier: " + GString(l_fFrameModifier),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Frame modifier: " + GString(l_fFrameModifier));
 
 	const REAL32 l_fSuccessRate = min(l_fDifficultyModifier * l_fFrameModifier * l_fTrainingModifier * l_fMissionBaseRate * (1.f - l_fSecurity) * (1.f - l_fStabilityRate), SP2::c_fMaximumSuccessRateAllowed);
-    GDZLOG(L"Success rate: " + GString(l_fSuccessRate),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Success rate: " + GString(l_fSuccessRate));
     return l_fSuccessRate;
 }
 
@@ -8994,9 +8940,8 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
 
 	REAL32 l_fNuclearLevel = l_pCountryData->NuclearReady();
-    GDZLOG(l_pCountryData->NameAndIDForLog() + L" will start nuclear research " +
-           L"with current nuclear level " + GString(l_fNuclearLevel),
-           EDZLogLevel::Info1);
+    GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" will start nuclear research " +
+           L"with current nuclear level " + GString(l_fNuclearLevel));
 
 	if(l_fNuclearLevel >= 0.f)
 	{
@@ -9008,8 +8953,7 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
        l_pCountryData->NumberOfPoliticallyControlledRegions() == 0)
     {
         //Nuclear research cannot be started when fully occupied, and we're configured to disable nuclear research on occupy
-        GDZLOG(l_pCountryData->NameAndIDForLog() + L" can't start nuclear research due to being fully occupied",
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" can't start nuclear research due to being fully occupied");
         return;
     }
 
@@ -9030,8 +8974,7 @@ void GDataControlLayer::StartNuclearResearch(UINT32 in_iCountryID)
 	//Start research
 	l_pCountryData->NuclearReady(0.f);
 
-    GDZLOG(l_pCountryData->NameAndIDForLog() + L" has started nuclear research",
-           EDZLogLevel::Info1);
+    GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" has started nuclear research");
 }
 
 
@@ -9456,12 +9399,10 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
         l_iIncorrectPop += it->second;
 
     const INT64 l_iPopulation = in_Region.Population();
-    GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L": Correct population " + GDZDebug::FormatInt(l_iPopulation) + L", incorrect population " + GString(l_iIncorrectPop),
-           EDZLogLevel::Always);
+    GDZLOG(EDZLogLevel::Always, g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L": Correct population " + GDZDebug::FormatInt(l_iPopulation) + L", incorrect population " + GString(l_iIncorrectPop));
 
     if(l_iIncorrectPop == l_iPopulation)
-        GDZLOG(g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L" population seems consistent at " + GDZDebug::FormatInt(l_iPopulation) + L", continuing anyway",
-               EDZLogLevel::Warning);
+        GDZLOG(EDZLogLevel::Warning, g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L" population seems consistent at " + GDZDebug::FormatInt(l_iPopulation) + L", continuing anyway");
 
     INT64 l_iFixedPop = 0;
     INT32 l_iLargestGroup = l_mPopMap.cbegin()->first;
@@ -9471,8 +9412,7 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
         const REAL32 l_fPopRatio = static_cast<REAL32>(it->second) / static_cast<REAL32>(l_iIncorrectPop);
         const INT64 l_iActualPop = static_cast<INT64>(l_fPopRatio * l_iPopulation);
 
-        GDZLOG(L"Current group " + GString(it->first) + L" population is " + GDZDebug::FormatInt(it->second) + L", changing to " + GDZDebug::FormatInt(l_iActualPop),
-               EDZLogLevel::Always);
+        GDZLOG(EDZLogLevel::Always, L"Current group " + GString(it->first) + L" population is " + GDZDebug::FormatInt(it->second) + L", changing to " + GDZDebug::FormatInt(l_iActualPop));
 
         if(in_bIsReligion)
             in_Region.ReligionChangePopulation(it->first, l_iActualPop);
@@ -9483,8 +9423,7 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
         l_iLargestGroup = (l_mPopMap.at(l_iLargestGroup) < it->second) ? it->first : l_iLargestGroup;
     }
 
-    GDZLOG(L"Population by group after fix: " + GDZDebug::FormatInt(l_iFixedPop),
-           EDZLogLevel::Always);
+    GDZLOG(EDZLogLevel::Always, L"Population by group after fix: " + GDZDebug::FormatInt(l_iFixedPop));
 
     //If there's still any discrepancy, add or remove from the largest group
     if(l_iFixedPop != l_iPopulation)
@@ -9498,8 +9437,7 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
             l_iNewLargestGroupPop = in_Region.LanguageGetPopulation(l_iLargestGroup);
         l_iNewLargestGroupPop +=  + l_iLeftoverPop;
 
-        GDZLOG(GDZDebug::FormatInt(l_iLeftoverPop) + L" left over, modifying group " + GDZDebug::FormatInt(l_iLargestGroup) + L" to compensate",
-               EDZLogLevel::Always);
+        GDZLOG(EDZLogLevel::Always, GDZDebug::FormatInt(l_iLeftoverPop) + L" left over, modifying group " + GDZDebug::FormatInt(l_iLargestGroup) + L" to compensate");
         
         if(in_bIsReligion)
             in_Region.ReligionChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
@@ -9556,9 +9494,8 @@ void GDataControlLayer::ChangePlayerName(SDK::GPlayer* in_pPlayer, const GString
 {
     if(!in_sNewName.empty() && in_pPlayer->Name() != in_sNewName)
     {
-        GDZLOG(L"Player ID " + GString(in_pPlayer->Id()) + L", " +
-               in_pPlayer->Name() + L", is changing name to " + in_sNewName,
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, L"Player ID " + GString(in_pPlayer->Id()) + L", " +
+               in_pPlayer->Name() + L", is changing name to " + in_sNewName);
 
         in_pPlayer->Name(in_sNewName);
 
@@ -9625,17 +9562,15 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
 
     if(!in_bLoadingGame)
     {
-        GDZLOG(l_pClientData->NameAndIDForLog() + L" is now a client of " +
-               l_pMasterData->NameAndIDForLog(),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is now a client of " +
+               l_pMasterData->NameAndIDForLog());
 
         //Leave all wars, but join wars on same side as master
         set<ENTITY_ID> l_vHostileCountries;
         g_ServerDAL.IsAtWarWith(in_iClient, l_vHostileCountries);
         for(auto it = l_vHostileCountries.cbegin(); it != l_vHostileCountries.end(); ++it)
         {
-            GDZLOG(l_pClientData->NameAndIDForLog() + L" will no longer be hostile against " + g_ServerDAL.CountryData(*it)->NameAndIDForLog(),
-                   EDZLogLevel::Info1);
+            GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" will no longer be hostile against " + g_ServerDAL.CountryData(*it)->NameAndIDForLog());
             g_ServerDAL.RemoveWarStatus(in_iClient, *it);
         }
 
@@ -9647,10 +9582,9 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
             if(l_War.MasterAttacking() == in_iClient ||
                l_War.MasterDefending() == in_iClient)
             {
-                GDZLOG(l_pClientData->NameAndIDForLog() + L" is leaving the war " +
+                GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " +
                        g_ServerDAL.WarInfoForLog(it->first, true) +
-                       L" in which it's a master",
-                       EDZLogLevel::Info1);
+                       L" in which it's a master");
 
                 //Call ChangeOpinionOnWar instead of DeclarePeace, as DeclarePeace alone isn't sufficient to clear war status, and ChangeOpinionOnWar calls down to DeclarePeace via VerifyPeaceStatus anyway
                 ChangeOpinionOnWar(l_War.MasterAttacking(), it->first, true);
@@ -9660,18 +9594,16 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
             {
                 if(l_War.AttackingSide().count(in_iClient) == 1)
                 {
-                    GDZLOG(l_pClientData->NameAndIDForLog() + L" is leaving the war " +
-                           g_ServerDAL.WarInfoForLog(it->first, true),
-                           EDZLogLevel::Info1);
+                    GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " +
+                           g_ServerDAL.WarInfoForLog(it->first, true));
 
                     l_War.RemoveCountryFromAttackingSide(in_iClient);
                     g_ServerDAL.ModifyWar(it->first);
                 }
                 else if(l_War.DefendingSide().count(in_iClient) == 1)
                 {
-                    GDZLOG(l_pClientData->NameAndIDForLog() + L" is leaving the war " +
-                           g_ServerDAL.WarInfoForLog(it->first, true),
-                           EDZLogLevel::Info1);
+                    GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " +
+                           g_ServerDAL.WarInfoForLog(it->first, true));
 
                     l_War.RemoveCountryFromDefendingSide(in_iClient);
                     g_ServerDAL.ModifyWar(it->first);
@@ -9684,9 +9616,8 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
             }
         }
 
-        GDZLOG(l_pClientData->NameAndIDForLog() + L" has left all previous wars and joined all wars on " +
-               l_pMasterData->NameAndIDForLog() + L"'s side",
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" has left all previous wars and joined all wars on " +
+               l_pMasterData->NameAndIDForLog() + L"'s side");
 
         //Free all regions of the client state
         const auto& l_vRegions = g_ServerDAL.CountryPoliticalControl(in_iClient);
@@ -9696,30 +9627,26 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
                 ChangeRegionMilitaryControl(*l_It, in_iClient, false);
         }
 
-        GDZLOG(l_pClientData->NameAndIDForLog() + L" has regained its regions occupied by " + l_pMasterData->NameAndIDForLog(),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" has regained its regions occupied by " + l_pMasterData->NameAndIDForLog());
 
         //Synchronize the 2 countries
         l_pClientData->SynchronizeWithRegions();
         l_pMasterData->SynchronizeWithRegions();
 
-        GDZLOG(L"Synchronized regions of " + l_pClientData->NameAndIDForLog() + L" and " + l_pMasterData->NameAndIDForLog(),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, L"Synchronized regions of " + l_pClientData->NameAndIDForLog() + L" and " + l_pMasterData->NameAndIDForLog());
 
         //Client state will start off with same relations
         for(ENTITY_ID i = 1; i <= g_ServerDAL.NbCountry(); i++)
             g_ServerDAL.RelationBetweenCountries(in_iClient, i, g_ServerDAL.RelationBetweenCountries(in_iMaster, i));
 
-        GDZLOG(L"Synchronized relations of " + l_pClientData->NameAndIDForLog() + L" and " + l_pMasterData->NameAndIDForLog(),
-               EDZLogLevel::Info1);
+        GDZLOG(EDZLogLevel::Info1, L"Synchronized relations of " + l_pClientData->NameAndIDForLog() + L" and " + l_pMasterData->NameAndIDForLog());
     }
 
     //Send country list to update the client state's name (with "client of (name)")
     if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::Off)
         SendCountryList();
 
-    GDZLOG(L"<<<",
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"<<<");
 }
 
 void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
@@ -9755,13 +9682,11 @@ void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
                         {
                             if(l_pGroup->Status() == EMilitaryStatus::Attacking)
                             {
-                                GDZLOG(L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" leaves combat",
-                                       EDZLogLevel::Info1);
+                                GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" leaves combat");
                                 l_pGroup->LeaveCombat();
                             }
 
-                            GDZLOG(L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" switches sides",
-                                   EDZLogLevel::Info1);
+                            GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" switches sides");
 
                             //Need to create brand-new unit group; for some reason, trying to change an existing group's ownership would cause client-side crashes
                             SP2::GUnitGroup* const l_pNewGroup = dynamic_cast<SP2::GUnitGroup*>(l_UnitManager.CreateUnitGroup());
@@ -9788,16 +9713,14 @@ void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
                     ChangeRegionMilitaryControl(*l_RegionIt, l_iRebelsId);
 
                     const GString l_sRebelsName = g_ServerDAL.CountryData(l_iRebelsId)->NameAndIDForLog();
-                    GDZLOG(l_sRebelsName + L" has occupied " + l_sRegionName,
-                           EDZLogLevel::Info1);
+                    GDZLOG(EDZLogLevel::Info1, l_sRebelsName + L" has occupied " + l_sRegionName);
 
                     //Check rebel annexation, if military control changed
                     const REAL32 l_fAnnexRandom = l_Rand.RandomReal();
                     if(l_fAnnexRandom < l_CivilWarConfig.m_fAnnexChance)
                     {
                         AnnexRegion(l_iRebelsId, *l_RegionIt);
-                        GDZLOG(l_sRebelsName + L" is annexing " + l_sRegionName,
-                               EDZLogLevel::Info1);
+                        GDZLOG(EDZLogLevel::Info1, l_sRebelsName + L" is annexing " + l_sRegionName);
                         l_bAnnexRegions = true;
                     }
                 }

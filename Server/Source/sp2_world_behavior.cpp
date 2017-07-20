@@ -184,8 +184,7 @@ bool GWorldBehavior::LoadConfigFile(const GString &in_sFilename, const GString &
 
 bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15Deaths, INT64& in_iNewOver15)
 {	
-    GDZLOG(L"Region " + g_ServerDAL.RegionNameAndIDForLog(in_pRegion->Id()) + L" of " + m_CountryData->NameAndIDForLog(),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Region " + g_ServerDAL.RegionNameAndIDForLog(in_pRegion->Id()) + L" of " + m_CountryData->NameAndIDForLog());
 
 	GReligionList l_Religions;
 	GLanguageList l_Languages;
@@ -198,8 +197,7 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15De
 
     const INT64 l_iInitialOver15Pop = in_pRegion->Population1565() + in_pRegion->Population65();
 	const INT64 l_iInitialPopulation = in_pRegion->Population15() + l_iInitialOver15Pop;
-    GDZLOG(L"Initial population " + GDZDebug::FormatInt(l_iInitialPopulation) + L", initial over-15 population " + GDZDebug::FormatInt(l_iInitialOver15Pop),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Initial population " + GDZDebug::FormatInt(l_iInitialPopulation) + L", initial over-15 population " + GDZDebug::FormatInt(l_iInitialOver15Pop));
 
 	INT64 l_iTemp15 = 0;
 	INT64 l_iTemp1565 = 0;
@@ -238,14 +236,12 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15De
 	else
 		l_iDeaths65 = l_iTotalDeaths;
 
-    GDZLOG(GDZDebug::FormatInt(l_iDeaths1565) + L" 15-65 deaths, " + GDZDebug::FormatInt(l_iDeaths65) + L" over-65 deaths",
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, GDZDebug::FormatInt(l_iDeaths1565) + L" 15-65 deaths, " + GDZDebug::FormatInt(l_iDeaths65) + L" over-65 deaths");
     in_iOver15Deaths = l_iDeaths1565 + l_iDeaths65;
 
 	// Remove 1/15 of the population under 15, and add them to the population of 15-65
 	l_iNew1565 = ReturnInteger64((1.0f/15.0f) * m_fFrequency * (REAL32)in_pRegion->Population15());
-    GDZLOG(GDZDebug::FormatInt(l_iNew1565) + L" new over-15",
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, GDZDebug::FormatInt(l_iNew1565) + L" new over-15");
     in_iNewOver15 = l_iNew1565;
 
 	l_iTemp15 = in_pRegion->Population15() - l_iNew1565;
@@ -1014,8 +1010,7 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
                 const REAL64 l_fBattlePenalty = l_fRegionControlPenalty + 0.2;
 				l_fProductionGrowth -= l_fBattlePenalty;
 
-				GDZLOG(l_sRegionNameForLog + L" of " + l_sCountryNameForLog + L"; battle penalty " + GString(l_fBattlePenalty) + L", production growth " + GString::FormatNumber(l_fProductionGrowth * 100.0, L",", L".", L"", L"%", 3, 1, false),
-					   EDZLogLevel::Info1);
+				GDZLOG(EDZLogLevel::Info1, l_sRegionNameForLog + L" of " + l_sCountryNameForLog + L"; battle penalty " + GString(l_fBattlePenalty) + L", production growth " + GString::FormatNumber(l_fProductionGrowth * 100.0, L",", L".", L"", L"%", 3, 1, false));
 			}
 
             if(l_iOwnerId != l_iOwnerMilitaryId)
@@ -1025,8 +1020,7 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
                 const REAL32 l_fRelationsRating = 1.f - ((min(SP2::c_fRelationsLike, l_fRelations) + 100.f) / (SP2::c_fRelationsLike + 100.f));
                 l_fProductionGrowth -= l_fRegionControlPenalty * l_fRelationsRating;
 
-                GDZLOG(g_ServerDAL.CountryData(l_iOwnerMilitaryId)->NameAndIDForLog() + L" occupies " + l_sRegionNameForLog + L" of " + l_sCountryNameForLog + L"; region control penalty " + GString(l_fRegionControlPenalty) + L", DR " + GString(l_fRelations) + L", production growth " + GString::FormatNumber(l_fProductionGrowth * 100.0, L",", L".", L"", L"%", 3, 1, false),
-                       EDZLogLevel::Info2);
+                GDZLOG(EDZLogLevel::Info2, g_ServerDAL.CountryData(l_iOwnerMilitaryId)->NameAndIDForLog() + L" occupies " + l_sRegionNameForLog + L" of " + l_sCountryNameForLog + L"; region control penalty " + GString(l_fRegionControlPenalty) + L", DR " + GString(l_fRelations) + L", production growth " + GString::FormatNumber(l_fProductionGrowth * 100.0, L",", L".", L"", L"%", 3, 1, false));
             }
 
 			l_fTempProduction += (l_fTempProduction * l_fProductionGrowth * (REAL64)m_fFrequency);
@@ -1275,30 +1269,25 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
     static const REAL32 c_fMinStabilityForNormalBirth = 0.5f;
     static const REAL32 c_fMaxEffectiveTaxForNormalBirth = 0.4f;
 
-    GDZLOG(L"Calculating for " + m_CountryData->NameAndIDForLog(),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Calculating for " + m_CountryData->NameAndIDForLog());
 
     //Calculate initial BR via EYS and over-65 %
     const REAL32 l_fEys = m_CountryData->ExpectedYearsSchooling();
     const REAL32 l_fExpectedFromEys = max(0.f, (-0.002655445944747f * l_fEys) + 0.043519905465958f);
-    GDZLOG(L"EYS " + GString::FormatNumber(l_fEys, 1) + L", expected BR " + GString::FormatNumber(l_fExpectedFromEys * 100.f, L"", L".", L"", L"%", 3, 1, false),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"EYS " + GString::FormatNumber(l_fEys, 1) + L", expected BR " + GString::FormatNumber(l_fExpectedFromEys * 100.f, L"", L".", L"", L"%", 3, 1, false));
 
     const REAL32 l_fPopPercentOver65 = static_cast<REAL32>(m_CountryData->Pop65()) / static_cast<REAL32>(m_CountryData->Population());
     const REAL32 l_fExpectedFromOver65 = min(0.00309363345249f * powf(l_fPopPercentOver65, -0.715877580330996f), 0.1f);
-    GDZLOG(L"% population over 65 " + GString::FormatNumber(l_fPopPercentOver65 * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", expected BR " + GString::FormatNumber(l_fExpectedFromOver65 * 100.f, L"", L".", L"", L"%", 3, 1, false),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"% population over 65 " + GString::FormatNumber(l_fPopPercentOver65 * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", expected BR " + GString::FormatNumber(l_fExpectedFromOver65 * 100.f, L"", L".", L"", L"%", 3, 1, false));
 
     REAL32 l_fExpected = ((l_fExpectedFromEys * c_fRelativeEysContrib) + (l_fExpectedFromOver65 * c_fRelativeOver65Contrib)) / (c_fRelativeEysContrib + c_fRelativeOver65Contrib);
-    GDZLOG(L"Raw BR from EYS and over 65 " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Raw BR from EYS and over 65 " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false));
 
     // Scale by stability, effective tax rate, and life expectancy if under approximate minimum needed to sustain population
     static const REAL32 c_fStabilityParabolaAmplitude = -(1.f / powf(c_fMinStabilityForNormalBirth, 2.f));
     const REAL32 l_fGvtStability = m_CountryData->GvtStability();
     const REAL32 l_fStabilityScaling = (l_fGvtStability < c_fMinStabilityForNormalBirth) ? (c_fStabilityParabolaAmplitude * powf(l_fGvtStability - c_fMinStabilityForNormalBirth, 2.f) + 1.f) : 1.f;
-    GDZLOG(L"Stability " + GString::FormatNumber(l_fGvtStability * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", stability scaling " + GString::FormatNumber(l_fStabilityScaling, 3),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Stability " + GString::FormatNumber(l_fGvtStability * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", stability scaling " + GString::FormatNumber(l_fStabilityScaling, 3));
     l_fExpected *= l_fStabilityScaling;
 
     static const REAL32 c_fIncomeParabolaAmplitude = -(1.f / powf(1.f - c_fMaxEffectiveTaxForNormalBirth, 2.f));
@@ -1306,8 +1295,7 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
     const REAL32 l_fHdi = m_CountryData->HumanDevelopment();
     const REAL64 l_fEffectiveTaxRate = l_fIncomeTax * l_fHdi;
     const REAL64 l_fTaxScaling = (c_fMaxEffectiveTaxForNormalBirth < l_fEffectiveTaxRate) ? (c_fIncomeParabolaAmplitude * pow(l_fEffectiveTaxRate - c_fMaxEffectiveTaxForNormalBirth, 2.0) + 1.0) : 1.0;
-    GDZLOG(L"Tax rate " + GString::FormatNumber(l_fIncomeTax * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", HDI " + GString::FormatNumber(l_fHdi, 3) + L", tax scaling " + GString::FormatNumber(l_fTaxScaling, 3),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Tax rate " + GString::FormatNumber(l_fIncomeTax * 100.f, L"", L".", L"", L"%", 3, 1, false) + L", HDI " + GString::FormatNumber(l_fHdi, 3) + L", tax scaling " + GString::FormatNumber(l_fTaxScaling, 3));
     l_fExpected *= static_cast<REAL32>(l_fTaxScaling);
 
     const REAL32 l_fLe = m_CountryData->LifeExpectancy();
@@ -1320,8 +1308,7 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
 
     gassert(0.f <= l_fExpected, L"Expected birth rate " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false) + L" below 0.0%");
 
-    GDZLOG(L"Expected BR " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Expected BR " + GString::FormatNumber(l_fExpected * 100.f, L"", L".", L"", L"%", 3, 1, false));
 
 	m_CountryData->BirthRateExpected(l_fExpected);
 }
@@ -1776,8 +1763,7 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 		}
 	}
 	
-    GDZLOG(m_CountryData->NameAndIDForLog(),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, m_CountryData->NameAndIDForLog());
 
 	REAL64 l_fGameTime = g_Joshua.GameTime();
 	m_fFrequency = (REAL32)((l_fGameTime - m_CountryData->LastIteration()) / 365.0f);	
@@ -1861,8 +1847,7 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 	INT64 l_iFinalPopulation = 0;
 
     const INT64 l_iInitialOver15Pop = m_CountryData->Pop1565() + m_CountryData->Pop65();
-    GDZLOG(L"Initial over-15 population " + GDZDebug::FormatInt(l_iInitialOver15Pop),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Initial over-15 population " + GDZDebug::FormatInt(l_iInitialOver15Pop));
 
     INT64 l_iOver15Deaths = 0;
     INT64 l_iNewOver15 = 0;
@@ -1914,24 +1899,20 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 
     //Estimate new MYS, disregarding migration
     const INT64 l_iRemainingOver15Pop = l_iInitialOver15Pop - l_iOver15Deaths;
-    GDZLOG(L"Total over-15 deaths " + GDZDebug::FormatInt(l_iOver15Deaths) + L", remaining " + GDZDebug::FormatInt(l_iRemainingOver15Pop),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Total over-15 deaths " + GDZDebug::FormatInt(l_iOver15Deaths) + L", remaining " + GDZDebug::FormatInt(l_iRemainingOver15Pop));
 
     const INT64 l_iNewOver15Pop = l_iRemainingOver15Pop + l_iNewOver15;
-    GDZLOG(L"Total new over-15 " + GDZDebug::FormatInt(l_iNewOver15) + L", now " + GDZDebug::FormatInt(l_iNewOver15Pop),
-           EDZLogLevel::Info2);
+    GDZLOG(EDZLogLevel::Info2, L"Total new over-15 " + GDZDebug::FormatInt(l_iNewOver15) + L", now " + GDZDebug::FormatInt(l_iNewOver15Pop));
 
     if(l_iNewOver15Pop > 0)
     {
         const REAL32 l_fOldMys = m_CountryData->MeanYearsSchooling();
         const REAL32 l_fRemainingTotalYearsSchooling = l_iRemainingOver15Pop * l_fOldMys;
         const REAL32 l_fEys = m_CountryData->ExpectedYearsSchooling();
-        GDZLOG(L"EYS " + GString::FormatNumber(l_fEys, 1),
-               EDZLogLevel::Info2);
+        GDZLOG(EDZLogLevel::Info2, L"EYS " + GString::FormatNumber(l_fEys, 1));
         const REAL32 l_fNewTotalYearsSchooling = l_fRemainingTotalYearsSchooling + (l_iNewOver15 * l_fEys);
         const REAL32 l_fNewMys = l_fNewTotalYearsSchooling / l_iNewOver15Pop;
-        GDZLOG(L"Old MYS " + GString::FormatNumber(l_fOldMys, 6) + L", new MYS " + GString::FormatNumber(l_fNewMys, 6),
-               EDZLogLevel::Info2);
+        GDZLOG(EDZLogLevel::Info2, L"Old MYS " + GString::FormatNumber(l_fOldMys, 6) + L", new MYS " + GString::FormatNumber(l_fNewMys, 6));
         m_CountryData->MeanYearsSchooling(l_fNewMys);
 
         if(g_SP2Server->ShowHDIComponents())
@@ -3070,12 +3051,10 @@ void GWorldBehavior::IterateChangingVariables(REAL64 in_fGameTime)
 
         if(l_fApprovalEx < 0.f || l_fApprovalEx > 1.f)
         {
-            GDZLOG("Warning: Invalid expected approval, " + GString(l_fApprovalEx) + L", " +
-                   L"for " + l_pCountryData->NameAndIDForLog(),
-                   EDZLogLevel::Warning);
+            GDZLOG(EDZLogLevel::Warning, "Warning: Invalid expected approval, " + GString(l_fApprovalEx) + L", " +
+                   L"for " + l_pCountryData->NameAndIDForLog());
             l_pCountryData->GvtApprovalExpected(min(max(0.f, l_fApprovalEx), 1.f));
-            GDZLOG("Changed expected approval to " + GString(l_pCountryData->GvtApprovalExpected()),
-                   EDZLogLevel::Info2);
+            GDZLOG(EDZLogLevel::Info2, "Changed expected approval to " + GString(l_pCountryData->GvtApprovalExpected()));
         }
 
 		gassert(l_fCorruption >= 0.f && l_fCorruption <= 1.f,"GWorldBehavior::IterateChangingVariables(): Corruption is negative");
@@ -3520,8 +3499,7 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
             *l_TradeRatioIt = (1.0 - l_fTotalPercentGdpOccupied) + (l_fTotalPercentGdpOccupied * l_fOccupiedRegionsTradeRatio);
 
             if(in_bWorldMarket && *l_TradeRatioIt < 1.0)
-                GDZLOG(l_pCountryData->NameAndIDForLog() + L": Trade ratio " + GString(*l_TradeRatioIt),
-                       EDZLogLevel::Info1);
+                GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L": Trade ratio " + GString(*l_TradeRatioIt));
         }
     }
 
@@ -3871,11 +3849,10 @@ void GWorldBehavior::IterateBudget(REAL64 in_fGameTime)
             //Diplomacy expense for client, foreign aid revenue for master
             const REAL64 l_fClientGDP = l_pClientData->GDPValue();
             const REAL64 l_fTribute   = l_fClientGDP * g_SP2Server->TributePercent();
-            GDZLOG(l_pClientData->NameAndIDForLog() + L" with GDP " +
+            GDZLOG(EDZLogLevel::Info2, l_pClientData->NameAndIDForLog() + L" with GDP " +
                    GString::FormatNumber(l_fClientGDP / 1000000, L",", L".", L"$", L"M", 3, 3) + L" pays " +
                    GString::FormatNumber(l_fTribute / 1000000, L",", L".", L"$", L"M", 3, 3) +
-                   L" tribute to " + l_pMasterData->NameAndIDForLog(),
-                   EDZLogLevel::Info2);
+                   L" tribute to " + l_pMasterData->NameAndIDForLog());
             l_vDiplomacyExpenses[i] += l_fTribute;
             l_vForeignAid[l_iMaster] += l_fTribute;
         }

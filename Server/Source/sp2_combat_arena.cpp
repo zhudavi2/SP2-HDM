@@ -803,8 +803,7 @@ SDK::Combat::EBattleStatus::Enum SP2::GArena::CombatStatus()
 bool SP2::GArena::RemoveGroup(SDK::Combat::GUnitGroup*  in_pGroup)
 {
 #ifdef GOLEM_DEBUG
-   GDZLOG(GString(L"Removing group from combat : ") + GString(in_pGroup->Id() ),
-          EDZLogLevel::Info2);
+   GDZLOG(EDZLogLevel::Info2, GString(L"Removing group from combat : ") + GString(in_pGroup->Id() ));
 #endif
 
    //Remove the group from the unit group list

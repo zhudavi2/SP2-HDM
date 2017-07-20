@@ -38,8 +38,7 @@ void SP2::GUnitGroupEx::EnterCombat(SDK::Combat::GArena* in_pCombat)
    LOG_MODIF( GString(L"EnterCombat : ") + GString(Id() ) + GString(L" -> ") + GString(in_pCombat->Info()->m_iId) );
 
 #ifdef GOLEM_DEBUG
-   GDZLOG(GString(L"Unit group enters combat ") + GString(Id() ),
-          EDZLogLevel::Info2);
+   GDZLOG(EDZLogLevel::Info2, GString(L"Unit group enters combat ") + GString(Id() ));
 #endif
    if(m_eStatus != EMilitaryStatus::Attacking)
    {
@@ -75,8 +74,7 @@ void SP2::GUnitGroupEx::EnterCombat(SDK::Combat::GArena* in_pCombat)
 
 void SP2::GUnitGroupEx::LeaveCombat()
 {
-   GDZLOG(GString(L"Unit group leaves combat ") + GString(Id() ) + L" status " + GString( (UINT32) m_eStatus) + L" combat status " + GString( (UINT32) m_eCombatStatus),
-          EDZLogLevel::Info2);
+   GDZLOG(EDZLogLevel::Info2, GString(L"Unit group leaves combat ") + GString(Id() ) + L" status " + GString( (UINT32) m_eStatus) + L" combat status " + GString( (UINT32) m_eCombatStatus));
 
    if(m_eStatus == EMilitaryStatus::Attacking)
    {
@@ -87,8 +85,7 @@ void SP2::GUnitGroupEx::LeaveCombat()
       {
           if(m_eStatus != m_eSavedNextStatus)
           {
-              GDZLOG(L"Unit group " + GString(Id()) + L", status " + GString(m_eStatus) + L", will have its NextStatus changed from " + GString(m_eNextStatus) + L" to " + GString(m_eSavedNextStatus) + L" to match pre-combat state",
-                     EDZLogLevel::Info1);
+              GDZLOG(EDZLogLevel::Info1, L"Unit group " + GString(Id()) + L", status " + GString(m_eStatus) + L", will have its NextStatus changed from " + GString(m_eNextStatus) + L" to " + GString(m_eSavedNextStatus) + L" to match pre-combat state");
 
               m_eNextStatus = m_eSavedNextStatus;
           }
