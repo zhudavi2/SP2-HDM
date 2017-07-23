@@ -493,6 +493,7 @@ bool GDataAccessLayerServer::LoadUnits()
  **/
 bool GDataAccessLayerServer::LoadRegions()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
 
 	// Fetch data from DB
    GSString l_sQuery = "SELECT * FROM region";
@@ -634,6 +635,20 @@ bool GDataAccessLayerServer::LoadRegions()
 															);
 	}
 
+    // Check database religion population consistency in database if it's a new game
+    if(!g_SP2Server->UpdateStaticOnly())
+    {
+        for(UINT32 i = 1; i <= m_iNbRegion; i++)
+        {
+            if(!g_ServerDCL.VerifyRegionPopulationConsistency(true, m_Regions[i]))
+            {
+                GDZLOG(EDZLogLevel::Error, L"Region " + RegionNameAndIDForLog(i) + L" has inconsistent population");
+                GDZLOG(EDZLogLevel::Exit, L"Returning false");
+                return false;
+            }
+        }
+    }
+
 	// Fetch language data from DB
 	l_sLanguageQuery = "SELECT region_id, language_id, population FROM languages";		
 	l_eError = g_Joshua.QueryDB(l_sLanguageQuery, l_LanguageResults);
@@ -650,6 +665,21 @@ bool GDataAccessLayerServer::LoadRegions()
 															);
 	}
 
+    // Check language population consistency in database if it's a new game
+    if(!g_SP2Server->UpdateStaticOnly())
+    {
+        for(UINT32 i = 1; i <= m_iNbRegion; i++)
+        {
+            if(!g_ServerDCL.VerifyRegionPopulationConsistency(false, m_Regions[i]))
+            {
+                GDZLOG(EDZLogLevel::Error, L"Region " + RegionNameAndIDForLog(i) + L" has inconsistent population");
+                GDZLOG(EDZLogLevel::Exit, L"Returning false");
+                return false;
+            }
+        }
+    }
+
+    GDZLOG(EDZLogLevel::Exit, L"Returning true");
 	return true;
 }
 
@@ -2907,6 +2937,8 @@ bool GDataAccessLayerServer::OnSave(GIBuffer& io_Buffer)
 
 bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+
    INT64 l_iZeroDate;
    io_Buffer >> l_iZeroDate;
    ZeroDate(GDateTime(l_iZeroDate) );
@@ -3001,6 +3033,22 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
       for(UINT16 i = 0;i <= l_iCount;i ++)
       {
          m_Regions[i].Unserialize(io_Buffer);
+
+         // Check religion population consistency
+         if(!g_ServerDCL.VerifyRegionPopulationConsistency(true, m_Regions[i]))
+         {
+             GDZLOG(EDZLogLevel::Error, L"Region " + RegionNameAndIDForLog(i) + L" has inconsistent population");
+             GDZLOG(EDZLogLevel::Exit, L"Returning false");
+             return false;
+         }
+
+         // Check language population consistency
+         if(!g_ServerDCL.VerifyRegionPopulationConsistency(false, m_Regions[i]))
+         {
+             GDZLOG(EDZLogLevel::Error, L"Region " + RegionNameAndIDForLog(i) + L" has inconsistent population");
+             GDZLOG(EDZLogLevel::Exit, L"Returning false");
+             return false;
+         }
       }
    }
 
@@ -3246,6 +3294,7 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
 	//Calculate the new relations expected
 	g_ServerDAL.CalculateExpectedRelations();
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 

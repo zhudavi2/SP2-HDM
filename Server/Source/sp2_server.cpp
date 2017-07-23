@@ -2581,6 +2581,8 @@ void GServer::SaveGame(const GSaveRequest& in_SaveInfo)
 
 void GServer::LoadGame()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+
    SDK::EGameDataError::Enum l_eResult = (SDK::EGameDataError::Enum) c_iGameSaveLoadErrorNotAdmin;
    // Only server itself (via console) and admin player can load the game
    if( (m_iLoadsource == 0) || 
@@ -2616,6 +2618,8 @@ void GServer::LoadGame()
    }
 
    m_sLoadFileName = "";
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GServer::NewGame()

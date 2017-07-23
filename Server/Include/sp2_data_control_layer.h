@@ -37,9 +37,6 @@ namespace SP2
 
 		hash_map<UINT32,REAL32>		m_TotalEnemiesByCountries;
 
-        //! To track which regions have already had their population mismatches fixed
-        mutable map<UINT32, pair<bool, bool>> m_mRegionPopMismatchFixed;
-
 		void LogNewAction(GString in_sNewAction);
 
 		//! It will verify if that war should be ended or not. Return true if treaty needs to be removed
@@ -88,9 +85,6 @@ namespace SP2
 		void ExecuteInternalLawAbortion(UINT32 in_iCountryID,bool in_bStatus);
 		//! Remove relations with other countries based on a change from internal laws
 		void RemoveRelationsFromInternalLaws(UINT32 in_iCountryID, bool in_bStatus, EInternalLaws::Enum in_Law);
-
-        //! If a region in the database has a population total by religion or language that doesn't match population total by age, then call this to fix it by declaring population by age as always correct
-        void FixRegionPopulationMismatch(bool in_bIsReligion, GRegion& in_Region) const;
 
    protected:
       //! Conquer a country if conditions are met when a region changes military control.
@@ -599,6 +593,12 @@ namespace SP2
       void MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClient, UINT32 in_iTreaty, bool in_bLoadingGame = false);
 
       void CheckForCivilWar(ENTITY_ID in_iCountryId);
+
+      //! If a region in the database has a population total by religion or language that doesn't match population total by age, then call this to fix it, assuming population by age as always correct
+      bool VerifyRegionPopulationConsistency(bool in_bByReligion, GRegion& in_Region) const;
+
+      //! Helper for VerifyRegionPopulationConsistency
+      void FixRegionPopulationMismatch(bool in_bByReligion, GRegion& in_Region) const;
    };
 };
 

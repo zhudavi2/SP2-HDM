@@ -5652,6 +5652,9 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 		l_pRegion->ReligionChangePopulation(l_Itr->first,l_Itr->second + l_iTempAdding);
 		l_iTempLeftToAdd -= l_iTempAdding;
 	}
+
+    gassert(l_iTempLeftToAdd >= 0, L"Removed too much population by religion");
+
 	if(l_iTempLeftToAdd > 0)
 	{		
 		l_pRegion->GetReligions(l_Religions);	
@@ -5672,31 +5675,6 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 			}
 
 	}
-    else if(l_iTempLeftToAdd < 0)
-    {
-        INT64 l_iExpectedPop = 0;
-        l_pRegion->GetReligions(l_Religions);
-        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
-            l_iExpectedPop += it->second;
-
-        GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
-
-        FixRegionPopulationMismatch(true, *l_pRegion);
-    }
-
-    {
-        INT64 l_iExpectedPop = 0;
-        l_pRegion->GetReligions(l_Religions);
-        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
-            l_iExpectedPop += it->second;
-
-        if(l_iCurrentPop != l_iExpectedPop)
-        {
-            GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by religion in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
-
-            FixRegionPopulationMismatch(true, *l_pRegion);
-        }
-    }
 
     {
         INT64 l_iExpectedPop = 0;
@@ -5721,6 +5699,8 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 		l_iTempLeftToAdd -= l_iTempAdding;
 	}
 
+    gassert(l_iTempLeftToAdd >= 0, L"Removed too much population by religion");
+
 	if(l_iTempLeftToAdd > 0)
 	{		
 		l_pRegion->GetLanguages(l_Languages);
@@ -5740,31 +5720,6 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 				return false;
 			}
 	}
-    else if(l_iTempLeftToAdd < 0)
-    {
-        INT64 l_iExpectedPop = 0;
-        l_pRegion->GetLanguages(l_Languages);
-        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
-            l_iExpectedPop += it->second;
-
-        GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
-
-        FixRegionPopulationMismatch(false, *l_pRegion);
-    }
-
-    {
-        INT64 l_iExpectedPop = 0;
-        l_pRegion->GetLanguages(l_Languages);
-        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
-            l_iExpectedPop += it->second;
-
-        if(l_iCurrentPop != l_iExpectedPop)
-        {
-            GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population mismatch by language in database, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
-
-            FixRegionPopulationMismatch(false, *l_pRegion);
-        }
-    }
 
     {
         INT64 l_iExpectedPop = 0;
@@ -5936,6 +5891,27 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 	INT64 l_iPop = l_pRegion->Population();
     GDZLOG(EDZLogLevel::Info2, L"Total population by age, before: " + GDZDebug::FormatInt(l_iPop));
 
+    //Population consistency check
+    {
+        GReligionList l_Religions;
+        l_pRegion->GetReligions(l_Religions);
+        INT64 l_iTotalPopByReligion = 0;
+        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
+            l_iTotalPopByReligion += it->second;
+
+        gassert(l_iPop == l_iTotalPopByReligion, L"Religious population inconsistent");
+    }
+
+    {
+        GLanguageList l_Languages;
+        l_pRegion->GetLanguages(l_Languages);
+        INT64 l_iTotalPopByLanguage = 0;
+        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
+            l_iTotalPopByLanguage += it->second;
+
+        gassert(l_iPop == l_iTotalPopByLanguage, L"Language population inconsistent");
+    }
+
     if(l_iPop == 0)
     {
         GDZLOG(EDZLogLevel::Exit, L"Returning false");
@@ -6023,6 +5999,7 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 
     const INT64 l_iTotalNewPop = l_iPop15 + l_iPop1565 + l_iPop65;
     GDZLOG(EDZLogLevel::Info2, L"New population by age: " + GDZDebug::FormatInt(l_iTotalNewPop));
+    gassert(l_iPop - in_iNbPopulation == l_iTotalNewPop, L"Population wasn't removed correctly");
 
 	l_pRegion->Population15(l_iPop15);
 	l_pRegion->Population1565(l_iPop1565);
@@ -6073,11 +6050,7 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
             }
         }
 
-        if(l_iTotalPopByReligion != l_iTotalNewPop)
-        {
-            GDZLOG(EDZLogLevel::Error, l_sRegionName + L" population mismatch by religion in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByReligion) + L" by religion");
-            FixRegionPopulationMismatch(true, *l_pRegion);
-        }
+        gassert(l_iTotalPopByReligion == l_iTotalNewPop, L"Population mismatch by religion");
     }
 
 	/*
@@ -6125,11 +6098,7 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
             }
         }
 
-        if(l_iTotalPopByLanguage != l_iTotalNewPop)
-        {
-            GDZLOG(EDZLogLevel::Error, l_sRegionName + L" population mismatch by language in database, " + GString(l_iTotalNewPop) + L" by age vs " + GString(l_iTotalPopByLanguage) + L" by language");
-            FixRegionPopulationMismatch(false, *l_pRegion);
-        }
+        gassert(l_iTotalPopByLanguage == l_iTotalNewPop, L"Population mismatch by language");
     }
 
 	//Now remove production, and demand, for that region;
@@ -9373,79 +9342,6 @@ void GDataControlLayer::LiberateRegions(UINT32 in_iCountryLiberating,
 	}
 }
 
-void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, GRegion& in_Region) const
-{
-    const UINT32 l_iId = in_Region.Id();
-    auto l_RegionFixedIt = m_mRegionPopMismatchFixed.find(l_iId);
-    if(l_RegionFixedIt == m_mRegionPopMismatchFixed.cend())
-    {
-        m_mRegionPopMismatchFixed[l_iId] = pair<bool, bool>(false, false);
-        l_RegionFixedIt = m_mRegionPopMismatchFixed.find(l_iId);
-    }
-    gassert((!l_RegionFixedIt->second.first && in_bIsReligion) || (!l_RegionFixedIt->second.second && !in_bIsReligion), "Fixing an already-fixed region");
-    if(in_bIsReligion)
-        l_RegionFixedIt->second.first = true;
-    else
-        l_RegionFixedIt->second.second = true;
-
-    stdext::hash_map<INT32, INT64> l_mPopMap;
-    if(in_bIsReligion)
-        in_Region.GetReligions(l_mPopMap);
-    else
-        in_Region.GetLanguages(l_mPopMap);
-
-    INT64 l_iIncorrectPop = 0;
-    for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
-        l_iIncorrectPop += it->second;
-
-    const INT64 l_iPopulation = in_Region.Population();
-    GDZLOG(EDZLogLevel::Always, g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L": Correct population " + GDZDebug::FormatInt(l_iPopulation) + L", incorrect population " + GString(l_iIncorrectPop));
-
-    if(l_iIncorrectPop == l_iPopulation)
-        GDZLOG(EDZLogLevel::Warning, g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L" population seems consistent at " + GDZDebug::FormatInt(l_iPopulation) + L", continuing anyway");
-
-    INT64 l_iFixedPop = 0;
-    INT32 l_iLargestGroup = l_mPopMap.cbegin()->first;
-
-    for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
-    {
-        const REAL32 l_fPopRatio = static_cast<REAL32>(it->second) / static_cast<REAL32>(l_iIncorrectPop);
-        const INT64 l_iActualPop = static_cast<INT64>(l_fPopRatio * l_iPopulation);
-
-        GDZLOG(EDZLogLevel::Always, L"Current group " + GString(it->first) + L" population is " + GDZDebug::FormatInt(it->second) + L", changing to " + GDZDebug::FormatInt(l_iActualPop));
-
-        if(in_bIsReligion)
-            in_Region.ReligionChangePopulation(it->first, l_iActualPop);
-        else
-            in_Region.LanguageChangePopulation(it->first, l_iActualPop);
-
-        l_iFixedPop += l_iActualPop;
-        l_iLargestGroup = (l_mPopMap.at(l_iLargestGroup) < it->second) ? it->first : l_iLargestGroup;
-    }
-
-    GDZLOG(EDZLogLevel::Always, L"Population by group after fix: " + GDZDebug::FormatInt(l_iFixedPop));
-
-    //If there's still any discrepancy, add or remove from the largest group
-    if(l_iFixedPop != l_iPopulation)
-    {
-        const INT64 l_iLeftoverPop = l_iPopulation - l_iFixedPop;
-
-        INT64 l_iNewLargestGroupPop = 0;
-        if(in_bIsReligion)
-            l_iNewLargestGroupPop = in_Region.ReligionGetPopulation(l_iLargestGroup);
-        else
-            l_iNewLargestGroupPop = in_Region.LanguageGetPopulation(l_iLargestGroup);
-        l_iNewLargestGroupPop +=  + l_iLeftoverPop;
-
-        GDZLOG(EDZLogLevel::Always, GDZDebug::FormatInt(l_iLeftoverPop) + L" left over, modifying group " + GDZDebug::FormatInt(l_iLargestGroup) + L" to compensate");
-        
-        if(in_bIsReligion)
-            in_Region.ReligionChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
-        else
-            in_Region.LanguageChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
-    }
-}
-
 void GDataControlLayer::ChangeCountryName(ENTITY_ID in_iCountryID, const GString& in_sNewName)
 {
     if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::Off &&
@@ -9750,5 +9646,110 @@ void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
                 g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
             }
         }
+    }
+}
+
+bool GDataControlLayer::VerifyRegionPopulationConsistency(const bool in_bByReligion, GRegion& in_Region) const
+{
+    GDZLOG(EDZLogLevel::Entry, L"in_bByReligion " + GString(in_bByReligion) + L", in_Region.Id() " + GString(in_Region.Id()));
+
+    const INT64 l_iPopByAge = in_Region.Population();
+
+    stdext::hash_map<INT32, INT64> l_mPopMap;
+    if(in_bByReligion)
+        in_Region.GetReligions(l_mPopMap);
+    else
+        in_Region.GetLanguages(l_mPopMap);
+
+    INT64 l_iTestPop = 0;
+    for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
+        l_iTestPop += it->second;
+    
+    const GString l_sTestCategory = in_bByReligion ? L"religion" : L"language";
+    bool l_bPopIsConsistent = true;
+    if(l_iPopByAge != l_iTestPop)
+    {
+        GDZLOG(EDZLogLevel::Error, g_ServerDAL.RegionNameAndIDForLog(in_Region.Id()) + L" population inconsistency, " + GDZDebug::FormatInt(l_iPopByAge) + L" by age vs " + GDZDebug::FormatInt(l_iTestPop) + L" by " + l_sTestCategory);
+        FixRegionPopulationMismatch(in_bByReligion, in_Region);
+
+        if(in_bByReligion)
+            in_Region.GetReligions(l_mPopMap);
+        else
+            in_Region.GetLanguages(l_mPopMap);
+
+        l_iTestPop = 0;
+        for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
+            l_iTestPop += it->second;
+
+        l_bPopIsConsistent = l_iPopByAge == l_iTestPop;
+        gassert(l_bPopIsConsistent, L"Population inconsistent even after fixing");
+    }
+
+    gassert(l_iPopByAge >= 0, L"Population by age is negative");
+    gassert(l_iTestPop >= 0, L"Population by " + l_sTestCategory + L" is negative");
+
+    GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(l_bPopIsConsistent));
+    return l_bPopIsConsistent;
+}
+
+void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, GRegion& in_Region) const
+{
+    stdext::hash_map<INT32, INT64> l_mPopMap;
+    if(in_bIsReligion)
+        in_Region.GetReligions(l_mPopMap);
+    else
+        in_Region.GetLanguages(l_mPopMap);
+
+    INT64 l_iIncorrectPop = 0;
+    for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
+        l_iIncorrectPop += it->second;
+
+    const UINT32 l_iId = in_Region.Id();
+    const GString l_sRegionName = g_ServerDAL.RegionNameAndIDForLog(l_iId);
+    const INT64 l_iPopulation = in_Region.Population();
+    GDZLOG(EDZLogLevel::Info1, l_sRegionName + L": Correct population " + GDZDebug::FormatInt(l_iPopulation) + L", incorrect population " + GDZDebug::FormatInt(l_iIncorrectPop));
+
+    if(l_iIncorrectPop == l_iPopulation)
+        GDZLOG(EDZLogLevel::Warning, l_sRegionName + L" population seems consistent at " + GDZDebug::FormatInt(l_iPopulation) + L", continuing anyway");
+
+    INT64 l_iFixedPop = 0;
+    INT32 l_iLargestGroup = l_mPopMap.cbegin()->first;
+
+    for(auto it = l_mPopMap.cbegin(); it != l_mPopMap.cend(); ++it)
+    {
+        const REAL32 l_fPopRatio = (l_iIncorrectPop > 0) ? (static_cast<REAL32>(it->second) / l_iIncorrectPop) : (1.f / l_mPopMap.size());
+        const INT64 l_iActualPop = static_cast<INT64>(l_fPopRatio * l_iPopulation);
+
+        GDZLOG(EDZLogLevel::Info1, L"Current group " + GString(it->first) + L" population is " + GDZDebug::FormatInt(it->second) + L", changing to " + GDZDebug::FormatInt(l_iActualPop));
+
+        if(in_bIsReligion)
+            in_Region.ReligionChangePopulation(it->first, l_iActualPop);
+        else
+            in_Region.LanguageChangePopulation(it->first, l_iActualPop);
+
+        l_iFixedPop += l_iActualPop;
+        l_iLargestGroup = (l_mPopMap.at(l_iLargestGroup) < it->second) ? it->first : l_iLargestGroup;
+    }
+
+    GDZLOG(EDZLogLevel::Info1, L"Population by group after fix: " + GDZDebug::FormatInt(l_iFixedPop));
+
+    //If there's still any discrepancy, add or remove from the largest group
+    if(l_iFixedPop != l_iPopulation)
+    {
+        const INT64 l_iLeftoverPop = l_iPopulation - l_iFixedPop;
+
+        INT64 l_iNewLargestGroupPop = 0;
+        if(in_bIsReligion)
+            l_iNewLargestGroupPop = in_Region.ReligionGetPopulation(l_iLargestGroup);
+        else
+            l_iNewLargestGroupPop = in_Region.LanguageGetPopulation(l_iLargestGroup);
+        l_iNewLargestGroupPop +=  + l_iLeftoverPop;
+
+        GDZLOG(EDZLogLevel::Info1, GDZDebug::FormatInt(l_iLeftoverPop) + L" left over, modifying group " + GDZDebug::FormatInt(l_iLargestGroup) + L" to compensate");
+
+        if(in_bIsReligion)
+            in_Region.ReligionChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
+        else
+            in_Region.LanguageChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
     }
 }
