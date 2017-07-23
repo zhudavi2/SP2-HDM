@@ -3944,7 +3944,10 @@ REAL32 GWorldBehavior::FindFoodResourceFactor(const ENTITY_ID in_iCountryID)
         for(INT32 i = 0; i < c_iNumFoodRes; i++)
         {
             const EResources::Enum l_eResource = c_FoodResImp[i].first;
-            const REAL64 l_fResourcesAvailable = l_pCountryData->ResourceProduction(l_eResource) + l_pCountryData->ResourceImport(l_eResource) - l_pCountryData->ResourceExport(l_eResource);
+            const REAL64 l_fProduction = l_pCountryData->ResourceProduction(l_eResource);
+            const REAL64 l_fImport = l_pCountryData->ResourceImport(l_eResource);
+            const REAL64 l_fExport = l_pCountryData->ResourceExport(l_eResource);
+            const REAL64 l_fResourcesAvailable = l_fProduction + l_fImport - l_fExport;
             gassert(l_fResourcesAvailable >= 0.0, L"Can't have " + GString::FormatNumber(l_fResourcesAvailable, L",", L".", L"$", L"", 3, 2, true) + L" worth of resources available");
 
             const REAL32 l_fResImp = c_FoodResImp[i].second;

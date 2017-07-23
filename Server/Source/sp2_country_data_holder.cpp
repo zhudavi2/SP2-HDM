@@ -179,9 +179,11 @@ void GCountryData::SynchronizeWithRegions()
 
 	IterateDemand();
 	
-	//Calculate the new desired import and exports
+	//Cap exports based on production, and calculate the new desired import and exports
 	for(UINT32 j=0; j<EResources::ItemCount; j++)
 	{						
+        m_pResourceExport[j] = min(m_pResourceExport[j], m_pResourceProduction[j]*m_fResourceProductionModifier);
+
 		m_fDemandTotal += m_pResourceDemand[j] * m_fResourceDemandModifier;
 		if(!m_pResourceGvtControl[j] || m_pResourceMeetDomesticConsumption[j])
 		{
