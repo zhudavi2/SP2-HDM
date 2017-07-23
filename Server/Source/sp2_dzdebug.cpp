@@ -30,13 +30,15 @@ bool GDZDebug::m_bLogEnable = false;
 
 const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 {
-    GLogLevelEnabled(L"AI",               0),
-    GLogLevelEnabled(L"CombatPlanner",    0),
-    GLogLevelEnabled(L"CountryData",      0),
-    GLogLevelEnabled(L"DataControlLayer", 0),
-    GLogLevelEnabled(L"UnitGroupEx",      0),
-    GLogLevelEnabled(L"UnitMover",        0),
-    GLogLevelEnabled(L"WorldBehavior",    0),
+    GLogLevelEnabled(L"AI",                    0),
+    GLogLevelEnabled(L"CombatPlanner",         0),
+    GLogLevelEnabled(L"CountryData",           0),
+    GLogLevelEnabled(L"DataAccessLayerServer", 0),
+    GLogLevelEnabled(L"DataControlLayer",      0),
+    GLogLevelEnabled(L"Server",                0),
+    GLogLevelEnabled(L"UnitGroupEx",           0),
+    GLogLevelEnabled(L"UnitMover",             0),
+    GLogLevelEnabled(L"WorldBehavior",         0),
 };
 
 map<GString, UINT32> GDZDebug::m_mLogLevelsEnabled(c_LogLevelsEnabled, c_LogLevelsEnabled + sizeof(c_LogLevelsEnabled) / sizeof(GLogLevelEnabled));
