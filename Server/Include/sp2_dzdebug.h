@@ -41,6 +41,8 @@ namespace SP2
     class GDZDebug
     {
     public:
+        static inline bool LogEnabled();
+
         static inline void Log(EDZLogLevel::Enum in_iLogLevel,
                                const GString& in_sMsg,
                                const GString& in_sFunc,
@@ -77,6 +79,11 @@ namespace SP2
         //! Must be enabled for gassert
         static bool m_bAssertEnable;
     };
+}
+
+bool GDZDebug::LogEnabled()
+{
+    return m_bLogEnable;
 }
 
 void GDZDebug::Log(EDZLogLevel::Enum in_iLogLevel,
