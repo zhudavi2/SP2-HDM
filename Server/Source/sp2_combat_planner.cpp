@@ -255,6 +255,8 @@ void GCombatPlanner::FollowPlan(ENTITY_ID in_iAttackingCountry,
 
 UINT32 GCombatPlanner::FindBestAttackers(ENTITY_ID in_iCountryID, UINT32 in_iRegionID, bool in_bDefensive, const hash_set<SP2::GUnitGroup*>& in_AlliedUnitGroups)
 {	
+    GUnitMover& l_UnitMover = g_ServerDCL.UnitMover();
+
 	SP2::GUnitGroupEx* l_pGroup = g_ServerDCL.UnitMover().ProductionQueueUnitGroups()[in_iCountryID-1];
    if(!l_pGroup)
       return 0;
@@ -420,12 +422,12 @@ UINT32 GCombatPlanner::FindBestAttackers(ENTITY_ID in_iCountryID, UINT32 in_iReg
 			//If there are no cities, let the unit move towards one of the vertex center
 			if(!l_vRegionCities.size())
 			{
-				l_Destination = g_ServerDCL.UnitMover().RegionLocation(in_iRegionID);
+				l_Destination = l_UnitMover.RegionLocation(in_iRegionID);
 			}
 			else
 			{
 				//Find the closest city
-				if(!g_ServerDCL.UnitMover().FindClosestCityLocation(l_pUnitGroup->Position(),in_iRegionID,l_Destination))
+				if(!l_UnitMover.FindClosestCityLocation(l_pUnitGroup->Position(),in_iRegionID,l_Destination))
 					continue;
 			}
 			break;
@@ -443,16 +445,13 @@ UINT32 GCombatPlanner::FindBestAttackers(ENTITY_ID in_iCountryID, UINT32 in_iReg
 	}
 	if(l_GroupsToMove.size() != 0)
 	{
-#ifdef GOLEM_DEBUG
+        if(GDZDebug::LogEnabled())
+        {
+            const Map::GMultiface* const l_pMF = g_ServerDAL.CountryView()->Locate(l_Destination.x, l_Destination.y);
+            if(l_pMF == nullptr)
+                GDZLOG(EDZLogLevel::Error, g_ServerDAL.RegionNameAndIDForLog(in_iRegionID) + L" should contain or be near point (" + GString(l_Destination.x) + L", " + GString(l_Destination.y) + L") but can't locate Multiface");
+        }
 
-		const Map::GMultiface* l_pMF = g_ServerDAL.CountryView()->Locate(l_Destination.x, l_Destination.y);
-		gassert(l_pMF,
-                g_ServerDAL.RegionNameAndIDForLog(in_iRegionID) +
-                L" should contain or be be near point " +
-                L"(" + GString(l_Destination.x) + L", " +
-                GString(l_Destination.y) + L") but can't locate Multiface");
-
-#endif
 		for(set<UINT32>::iterator it = l_GroupsToMove.begin();
 			 it != l_GroupsToMove.end(); it++)
 		{
