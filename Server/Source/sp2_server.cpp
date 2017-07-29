@@ -2711,7 +2711,11 @@ void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, co
     SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
 
     // reinterpret_cast, CREATE_GAME_EVENT doesn't "actually" create a GChatEvent object for some reason
-    reinterpret_cast<SDK::Event::GChatEvent*>(l_pEvent.get())->Message(in_sMessage);
+    SDK::Event::GChatEvent* const l_pChatEvent = reinterpret_cast<SDK::Event::GChatEvent*>(l_pEvent.get());
+    l_pChatEvent->Message(in_sMessage);
+
+    // Have automated chat messages appear green by setting such messages Private
+    l_pChatEvent->Private(true);
 
     l_pEvent->m_iSource = in_iSource;
     l_pEvent->m_iTarget = in_iTarget;
