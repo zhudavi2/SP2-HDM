@@ -754,7 +754,7 @@ EObjectiveStatus::Enum GGameObjectiveEvaluator::EvalEconomicFailure(SDK::GPlayer
    //That objective has no timeout.
 
    EObjectiveStatus::Enum l_eStatus = EObjectiveStatus::NotReached;
-   if(g_SP2Server->ContinueAfterEconomicFailure())
+   if(!g_SP2Server->ContinueAfterEconomicFailure())
    {
        //Fetch country data
        GCountryData* l_pData = g_ServerDAL.CountryData(in_pPlayer->ModID());
