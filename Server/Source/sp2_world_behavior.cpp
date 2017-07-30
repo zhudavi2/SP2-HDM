@@ -1340,8 +1340,10 @@ void GWorldBehavior::Iterate_Death_Rate_Expected()
         const INT64 l_fNewOver65 = ReturnInteger64((1.f / 50.f) * m_CountryData->Pop1565());
         const INT64 l_iPopOver65 = m_CountryData->Pop65();
         const REAL32 l_fMaxDeathRate = (l_fNewOver65 - (m_CountryData->BirthRate() * l_iPopOver65)) / (m_CountryData->Population() - l_iPopOver65);
-        l_fExpected = min(l_fExpected, l_fMaxDeathRate);
+        l_fExpected = (l_fMaxDeathRate >= 0.f) ? min(l_fExpected, l_fMaxDeathRate) : l_fExpected;
     }
+
+    gassert(0.f <= l_fExpected, L"Expected death rate " + GString(l_fExpected) + L" below 0");
 
 	m_CountryData->DeathRateExpected(l_fExpected);
 }
