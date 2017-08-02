@@ -11,7 +11,6 @@ using namespace SDK::EHE;
 #include "include/sp2_ai.h"
 #include "include/sp2_advisor.h"
 #include "include/sp2_advisor_event_handler.h"
-#include "include/sp2_dzdebug.h"
 #include "include/sp2_ehe_plan.h"
 #include "include/sp2_combat_planner.h"
 #include "include/sp2_unit_group_ex.h"
@@ -34,6 +33,8 @@ using namespace SDK::EHE;
 #include "include/sp2_ehe_constants.h"
 #include "include/sp2_military_plan.h"
 #include "include/sp2_country_data_holder.h"
+#include "include/sp2_dzdebug.h"
+#include "include/sp2_region_ex.h"
 
 
 

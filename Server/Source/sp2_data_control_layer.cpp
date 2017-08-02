@@ -5588,8 +5588,10 @@ void GDataControlLayer::LoseRelationsWarDeclaration(UINT32 in_iCountryDeclaringW
 
 bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbPopulation)
 {
-	GRegion* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
+	GRegionEx* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_pRegion->OwnerId());
+
+    l_pRegion->VerifyPopulation();
 
 	INT64 l_iPop15 = l_pRegion->Population15();
 	INT64 l_iPop1565 = l_pRegion->Population1565();
@@ -5676,14 +5678,6 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 
 	}
 
-    {
-        INT64 l_iExpectedPop = 0;
-        l_pRegion->GetReligions(l_Religions);
-        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
-            l_iExpectedPop += it->second;
-        gassert(l_iCurrentPop == l_iExpectedPop, L"Population mismatch by religion, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
-    }
-
 	/*
 		Now add people from languages
 	*/
@@ -5721,13 +5715,7 @@ bool GDataControlLayer::AddPopulationToRegion(UINT32 in_iRegionID, INT64 in_iNbP
 			}
 	}
 
-    {
-        INT64 l_iExpectedPop = 0;
-        l_pRegion->GetLanguages(l_Languages);
-        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
-            l_iExpectedPop += it->second;
-        gassert(l_iCurrentPop == l_iExpectedPop, L"Population mismatch by language, " + GString(l_iCurrentPop) + L" vs. " + GString(l_iExpectedPop));
-    }
+    l_pRegion->VerifyPopulation();
 
 	//Now add production, for that region;
 	REAL32 l_fPopRatio = ((REAL32)in_iNbPopulation / (REAL32)max(l_iPop,1)) + 1.f;
@@ -5880,7 +5868,9 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 {	  
     GDZLOG(EDZLogLevel::Entry, L"in_iRegionID " + GString(in_iRegionID) + L", in_iNbPopulation " + GDZDebug::FormatInt(in_iNbPopulation) + L", in_bEnroll " + GString(in_bEnroll));
 
-	GRegion* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
+    GRegionEx* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
+    l_pRegion->VerifyPopulation();
+
     const GString l_sRegionName = g_ServerDAL.RegionNameAndIDForLog(in_iRegionID);
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_pRegion->OwnerId());
     GDZLOG(EDZLogLevel::Info2, l_sRegionName + L" of " + l_pCountryData->NameAndIDForLog());
@@ -5890,27 +5880,6 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 	INT64 l_iPop65 = l_pRegion->Population65();
 	INT64 l_iPop = l_pRegion->Population();
     GDZLOG(EDZLogLevel::Info2, L"Total population by age, before: " + GDZDebug::FormatInt(l_iPop));
-
-    //Population consistency check
-    {
-        GReligionList l_Religions;
-        l_pRegion->GetReligions(l_Religions);
-        INT64 l_iTotalPopByReligion = 0;
-        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
-            l_iTotalPopByReligion += it->second;
-
-        gassert(l_iPop == l_iTotalPopByReligion, L"Religious population inconsistent");
-    }
-
-    {
-        GLanguageList l_Languages;
-        l_pRegion->GetLanguages(l_Languages);
-        INT64 l_iTotalPopByLanguage = 0;
-        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
-            l_iTotalPopByLanguage += it->second;
-
-        gassert(l_iPop == l_iTotalPopByLanguage, L"Language population inconsistent");
-    }
 
     if(l_iPop == 0)
     {
@@ -6100,6 +6069,8 @@ bool GDataControlLayer::RemovePopulationFromRegion(UINT32 in_iRegionID, INT64 in
 
         gassert(l_iTotalPopByLanguage == l_iTotalNewPop, L"Population mismatch by language");
     }
+
+    l_pRegion->VerifyPopulation();
 
 	//Now remove production, and demand, for that region;
 	REAL32 l_fPopRatio = -((REAL32)in_iNbPopulation / (REAL32)max(l_iPop,1)) + 1.f;

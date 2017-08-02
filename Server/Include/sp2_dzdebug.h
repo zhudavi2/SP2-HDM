@@ -48,6 +48,8 @@ namespace SP2
                                const GString& in_sFunc,
                                INT32 in_iLine);
 
+        static inline bool AssertEnabled();
+
         static inline void Assert(bool in_bExpr,
                                   const GString& in_sExpr,
                                   const GString& in_sMsg,
@@ -126,6 +128,11 @@ void GDZDebug::Log(EDZLogLevel::Enum in_iLogLevel,
                          in_sMsg);
         }
     }
+}
+
+bool GDZDebug::AssertEnabled()
+{
+    return m_bAssertEnable;
 }
 
 void GDZDebug::Assert(const bool in_bExpr,

@@ -25,6 +25,7 @@ class GXMLNode;
 namespace SP2
 {
    class GDCLInterface;
+   class GRegionEx;
 
    /*!
    * Data access layer
@@ -97,7 +98,7 @@ namespace SP2
 
 
 		//!Return a pointer to the Region for a region ID
-      GRegion* GetGRegion(UINT32 in_iRegionID) const;
+      GRegionEx* GetGRegion(UINT32 in_iRegionID) const;
 
       //!Prints the relation table for this country towards every other country
       void PrintCountryRelations(ENTITY_ID in_iCountryID);				
@@ -413,7 +414,7 @@ namespace SP2
       multimap<REAL64,GLaunchedNuke> m_LaunchedNukes;		
 
 		// Regions info
-		GRegion* m_Regions;	//array of region pointers
+		GRegionEx* m_Regions;	//array of region pointers
 
       SDK::GGameEventSPtr        m_pUpdateEventSmartPtr;
       SP2::Event::GUpdateData*   m_pUpdateEvent;

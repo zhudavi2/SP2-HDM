@@ -175,6 +175,7 @@
     <ClCompile Include="Source\sp2_military_event_handler.cpp" />
     <ClCompile Include="Source\sp2_military_plan.cpp" />
     <ClCompile Include="Source\sp2_politic_event_handler.cpp" />
+    <ClCompile Include="Source\sp2_region_ex.cpp" />
     <ClCompile Include="Source\sp2_server.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
@@ -291,6 +292,7 @@
     <ClInclude Include="Include\sp2_military_event_handler.h" />
     <ClInclude Include="Include\sp2_military_plan.h" />
     <ClInclude Include="Include\sp2_politic_event_handler.h" />
+    <ClInclude Include="Include\sp2_region_ex.h" />
     <ClInclude Include="Include\sp2_server.h" />
     <ClInclude Include="Include\sp2_server_dll_export.h" />
     <ClInclude Include="Include\sp2_treaty_event_handler.h" />

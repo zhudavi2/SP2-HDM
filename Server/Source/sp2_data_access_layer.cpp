@@ -518,7 +518,7 @@ bool GDataAccessLayerServer::LoadRegions()
 
 	// Create and fill the array of regions
 	SAFE_DELETE_ARRAY(m_Regions)
-	m_Regions = new GRegion[m_iNbRegion + 1];	
+	m_Regions = new GRegionEx[m_iNbRegion + 1];	
 	m_vRegionGeoGroup.resize(m_iNbRegion + 1);
 	m_vRegionContinent.resize(m_iNbRegion + 1);
 	UINT32 l_iRegionID;
@@ -883,7 +883,7 @@ UINT32 GDataAccessLayerServer::CountryIDFromRegionID(const UINT32 in_iRegionID)
  * @param	in_iRegionID: A region Id
  * @return	pointer
  **/
-GRegion* GDataAccessLayerServer::GetGRegion(UINT32 in_iRegionID) const
+GRegionEx* GDataAccessLayerServer::GetGRegion(UINT32 in_iRegionID) const
 {
 	return m_Regions + in_iRegionID;
 }
