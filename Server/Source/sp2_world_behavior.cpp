@@ -182,15 +182,15 @@ bool GWorldBehavior::LoadConfigFile(const GString &in_sFilename, const GString &
 	return true;
 }
 
-bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15Deaths, INT64& in_iNewOver15)
+bool GWorldBehavior::Iterate_Population(GRegionEx* const in_pRegion, INT64& in_iOver15Deaths, INT64& in_iNewOver15)
 {	
-    GDZLOG(EDZLogLevel::Info2, L"Region " + g_ServerDAL.RegionNameAndIDForLog(in_pRegion->Id()) + L" of " + m_CountryData->NameAndIDForLog());
+    GDZLOG(EDZLogLevel::Entry, in_pRegion->NameForLog() + L" of " + m_CountryData->NameAndIDForLog());
+    in_pRegion->VerifyPopulation();
 
 	GReligionList l_Religions;
 	GLanguageList l_Languages;
 	INT64 l_iPopulationReligion = 0;
 	INT64 l_iPopulationLanguage = 0;
-	INT64 l_iTempPopulationAll = 0;
 
 	const REAL32 PourcConvertsConstReligion = 0.05f;
 	const REAL32 PourcConvertsConstLanguage = 0.1f;
@@ -335,30 +335,6 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15De
 	l_iTempLeftToArrive = l_iArrivingPopulation;
 	l_iTempLeftToLeave = l_iLeavingPopulation;
 	in_pRegion->GetReligions(l_Religions);	
-
-    INT64 l_iInitialPopulationOfReligions = 0;
-    for(GReligionList::iterator l_Itr = l_Religions.begin();
-		l_Itr != l_Religions.end();
-		l_Itr++)
-	{
-        l_iInitialPopulationOfReligions += in_pRegion->ReligionGetPopulation(l_Itr->first);
-        /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
-        l_iInitialPopulationOfReligions +=
-            in_pRegion->ReligionGetPopulation(l_Itr->first);
-            if(m_CountryData->CountryID() == 142)
-                    m_CountryData->NameAndIDForLog() + L": Population of " +
-                    g_ServerDAL.GetString(g_ServerDAL.StringIdReligion(l_Itr->first)) +
-                    L": " +
-                    GString(m_CountryData->ReligionGetPourcentage(l_Itr->first)) + L" " +
-                    GString(in_pRegion->ReligionGetPopulation(l_Itr->first)));*/
-    }
-
-    /*gassert(l_iInitialPopulation == l_iInitialPopulationOfReligions,
-            L"Initial total population of religions should be equal to initial total population: " +
-            g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
-            m_CountryData->NameAndIDForLog() + L": " +
-            L"Total population " + GString(l_iInitialPopulation) + L" vs. " +
-            L"population of religions " + GString(l_iInitialPopulationOfReligions));*/
 
 	INT64 l_iMaxPopulationReligion = -1;
 	INT32 l_iMaxReligion = 0;
@@ -555,14 +531,6 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15De
 		l_iPopulationLanguage -= l_iTempLeftToLeave;
 	}
 
-	//Calculate the total population, for debugging purposes
-	l_iTempPopulationAll = in_pRegion->Population15() + in_pRegion->Population1565() + in_pRegion->Population65();	
-    /*GDZDEBUGLOG(g_ServerDAL.RegionNameAndIDForLog(in_pRegion->Id()) + L" of " +
-                m_CountryData->NameAndIDForLog() + L": " +
-                L"Population15() " + GString(in_pRegion->Population15()) + L", " +
-                L"Population1565() " + GString(in_pRegion->Population1565()) + L", " +
-                L"Population65() " + GString(in_pRegion->Population65()));*/
-
 	INT64 l_iNbConverts = 0;
 	INT64 l_iTempConverts = 0;
 	l_iMaxPopulationReligion = -1;
@@ -625,16 +593,9 @@ bool GWorldBehavior::Iterate_Population(GRegion* in_pRegion, INT64& in_iOver15De
 	in_pRegion->LanguageChangePopulation(l_iMaxLanguage,
 		in_pRegion->LanguageGetPopulation(l_iMaxLanguage) + l_iNbConverts);
 
+    in_pRegion->VerifyPopulation();
 
-	//Check if our population of languages and religions are equal to the total population
-//	gassert(l_iTempPopulationAll == l_iPopulationLanguage,"Population of language should be equal to total population");
-	/*gassert(l_iTempPopulationAll == l_iPopulationReligion,
-            "Population of religion should be equal to total population: " +
-            g_ServerDAL.RegionNameAndIDForLog(l_iRegionId) + L" of " +
-            m_CountryData->NameAndIDForLog() + L": " +
-            L"Total population " + GString(l_iTempPopulationAll) + L" vs. " +
-            L"population of all religions " + GString(l_iPopulationReligion));*/
-
+    GDZLOG(EDZLogLevel::Exit, L"Returning true");
 	return true;
 }
 
@@ -1839,7 +1800,6 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 
 	//Iterate new value for regions
 	const set<UINT32>& l_vRegions = g_ServerDAL.CountryPoliticalControl(in_iCountryID);
-	GRegion* l_pRegion;	
 
 	REAL64 l_fOldGDP = m_CountryData->GDPValue();
 
@@ -1858,7 +1818,7 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 		l_RegionItr != l_vRegions.end();
 		l_RegionItr++)
 	{
-		l_pRegion = g_ServerDAL.GetGRegion(*l_RegionItr);
+		GRegionEx* const l_pRegion = g_ServerDAL.GetGRegion(*l_RegionItr);
 		if (! l_pRegion) 
 		{
 			g_Joshua.Log(L"Invalid region!",MSGTYPE_ERROR);

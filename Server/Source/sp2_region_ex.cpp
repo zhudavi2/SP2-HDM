@@ -62,3 +62,9 @@ bool GRegionEx::VerifyPopulation()
     GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(l_bConsistent));
     return l_bConsistent;
 }
+
+GString GRegionEx::NameForLog() const
+{
+    const UINT32 l_iId = Id();
+    return g_ServerDAL.GetString(g_ServerDAL.StringIdRegion(l_iId)) + L" (" + GString(l_iId) + L")";
+}

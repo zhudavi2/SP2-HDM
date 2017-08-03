@@ -107,7 +107,7 @@ private:
 
 
 	//Region iteration
-   bool Iterate_Population(SP2::GRegion*, INT64& in_iOver15Deaths, INT64& in_iNewOver15);
+   bool Iterate_Population(SP2::GRegionEx*, INT64& in_iOver15Deaths, INT64& in_iNewOver15);
    bool Iterate_Telecom_Level(SP2::GRegion*, REAL64 in_fGameTime);
 	bool Iterate_Infrastructure(SP2::GRegion*, REAL64 in_fGameTime);
 	//bool Iterate_Demand(SP2::GRegion*);	

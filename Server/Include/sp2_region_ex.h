@@ -22,6 +22,8 @@ namespace SP2
         * @return true if population is consistent, false otherwise. Always true if assert and DZLog disabled
         **/
         bool VerifyPopulation();
+
+        GString NameForLog() const;
     };
 }
 
