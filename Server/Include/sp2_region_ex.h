@@ -23,6 +23,7 @@ namespace SP2
         **/
         bool VerifyPopulation();
 
+        GString Name() const;
         GString NameForLog() const;
     };
 }
