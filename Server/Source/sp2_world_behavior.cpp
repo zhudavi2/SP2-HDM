@@ -533,65 +533,86 @@ bool GWorldBehavior::Iterate_Population(GRegionEx* const in_pRegion, INT64& in_i
 
 	INT64 l_iNbConverts = 0;
 	INT64 l_iTempConverts = 0;
-	l_iMaxPopulationReligion = -1;
-	l_iMaxReligion = 0;
-	in_pRegion->GetReligions(l_Religions);
 
-	//We go through the religion list, and remove some from the illegal religions, and convert them
-	//to the most popular religion
-	for(GReligionList::iterator l_Itr = l_Religions.begin();
-		l_Itr != l_Religions.end();
-		l_Itr++)
-	{
-		if(l_Itr->second > l_iMaxPopulationReligion
-			&& m_CountryData->ReligionGetStatus(l_Itr->first) != 2)
-		{
-			l_iMaxPopulationReligion = l_Itr->second;
-			l_iMaxReligion = l_Itr->first;
-		}
-		if (m_CountryData->ReligionGetStatus(l_Itr->first) == 2) //if illegal, then let's remove some
-		{
-			l_iTempConverts = ReturnInteger64(m_fFrequency * PourcConvertsConstReligion * (REAL32)l_Itr->second);
-			in_pRegion->ReligionChangePopulation(l_Itr->first
-				,l_Itr->second-l_iTempConverts);
-			l_iNbConverts += l_iTempConverts;
+    {
+        //(Legal religion with highest population, population of that religion before conversions)
+        pair<INT32, INT64> l_MaxLegalReligion(-1, -1);
 
-		}
-	}
-	//Now that we have gone through the list of religions, let's add the converts to the most populous, and legal, religion;
-	in_pRegion->ReligionChangePopulation(l_iMaxReligion,
-		in_pRegion->ReligionGetPopulation(l_iMaxReligion) + l_iNbConverts);
+        in_pRegion->GetReligions(l_Religions);
 
-	l_iNbConverts = 0;
-	l_iTempConverts = 0;
-	l_iMaxPopulationLanguage = -1;
-	l_iMaxLanguage = 0;
-	in_pRegion->GetLanguages(l_Languages);
+        //Check legal religions and keep track of the largest legal one
+        for(auto it = l_Religions.cbegin(); it != l_Religions.cend(); ++it)
+        {
+            if(it->second > l_MaxLegalReligion.second && m_CountryData->ReligionGetStatus(it->first) != 2)
+            {
+                l_MaxLegalReligion.first = it->first;
+                l_MaxLegalReligion.second = it->second;
+            }
+        }
 
-	//We go through the Language list, and remove some from the illegal Languages, and convert them
-	//to the most popular Language
-	for(GLanguageList::iterator l_Itr = l_Languages.begin();
-		l_Itr != l_Languages.end();
-		l_Itr++)
-	{
-		if(l_Itr->second > l_iMaxPopulationLanguage
-			&& m_CountryData->LanguageGetStatus(l_Itr->first) != 2)
-		{
-			l_iMaxPopulationLanguage = l_Itr->second;
-			l_iMaxLanguage = l_Itr->first;
-		}
-		if (m_CountryData->LanguageGetStatus(l_Itr->first) == 2) //if illegal, then let's remove some
-		{
-			l_iTempConverts = ReturnInteger64(m_fFrequency * PourcConvertsConstLanguage * (REAL32)l_Itr->second);
-			in_pRegion->LanguageChangePopulation(l_Itr->first
-				,l_Itr->second-l_iTempConverts);
-			l_iNbConverts += l_iTempConverts;
+        gassert((l_MaxLegalReligion.first == -1) == (l_MaxLegalReligion.second == -1), L"Inconsistent religion legality");
 
-		}
-	}
-	//Now that we have gone through the list of Languages, let's add the converts to the most populous, and legal, Language;
-	in_pRegion->LanguageChangePopulation(l_iMaxLanguage,
-		in_pRegion->LanguageGetPopulation(l_iMaxLanguage) + l_iNbConverts);
+        //We go through the religion list, and remove some from the illegal religions, and convert them
+        //to the most popular religion
+        if(l_MaxLegalReligion.first != -1)
+        {
+            for(GReligionList::iterator l_Itr = l_Religions.begin();
+                l_Itr != l_Religions.end();
+                l_Itr++)
+            {
+                if(m_CountryData->ReligionGetStatus(l_Itr->first) == 2) //if illegal, then let's remove some
+                {
+                    l_iTempConverts = ReturnInteger64(m_fFrequency * PourcConvertsConstReligion * (REAL32)l_Itr->second);
+                    in_pRegion->ReligionChangePopulation(l_Itr->first
+                        , l_Itr->second-l_iTempConverts);
+                    l_iNbConverts += l_iTempConverts;
+
+                }
+            }
+            //Now that we have gone through the list of religions, let's add the converts to the most populous, and legal, religion;
+            in_pRegion->ReligionChangePopulation(l_MaxLegalReligion.first, l_MaxLegalReligion.second + l_iNbConverts);
+        }
+    }
+
+    {
+        l_iNbConverts = 0;
+        l_iTempConverts = 0;
+
+        //(Legal language with highest population, population of that language before conversions)
+        pair<INT32, INT64> l_MaxLegalLanguage(-1, -1);
+
+        in_pRegion->GetLanguages(l_Languages);
+
+        //Check legal religions and keep track of the largest legal one
+        for(auto it = l_Languages.cbegin(); it != l_Languages.cend(); ++it)
+        {
+            if(it->second > l_MaxLegalLanguage.second && m_CountryData->LanguageGetStatus(it->first) != 2)
+            {
+                l_MaxLegalLanguage.first = it->first;
+                l_MaxLegalLanguage.second = it->second;
+            }
+        }
+
+        gassert((l_MaxLegalLanguage.first == -1) == (l_MaxLegalLanguage.second == -1), L"Inconsistent language legality");
+
+        //We go through the Language list, and remove some from the illegal Languages, and convert them
+        //to the most popular Language
+        for(GLanguageList::iterator l_Itr = l_Languages.begin();
+            l_Itr != l_Languages.end();
+            l_Itr++)
+        {
+            if(m_CountryData->LanguageGetStatus(l_Itr->first) == 2) //if illegal, then let's remove some
+            {
+                l_iTempConverts = ReturnInteger64(m_fFrequency * PourcConvertsConstLanguage * (REAL32)l_Itr->second);
+                in_pRegion->LanguageChangePopulation(l_Itr->first
+                    , l_Itr->second-l_iTempConverts);
+                l_iNbConverts += l_iTempConverts;
+
+            }
+        }
+        //Now that we have gone through the list of Languages, let's add the converts to the most populous, and legal, Language;
+        in_pRegion->LanguageChangePopulation(l_MaxLegalLanguage.first, l_MaxLegalLanguage.second + l_iNbConverts);
+    }
 
     in_pRegion->VerifyPopulation();
 
