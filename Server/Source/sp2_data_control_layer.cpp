@@ -1719,10 +1719,6 @@ bool GDataControlLayer::ChangePersonalIncomeTax(ENTITY_ID in_iCountryID,
 																REAL64 l_fOldPersonalIncomeTax,
 																REAL64 l_fNewPersonalIncomeTax)
 {
-   // Nothing to do when value is identical
-   if(l_fOldPersonalIncomeTax == l_fNewPersonalIncomeTax)
-      return true;
-
    l_fNewPersonalIncomeTax = min(l_fNewPersonalIncomeTax, g_SP2Server->IncomeTaxLimit(static_cast<EGovernmentType::Enum>(g_ServerDAL.CountryData(in_iCountryID)->GvtType())));
 	if(l_fNewPersonalIncomeTax < SP2::PersonalTaxes_LowerCap)
 		l_fNewPersonalIncomeTax = SP2::PersonalTaxes_LowerCap;
@@ -1731,6 +1727,11 @@ bool GDataControlLayer::ChangePersonalIncomeTax(ENTITY_ID in_iCountryID,
 
 	REAL32 l_fRange = SP2::PersonalTaxes_UpperCap - SP2::PersonalTaxes_LowerCap;
 	REAL32 l_fDifference = -(REAL32)(l_fNewPersonalIncomeTax - l_fOldPersonalIncomeTax);
+
+    // Nothing to do when value is identical
+    if(fabs(l_fDifference) < 0.05f)
+        return true;
+
    // are we lowering taxes ?
    if(l_fDifference > 0)
 	   l_fDifference = (l_fDifference / l_fRange) * SP2::c_fApprovalRatioLowerPersonalTax;
