@@ -2129,6 +2129,124 @@ REAL64 GCountryData::OptimalGDPValue() const
     return max(l_fOptimalGDP, m_fGDPValue);
 }
 
+void GCountryData::CheckForCivilWar()
+{
+    GDZLOG(EDZLogLevel::Entry, NameAndIDForLog());
+
+    const GCivilWarConfig l_CivilWarConfig = g_SP2Server->CivilWarConfig();
+    const ENTITY_ID l_iRebelsId = l_CivilWarConfig.m_iRebelsId;
+    GDZLOG(EDZLogLevel::Info1, L"Rebels ID: " + GString(l_iRebelsId));
+
+    if(g_ServerDAL.CountryValidityArray(l_iRebelsId))
+    {
+        GCountryData* const l_pRebelsData = g_ServerDAL.CountryData(l_iRebelsId);
+        const GString l_sRebelsName = l_pRebelsData->NameAndIDForLog();
+        GDZLOG(EDZLogLevel::Info1, L"Rebels, " + l_sRebelsName + L", are active");
+
+        Random::GQuick l_Rand;
+        l_Rand.Seed(static_cast<UINT32>(g_Joshua.GameTime() * time(nullptr)));
+        const REAL32 l_fCivilWarRandom = l_Rand.RandomReal();
+        GDZLOG(EDZLogLevel::Info1, L"Civil war chance " + GString(l_CivilWarConfig.m_fChance) + L", random number " + GString(l_fCivilWarRandom));
+        if(l_fCivilWarRandom < l_CivilWarConfig.m_fChance)
+        {
+            //Check if rebels take over any regions
+            const set<UINT32>& l_vRegions = g_ServerDAL.CountryPoliticalControl(m_iCountryID);
+            bool l_bDirtyUnitGroups = false;
+            bool l_bDeclareWar = false;
+            bool l_bAnnexRegions = false;
+            SDK::Combat::GUnitManager& l_UnitManager = g_Joshua.UnitManager();
+            for(auto l_RegionIt = l_vRegions.cbegin(); l_RegionIt != l_vRegions.cend(); ++l_RegionIt)
+            {
+                GRegionEx* const l_pRegion = g_ServerDAL.GetGRegion(*l_RegionIt);
+                const GString l_sRegionName = l_pRegion->NameForLog();
+                GDZLOG(EDZLogLevel::Info1, L"Checking " + l_sRegionName + L" for occupation");
+
+                const REAL32 l_fControlRandom = l_Rand.RandomReal();
+                GDZLOG(EDZLogLevel::Info1, L"Rebel control chance " + GString(l_CivilWarConfig.m_fControlChance) + L", random number " + GString(l_fControlRandom));
+                if(l_fControlRandom < l_CivilWarConfig.m_fControlChance)
+                {
+                    //Rebel military control; military units shift to rebels
+                    GUnitMover& l_UnitMover = g_ServerDCL.UnitMover();
+                    const set<UINT32> l_vUnitGroups = l_UnitMover.UnitGroupsInsideRegion(*l_RegionIt);
+                    GDZLOG(EDZLogLevel::Info1, L"Number of unit groups that will switch sides: " + GString(l_vUnitGroups.size()));
+
+                    for(auto l_UnitGroupIt = l_vUnitGroups.cbegin(); l_UnitGroupIt != l_vUnitGroups.cend(); ++l_UnitGroupIt)
+                    {
+                        SP2::GUnitGroup* const l_pGroup = dynamic_cast<SP2::GUnitGroup*>(g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIt));
+                        if(l_pGroup->OwnerId() == static_cast<ENTITY_ID>(m_iCountryID))
+                        {
+                            if(l_pGroup->Status() == EMilitaryStatus::Attacking)
+                            {
+                                GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" leaves combat");
+                                l_pGroup->LeaveCombat();
+                            }
+
+                            GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" switches sides");
+
+                            //Need to create brand-new unit group; for some reason, trying to change an existing group's ownership would cause client-side crashes
+                            SP2::GUnitGroup* const l_pNewGroup = dynamic_cast<SP2::GUnitGroup*>(l_UnitManager.CreateUnitGroup());
+                            l_pNewGroup->Id(l_UnitManager.NewUnitGroupID());
+                            l_pNewGroup->OwnerId(l_iRebelsId);
+                            l_UnitManager.SetGroupPosition(l_pNewGroup, l_pGroup->Position());
+                            l_pGroup->ChangeStatus(EMilitaryStatus::Ready);
+
+                            vector<SDK::Combat::GUnit*> l_vUnits = l_pGroup->Units();
+                            for(auto l_UnitIt = l_vUnits.begin(); l_UnitIt < l_vUnits.end(); ++l_UnitIt)
+                                l_UnitManager.AddUnit2Group(*l_UnitIt, l_pNewGroup);
+
+                            l_UnitManager.AddUnitGroup(l_pNewGroup);
+                            l_UnitMover.AddGroup(l_pNewGroup);
+
+                            l_UnitManager.RemoveUnitGroup(*l_UnitGroupIt);
+
+                            l_bDirtyUnitGroups = true;
+                        }
+                    }
+
+                    l_bDeclareWar = true;
+
+                    g_ServerDCL.ChangeRegionMilitaryControl(*l_RegionIt, l_iRebelsId);
+                    GDZLOG(EDZLogLevel::Info1, l_sRebelsName + L" has occupied " + l_sRegionName);
+
+                    //Check rebel annexation, if military control changed
+                    const REAL32 l_fAnnexRandom = l_Rand.RandomReal();
+                    GDZLOG(EDZLogLevel::Info1, L"Rebel annex chance " + GString(l_CivilWarConfig.m_fAnnexChance) + L", random number " + GString(l_fAnnexRandom));
+                    if(l_fAnnexRandom < l_CivilWarConfig.m_fAnnexChance)
+                    {
+                        g_ServerDCL.AnnexRegion(l_iRebelsId, *l_RegionIt);
+                        GDZLOG(EDZLogLevel::Info1, l_sRebelsName + L" is annexing " + l_sRegionName);
+                        l_bAnnexRegions = true;
+                    }
+                }
+            }
+
+            gassert(l_bDeclareWar || !l_bDirtyUnitGroups, NameAndIDForLog() + L" isn't declaring war against rebels in civil war, but unit groups have defected");
+            gassert(l_bDeclareWar || !l_bAnnexRegions, NameAndIDForLog() + L" isn't declaring war against rebels in civil war, but at least one region is being annexed");
+
+            if(l_bDeclareWar)
+            {
+                if(l_bDirtyUnitGroups)
+                {
+                    g_ServerDAL.DirtyCountryUnitsServer(l_iRebelsId);
+                    g_ServerDAL.DirtyCountryUnitsServer(m_iCountryID);
+                }
+
+                set<ENTITY_ID> l_vAttackers;
+                l_vAttackers.insert(l_iRebelsId);
+                g_ServerDCL.DeclareNewWar(l_vAttackers, l_iRebelsId, m_iCountryID);
+
+                if(l_bAnnexRegions)
+                {
+                    const GString l_sChatMessage = GString(L"Rebels have begun annexing regions from ") + m_sName;
+                    g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
+                }
+            }
+        }
+    }
+
+    GDZLOG(EDZLogLevel::Exit, L"");
+}
+
 bool GCountryData::OnSave(GIBuffer& io_Buffer)
 {
    io_Buffer << m_iCountryID;

@@ -16,6 +16,30 @@
   Allowed values are 0 and 1. Default is 1. -->
   <allowDefenderAttackAttackerTerritory>1</allowDefenderAttackAttackerTerritory>
   
+  <!-- Anarchy-related options. -->
+  <anarchy>
+    <!-- When a country's actual stability drops below stabilityLowerLimit, the 
+    chance of it falling into anarchy automatically will be this %.
+    Allowed values are 0-100. Default is 0. -->
+    <chanceDueToStability>0</chanceDueToStability>
+  
+    <!-- A country will enter Anarchy when its expected (not actual) stability
+    drops to this value.
+    Works best when this is less than stabilityAnarchyUpperLimit.
+    Allowed values are 0-100. Default is 10. -->
+    <expectedStabilityLowerLimit>10</expectedStabilityLowerLimit>
+  
+    <!-- A country will leave Anarchy when its expected (not actual) stabilty
+    rises to this value.
+    Allowed values are 0-100. Default is 20. -->
+    <expectedStabilityUpperLimit>20</expectedStabilityUpperLimit>
+    
+    <!-- When a country's actual stability drops below this value, the chance of
+    it falling into anarchy automatically will be chanceDueToStability %.
+    Allowed values are 0-100. Default is 0. -->
+    <stabilityLowerLimit>0</stabilityLowerLimit>
+  </anarchy>
+  
   <!-- Loss of relations with other countries due to annexing another country,
   as a percentage of normal relation loss upon annexing.
   Minimum value is 0. Default is 100. -->
@@ -219,17 +243,6 @@
   UNUSABLE       12.3% (Means EYS 12.3 years)
   Allowed values are 0 and 1. Default is 0. -->
   <showHDIComponents>0</showHDIComponents>
-  
-  <!-- A country will enter Anarchy when its expected (not actual) stability
-  drops to this value.
-  Works best when this is less than stabilityAnarchyUpperLimit.
-  Allowed values are 0-100. Default is 10. -->
-  <stabilityAnarchyLowerLimit>10</stabilityAnarchyLowerLimit>
-  
-  <!-- A country will leave Anarchy when its expected (not actual) stabilty
-  rises to this value.
-  Allowed values are 0-100. Default is 20. -->
-  <stabilityAnarchyUpperLimit>20</stabilityAnarchyUpperLimit>
   
   <!-- Annual tribute in that a client state would theoretically pay to its
   master in one year, as a percentage of client GDP.

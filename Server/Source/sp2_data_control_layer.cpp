@@ -837,7 +837,7 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 
       l_sChatMessage += L" has fallen into anarchy";
 
-      CheckForCivilWar(in_iCountryID);
+      l_pCountryData->CheckForCivilWar();
 	}
 
     g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
@@ -3715,17 +3715,26 @@ bool GDataControlLayer::ChangeCountryStability(ENTITY_ID in_iCountryID, REAL32 i
 	if(!l_pCountryData->InternalLaw(EInternalLaws::FreedomOfDemonstration))
 		l_fBonus += SP2::c_fFreedomOfDemonstrationStabilityBonus;
 
-    const REAL32 l_fServerStabilityAnarchyLowerLimit = g_SP2Server->StabilityAnarchyLowerLimit();
-    const REAL32 l_fServerStabilityAnarchyUpperLimit = g_SP2Server->StabilityAnarchyUpperLimit();
+    const GAnarchyConfig l_AnarchyConfig = g_SP2Server->AnarchyConfig();
 
-	if(l_fStability < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) && 
-		l_pCountryData->GvtStabilityExpected() < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) &&
-		l_pCountryData->GvtType() != EGovernmentType::Anarchy)
-	{
-		ChangeGovernmentType(in_iCountryID, (EGovernmentType::Enum)l_pCountryData->GvtType(), EGovernmentType::Anarchy);
-	}
-	else if(l_fStability > (l_fServerStabilityAnarchyUpperLimit-l_fBonus) && 
-		l_pCountryData->GvtStabilityExpected() > (l_fServerStabilityAnarchyUpperLimit-l_fBonus) &&
+    if(l_pCountryData->GvtType() != EGovernmentType::Anarchy)
+    {
+        const bool l_bExpectedStabilityAnarchyCondition = l_fStability < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus) && l_pCountryData->GvtStabilityExpected() < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus);
+
+        bool l_bActualStabilityAnarchyCondition = false;
+        if(l_fStability < l_AnarchyConfig.m_fStabilityLowerLimit)
+        {
+            Random::GQuick l_Rand;
+            l_Rand.Seed(static_cast<UINT32>(g_Joshua.GameTime() * in_iCountryID * time(nullptr)));
+            const REAL32 l_fRandomReal = l_Rand.RandomReal();
+            l_bActualStabilityAnarchyCondition = l_fRandomReal < l_AnarchyConfig.m_fChanceDueToStability;
+        }
+
+        if(l_bExpectedStabilityAnarchyCondition || l_bActualStabilityAnarchyCondition)
+            ChangeGovernmentType(in_iCountryID, (EGovernmentType::Enum)l_pCountryData->GvtType(), EGovernmentType::Anarchy);
+    }
+	else if(l_fStability > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit-l_fBonus) &&
+		l_pCountryData->GvtStabilityExpected() > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit-l_fBonus) &&
 		l_pCountryData->GvtType() == EGovernmentType::Anarchy)
 	{
 		ChangeGovernmentType(in_iCountryID, EGovernmentType::Anarchy, l_pCountryData->LeaderParty()->GvtType());
@@ -9515,110 +9524,6 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
         SendCountryList();
 
     GDZLOG(EDZLogLevel::Info2, L"<<<");
-}
-
-void GDataControlLayer::CheckForCivilWar(const ENTITY_ID in_iCountryId)
-{
-    const GCivilWarConfig l_CivilWarConfig = g_SP2Server->CivilWarConfig();
-    const ENTITY_ID l_iRebelsId = l_CivilWarConfig.m_iRebelsId;
-    if(g_ServerDAL.CountryValidityArray(l_iRebelsId))
-    {
-        Random::GQuick l_Rand;
-        l_Rand.Seed(time(nullptr) & 0xFFFFFFFF);
-        const REAL32 l_fCivilWarRandom = l_Rand.RandomReal();
-        if(l_fCivilWarRandom < l_CivilWarConfig.m_fChance)
-        {
-            //Check if rebels take over any regions
-            const set<UINT32>& l_vRegions = g_ServerDAL.CountryPoliticalControl(in_iCountryId);
-            bool l_bDirtyUnitGroups = false;
-            bool l_bDeclareWar = false;
-            bool l_bAnnexRegions = false;
-            SDK::Combat::GUnitManager& l_UnitManager = g_Joshua.UnitManager();
-            for(auto l_RegionIt = l_vRegions.cbegin(); l_RegionIt != l_vRegions.cend(); ++l_RegionIt)
-            {
-                const REAL32 l_fControlRandom = l_Rand.RandomReal();
-                if(l_fControlRandom < l_CivilWarConfig.m_fControlChance)
-                {
-                    const GString l_sRegionName = g_ServerDAL.RegionNameAndIDForLog(*l_RegionIt);
-
-                    //Rebel military control; military units shift to rebels
-                    const set<UINT32> l_vUnitGroups = m_UnitMover.UnitGroupsInsideRegion(*l_RegionIt);
-                    for(auto l_UnitGroupIt = l_vUnitGroups.cbegin(); l_UnitGroupIt != l_vUnitGroups.cend(); ++l_UnitGroupIt)
-                    {
-                        SP2::GUnitGroup* const l_pGroup = dynamic_cast<SP2::GUnitGroup*>(g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIt));
-                        if(l_pGroup->OwnerId() == in_iCountryId)
-                        {
-                            if(l_pGroup->Status() == EMilitaryStatus::Attacking)
-                            {
-                                GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" leaves combat");
-                                l_pGroup->LeaveCombat();
-                            }
-
-                            GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" switches sides");
-
-                            //Need to create brand-new unit group; for some reason, trying to change an existing group's ownership would cause client-side crashes
-                            SP2::GUnitGroup* const l_pNewGroup = dynamic_cast<SP2::GUnitGroup*>(l_UnitManager.CreateUnitGroup());
-                            l_pNewGroup->Id(l_UnitManager.NewUnitGroupID());
-                            l_pNewGroup->OwnerId(l_iRebelsId);
-                            l_UnitManager.SetGroupPosition(l_pNewGroup, l_pGroup->Position());
-                            l_pGroup->ChangeStatus(EMilitaryStatus::Ready);
-
-                            vector<SDK::Combat::GUnit*> l_vUnits = l_pGroup->Units();
-                            for(auto l_UnitIt = l_vUnits.begin(); l_UnitIt < l_vUnits.end(); ++l_UnitIt)
-                                l_UnitManager.AddUnit2Group(*l_UnitIt, l_pNewGroup);
-
-                            l_UnitManager.AddUnitGroup(l_pNewGroup);
-                            m_UnitMover.AddGroup(l_pNewGroup);
-
-                            l_UnitManager.RemoveUnitGroup(*l_UnitGroupIt);
-
-                            l_bDirtyUnitGroups = true;
-                        }
-                    }
-
-                    l_bDeclareWar = true;
-
-                    ChangeRegionMilitaryControl(*l_RegionIt, l_iRebelsId);
-
-                    const GString l_sRebelsName = g_ServerDAL.CountryData(l_iRebelsId)->NameAndIDForLog();
-                    GDZLOG(EDZLogLevel::Info1, l_sRebelsName + L" has occupied " + l_sRegionName);
-
-                    //Check rebel annexation, if military control changed
-                    const REAL32 l_fAnnexRandom = l_Rand.RandomReal();
-                    if(l_fAnnexRandom < l_CivilWarConfig.m_fAnnexChance)
-                    {
-                        AnnexRegion(l_iRebelsId, *l_RegionIt);
-                        GDZLOG(EDZLogLevel::Info1, l_sRebelsName + L" is annexing " + l_sRegionName);
-                        l_bAnnexRegions = true;
-                    }
-                }
-            }
-
-            const GCountryData* const l_pOriginalCountryData = g_ServerDAL.CountryData(in_iCountryId);
-            const GString l_sOriginalCountryName = l_pOriginalCountryData->NameAndIDForLog();
-            gassert(l_bDeclareWar || !l_bDirtyUnitGroups, l_sOriginalCountryName + L" isn't declaring war against rebels in civil war, but unit groups have defected");
-            gassert(l_bDeclareWar || !l_bAnnexRegions, l_sOriginalCountryName + L" isn't declaring war against rebels in civil war, but at least one region is being annexed");
-
-            if(l_bDeclareWar)
-            {
-                if(l_bDirtyUnitGroups)
-                {
-                    g_ServerDAL.DirtyCountryUnitsServer(l_iRebelsId);
-                    g_ServerDAL.DirtyCountryUnitsServer(in_iCountryId);
-                }
-
-                set<ENTITY_ID> l_vAttackers;
-                l_vAttackers.insert(l_iRebelsId);
-                DeclareNewWar(l_vAttackers, l_iRebelsId, in_iCountryId);
-            }
-
-            if(l_bAnnexRegions)
-            {
-                const GString l_sChatMessage = GString(L"Rebels have begun annexing regions from ") + l_pOriginalCountryData->Name();
-                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
-            }
-        }
-    }
 }
 
 bool GDataControlLayer::VerifyRegionPopulationConsistency(const bool in_bByReligion, GRegion& in_Region) const

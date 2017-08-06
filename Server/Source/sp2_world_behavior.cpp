@@ -3058,16 +3058,15 @@ void GWorldBehavior::IterateChangingVariables(REAL64 in_fGameTime)
 		if(!l_pCountryData->InternalLaw(EInternalLaws::FreedomOfDemonstration))
 			l_fBonus += SP2::c_fFreedomOfDemonstrationStabilityBonus;
 
-        const REAL32 l_fServerStabilityAnarchyLowerLimit = g_SP2Server->StabilityAnarchyLowerLimit();
-        const REAL32 l_fServerStabilityAnarchyUpperLimit = g_SP2Server->StabilityAnarchyUpperLimit();
+        const GAnarchyConfig l_AnarchyConfig = g_SP2Server->AnarchyConfig();
 
 		if(l_pCountryData->GvtType() == EGovernmentType::Anarchy &&
-			l_pCountryData->GvtStability() > (l_fServerStabilityAnarchyUpperLimit-l_fBonus))
+			l_pCountryData->GvtStability() > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit-l_fBonus))
 		{
 			g_ServerDCL.ChangeGovernmentType(i, EGovernmentType::Anarchy, l_pCountryData->LeaderParty()->GvtType());
 		}
-		else if(l_fStability < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) && 
-			l_pCountryData->GvtStabilityExpected() < (l_fServerStabilityAnarchyLowerLimit-l_fBonus) &&
+		else if(l_fStability < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit-l_fBonus) &&
+			l_pCountryData->GvtStabilityExpected() < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit-l_fBonus) &&
 			l_pCountryData->GvtType() != EGovernmentType::Anarchy)
 		{
 			g_ServerDCL.ChangeGovernmentType(i, (EGovernmentType::Enum)l_pCountryData->GvtType(), EGovernmentType::Anarchy);

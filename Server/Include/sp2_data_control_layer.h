@@ -592,8 +592,6 @@ namespace SP2
       //! Make client state; non-const because ChangeRegionMilitaryControl() is non-const
       void MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClient, UINT32 in_iTreaty, bool in_bLoadingGame = false);
 
-      void CheckForCivilWar(ENTITY_ID in_iCountryId);
-
       //! If a region in the database has a population total by religion or language that doesn't match population total by age, then call this to fix it, assuming population by age as always correct
       bool VerifyRegionPopulationConsistency(bool in_bByReligion, GRegion& in_Region) const;
 

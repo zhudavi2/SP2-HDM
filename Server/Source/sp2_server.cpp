@@ -2723,6 +2723,11 @@ void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, co
     g_Joshua.RaiseEvent(l_pEvent);
 }
 
+GAnarchyConfig GServer::AnarchyConfig() const
+{
+    return m_AnarchyConfig;
+}
+
 /*!
 * Load default server options.
 */
@@ -2732,6 +2737,12 @@ void GServer::InitializeDefaultConfig()
     m_bAllowDefenderAttackAttackerTerritory  = true;
     m_bAllowHumanClientStates                = false;
     m_bAllowAIAssumeDebt                     = true;
+
+    m_AnarchyConfig.m_fChanceDueToStability        = 0.f;
+    m_AnarchyConfig.m_fExpectedStabilityLowerLimit = c_fStabilityAnarchyLowerLimit;
+    m_AnarchyConfig.m_fExpectedStabilityUpperLimit = c_fStabilityAnarchyHigherLimit;
+    m_AnarchyConfig.m_fStabilityLowerLimit         = 0.f;
+
     m_fAnnexationRelationLossPercent         = 1.f;
 
     // Rebels are ID 194 in SP2 V1.5.1 database
@@ -2781,8 +2792,6 @@ void GServer::InitializeDefaultConfig()
     m_fOccupiedRegionPercentageForNuclear = 0.f;
     m_fResourceTaxLimit                   = 1.f;
     m_bShowHDIComponents                  = false;
-    m_fStabilityAnarchyLowerLimit         = c_fStabilityAnarchyLowerLimit;
-    m_fStabilityAnarchyUpperLimit         = c_fStabilityAnarchyHigherLimit;
     m_fTributePercent                     = 0.08f;
 }
 
@@ -2833,6 +2842,39 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_bAllowDefenderAttackAttackerTerritory = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowDefenderAttackAttackerTerritory: " + GString(m_bAllowDefenderAttackAttackerTerritory));
+                    }
+                    else if(l_sElementName == L"anarchyConfig")
+                    {
+                        for(UINT32 j=0; j<objectNode->NbChilds(); j++)
+                        {
+                            const GXMLNode& l_AnarchyNode = objectNode->Child(j)->Data();
+                            const GString l_sName = l_AnarchyNode.m_sName;
+                            const GString l_sValue = l_AnarchyNode.m_value;
+
+                            GString l_sValueString;
+                            if(l_sName == L"chanceDueToStability")
+                            {
+                                m_AnarchyConfig.m_fChanceDueToStability = l_sValue.ToREAL32() / 100.f;
+                                l_sValueString = GString::FormatNumber(m_AnarchyConfig.m_fChanceDueToStability, 2);
+                            }
+                            else if(l_sElementName == L"expectedStabilityLowerLimit")
+                            {
+                               m_AnarchyConfig.m_fExpectedStabilityLowerLimit = l_sElementValue.ToREAL32() / 100.f;
+                                g_Joshua.Log(L"expectedStabilityLowerLimit: " + GString::FormatNumber(m_AnarchyConfig.m_fExpectedStabilityLowerLimit, 2));
+                            }
+                            else if(l_sElementName == L"expectedStabilityAnarchyUpperLimit")
+                            {
+                                m_AnarchyConfig.m_fExpectedStabilityUpperLimit = l_sElementValue.ToREAL32() / 100.f;
+                                g_Joshua.Log(L"expectedStabilityUpperLimit: " + GString::FormatNumber(m_AnarchyConfig.m_fExpectedStabilityUpperLimit, 2));
+                            }
+                            else if(l_sName == L"stabilityLowerLimit")
+                            {
+                                m_AnarchyConfig.m_fStabilityLowerLimit = l_sValue.ToREAL32() / 100.f;
+                                l_sValueString = GString::FormatNumber(m_AnarchyConfig.m_fStabilityLowerLimit, 2);
+                            }
+
+                            g_Joshua.Log(l_sElementName + L"." + l_sName + L": " + l_sValueString);
+                        }
                     }
                     else if(l_sElementName == L"annexationRelationLossPercent")
                     {
@@ -3065,16 +3107,6 @@ void GServer::LoadSP2HDMConfigXML()
                     {
                         m_bShowHDIComponents = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"showHDIComponents: " + GString(m_bShowHDIComponents));
-                    }
-                    else if(l_sElementName == L"stabilityAnarchyLowerLimit")
-                    {
-                        m_fStabilityAnarchyLowerLimit = l_sElementValue.ToREAL32() / 100.f;
-                        g_Joshua.Log(L"stabilityAnarchyLowerLimit: " + GString::FormatNumber(m_fStabilityAnarchyLowerLimit, 3));
-                    }
-                    else if(l_sElementName == L"stabilityAnarchyUpperLimit")
-                    {
-                        m_fStabilityAnarchyUpperLimit = l_sElementValue.ToREAL32() / 100.f;
-                        g_Joshua.Log(L"stabilityAnarchyUpperLimit: " + GString::FormatNumber(m_fStabilityAnarchyUpperLimit, 3));
                     }
                     else if(l_sElementName == L"tributePercent")
                     {

@@ -46,6 +46,14 @@ namespace SP2
       };
    }
 
+   struct GAnarchyConfig
+   {
+       REAL32 m_fChanceDueToStability;
+       REAL32 m_fExpectedStabilityLowerLimit;
+       REAL32 m_fExpectedStabilityUpperLimit;
+       REAL32 m_fStabilityLowerLimit;
+   };
+
    struct GCivilWarConfig
    {
        ENTITY_ID m_iRebelsId;
@@ -140,6 +148,9 @@ namespace SP2
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline bool    AllowHumanClientStates() const { return m_bAllowHumanClientStates; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
+
+      GAnarchyConfig AnarchyConfig() const;
+
       inline REAL32  AnnexationRelationLossPercent() const { return m_fAnnexationRelationLossPercent; }
       inline bool    AutoCovertMissions() const { return m_bAutoCovertMissions; }
 
@@ -164,8 +175,6 @@ namespace SP2
       inline REAL32  ProductionLossOnAnnex() const { return m_fProductionLossOnAnnex; }
       inline REAL32  ResourceTaxLimit() const { return m_fResourceTaxLimit; }
       inline bool    ShowHDIComponents() const { return m_bShowHDIComponents; }
-      inline REAL32  StabilityAnarchyLowerLimit() const { return m_fStabilityAnarchyLowerLimit; }
-      inline REAL32  StabilityAnarchyUpperLimit() const { return m_fStabilityAnarchyUpperLimit; }
       inline REAL32  TributePercent() const { return m_fTributePercent; }
 
       //! Server message helpers
@@ -279,6 +288,9 @@ namespace SP2
       bool   m_bAllowAIAssumeDebt;
       bool   m_bAllowHumanClientStates;
       bool   m_bAllowDefenderAttackAttackerTerritory;
+
+      GAnarchyConfig m_AnarchyConfig;
+
       REAL32 m_fAnnexationRelationLossPercent;
       bool   m_bAutoCovertMissions;
       
@@ -312,8 +324,6 @@ namespace SP2
       REAL32 m_fProductionLossOnAnnex;
       REAL32 m_fResourceTaxLimit;
       bool   m_bShowHDIComponents;
-      REAL32 m_fStabilityAnarchyLowerLimit;
-      REAL32 m_fStabilityAnarchyUpperLimit;
       REAL32 m_fTributePercent;
 
       //! Server message helper to keep track of players who have joined

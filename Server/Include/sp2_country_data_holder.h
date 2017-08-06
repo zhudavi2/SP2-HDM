@@ -149,6 +149,9 @@ namespace SP2
       //! Calculate the optimal GDP, if it had all of its regions
       REAL64 OptimalGDPValue() const;
 
+      //! Called when country falls into anarchy and civil wars are enabled
+      void CheckForCivilWar();
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
