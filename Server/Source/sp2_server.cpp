@@ -2728,6 +2728,11 @@ GAnarchyConfig GServer::AnarchyConfig() const
     return m_AnarchyConfig;
 }
 
+REAL64 GServer::GvtTypeProductionModifier(const EGovernmentType::Enum in_iGvtType) const
+{
+	return m_mGvtTypeProductionModifiers.at(in_iGvtType);
+}
+
 /*!
 * Load default server options.
 */
@@ -2766,8 +2771,12 @@ void GServer::InitializeDefaultConfig()
     m_GlobalTaxSpecials[EGlobalTaxSpecialType::ImportAll]    = 98;
     m_GlobalTaxSpecials[EGlobalTaxSpecialType::PrivatizeAll] = 97;
 
-    for(INT32 i=0; i<EGovernmentType::ItemCount; i++)
-        m_IncomeTaxLimits[static_cast<EGovernmentType::Enum>(i)] = PersonalTaxes_UpperCap;
+	for(INT32 i = 0; i < EGovernmentType::ItemCount; i++)
+	{
+		const EGovernmentType::Enum l_eGvtType = static_cast<EGovernmentType::Enum>(i);
+		m_mGvtTypeProductionModifiers[l_eGvtType] = SP2::c_pGvtTypeProductionModifier[i];
+		m_IncomeTaxLimits[l_eGvtType] = PersonalTaxes_UpperCap;
+	}
 
     m_bLogBankruptcies              = false;
     m_iMaximumCellsInForeignCountry = 0;
@@ -2822,6 +2831,19 @@ void GServer::LoadSP2HDMConfigXML()
                 // parse the file
 	            for(UINT32 i=0; i<l_XMLData->Root()->NbChilds(); i++)
 	            {
+					//Helper for options per government type
+					typedef pair<GString, EGovernmentType::Enum> GStringGvtTypePair;
+					static const GStringGvtTypePair c_pGvtTypes[] =
+					{
+						GStringGvtTypePair(L"com", EGovernmentType::Communist),
+						GStringGvtTypePair(L"mil", EGovernmentType::MilitaryDictatorship),
+						GStringGvtTypePair(L"mon", EGovernmentType::Monarchy),
+						GStringGvtTypePair(L"mpd", EGovernmentType::MultiPartyDemocracy),
+						GStringGvtTypePair(L"spd", EGovernmentType::SinglePartyDemocracy),
+						GStringGvtTypePair(L"the", EGovernmentType::Theocracy),
+					};
+					static const map<GString, EGovernmentType::Enum> c_mGvtTypes(c_pGvtTypes, c_pGvtTypes + sizeof(c_pGvtTypes) / sizeof(GStringGvtTypePair));
+
 		            //Look for OBJECT nodes
 		            const GTreeNode<GXMLNode>* objectNode = l_XMLData->Root()->Child(i);
 
@@ -2982,6 +3004,18 @@ void GServer::LoadSP2HDMConfigXML()
                                          GString(m_GlobalTaxSpecials[l_eGlobalTaxSpecial]));
                         }
 		            }
+					else if(l_sElementName == L"gvtTypeProductionModifiers")
+					{
+						for(UINT32 j=0; j<objectNode->NbChilds(); j++)
+						{
+							const GTreeNode<GXMLNode>* l_GovernmentNode = objectNode->Child(j);
+
+							const GString l_sName = l_GovernmentNode->Data().m_sName;
+							const EGovernmentType::Enum l_eGovernmentType = c_mGvtTypes.at(l_sName);
+							m_mGvtTypeProductionModifiers[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL64() / 100.0;
+							g_Joshua.Log(L"gvtTypeProductionModifiers[" + l_sName + L"]: " + GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
+						}
+					}
                     else if(l_sElementName == L"incomeTaxLimits")
                     {
                         for(UINT32 j=0; j<objectNode->NbChilds(); j++)
@@ -2989,23 +3023,9 @@ void GServer::LoadSP2HDMConfigXML()
                             const GTreeNode<GXMLNode>* l_GovernmentNode = objectNode->Child(j);
 
 		                    const GString l_sName = l_GovernmentNode->Data().m_sName;
-                            EGovernmentType::Enum l_eGovernmentType = EGovernmentType::ItemCount;
-                            if(l_sName == L"com")
-                                l_eGovernmentType = EGovernmentType::Communist;
-                            else if(l_sName == L"mil")
-                                l_eGovernmentType = EGovernmentType::MilitaryDictatorship;
-                            else if(l_sName == L"mon")
-                                l_eGovernmentType = EGovernmentType::Monarchy;
-                            else if(l_sName == L"mpd")
-                                l_eGovernmentType = EGovernmentType::MultiPartyDemocracy;
-                            else if(l_sName == L"spd")
-                                l_eGovernmentType = EGovernmentType::SinglePartyDemocracy;
-                            else if(l_sName == L"the")
-                                l_eGovernmentType = EGovernmentType::Theocracy;
-
+                            const EGovernmentType::Enum l_eGovernmentType = c_mGvtTypes.at(l_sName);
                             m_IncomeTaxLimits[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL64() / 100.0;
-                            g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " +
-                                         GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
+                            g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " + GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }
                     }
                     else if(l_sElementName == L"logBankruptcies")

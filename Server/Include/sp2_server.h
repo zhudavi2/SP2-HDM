@@ -163,6 +163,9 @@ namespace SP2
       inline bool    DisbandAMDSOnOccupy() const { return m_bDisbandAMDSOnOccupy; }
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
       inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
+
+	  REAL64 GvtTypeProductionModifier(EGovernmentType::Enum in_iGvtType) const;
+
       inline REAL64  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
       inline bool    LogBankruptcies() const { return m_bLogBankruptcies; }
       inline INT32   MaximumCellsInForeignCountry() const { return m_iMaximumCellsInForeignCountry; }
@@ -309,6 +312,7 @@ namespace SP2
       //! INT32 to eliminate precision issues with REAL32
       map<EGlobalTaxSpecialType::Enum, INT32> m_GlobalTaxSpecials;
 
+	  map<EGovernmentType::Enum, REAL64> m_mGvtTypeProductionModifiers;
       map<EGovernmentType::Enum, REAL64> m_IncomeTaxLimits;
 
       bool    m_bLogBankruptcies;
