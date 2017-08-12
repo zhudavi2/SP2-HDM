@@ -3013,7 +3013,7 @@ void GServer::LoadSP2HDMConfigXML()
 							const GString l_sName = l_GovernmentNode->Data().m_sName;
 							const EGovernmentType::Enum l_eGovernmentType = c_mGvtTypes.at(l_sName);
 							m_mGvtTypeProductionModifiers[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL64() / 100.0;
-							g_Joshua.Log(L"gvtTypeProductionModifiers[" + l_sName + L"]: " + GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
+							g_Joshua.Log(L"gvtTypeProductionModifiers[" + l_sName + L"]: " + GString::FormatNumber(m_mGvtTypeProductionModifiers[l_eGovernmentType], 3));
 						}
 					}
                     else if(l_sElementName == L"incomeTaxLimits")
