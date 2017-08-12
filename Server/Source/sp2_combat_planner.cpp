@@ -448,8 +448,42 @@ UINT32 GCombatPlanner::FindBestAttackers(ENTITY_ID in_iCountryID, UINT32 in_iReg
         if(GDZDebug::LogEnabled())
         {
             const Map::GMultiface* const l_pMF = g_ServerDAL.CountryView()->Locate(l_Destination.x, l_Destination.y);
-            if(l_pMF == nullptr)
-                GDZLOG(EDZLogLevel::Error, g_ServerDAL.RegionNameAndIDForLog(in_iRegionID) + L" should contain or be near point (" + GString(l_Destination.x) + L", " + GString(l_Destination.y) + L") but can't locate Multiface");
+			if(l_pMF == nullptr)
+			{
+				const GRegionEx* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
+				GDZLOG(EDZLogLevel::Error, l_pRegion->Name() + L" should contain or be near point (" + GString(l_Destination.x) + L", " + GString(l_Destination.y) + L") but can't locate Multiface");
+
+				const GVector2D<REAL32>& l_RegionLocation = l_UnitMover.RegionLocation(in_iRegionID);
+				GDZLOG(EDZLogLevel::Error, L"Region location: " + GString(l_RegionLocation.x) + L", " + GString(l_RegionLocation.y));
+				
+                if(!l_vRegionCities.empty())
+                {
+                    GDZLOG(EDZLogLevel::Error, L"Cities in region:");
+                    for(auto it = l_vRegionCities.cbegin(); it < l_vRegionCities.cend(); ++it)
+                    {
+                        const SCityInfo* const l_pCity = g_ServerDAL.City(*it);
+                        const GString l_sName = g_ServerDAL.GetString(l_pCity->m_iNameStringID);
+                        const GVector2D<REAL32>& l_CityLocation = l_pCity->m_Position;
+                        GDZLOG(EDZLogLevel::Error, l_sName + L" (" + GString(*it) + L"): " + GString(l_CityLocation.x) + L", " + GString(l_CityLocation.y));
+                    }
+                }
+                else
+                    GDZLOG(EDZLogLevel::Error, L"No cities in region");
+
+                if(!l_vEnnemyUnitGroups.empty())
+                {
+                    GDZLOG(EDZLogLevel::Error, L"Enemy groups nearby:");
+                    for(auto it = l_vEnnemyUnitGroups.cbegin(); it < l_vEnnemyUnitGroups.cend(); ++it)
+                    {
+                        const SDK::Combat::GUnitGroup* const l_pGroup = g_Joshua.UnitManager().UnitGroup(*it);
+                        const GString l_sCountryName = g_ServerDAL.CountryData(l_pGroup->OwnerId())->NameAndIDForLog();
+                        const GVector2D<REAL32>& l_GroupLocation = l_pGroup->Position();
+                        GDZLOG(EDZLogLevel::Error, L"Group " + GString(*it) + L" of " + l_sCountryName + L": " + GString(l_GroupLocation.x) + L", " + GString(l_GroupLocation.y));
+                    }
+                }
+                else
+                    GDZLOG(EDZLogLevel::Error, L"No enemy groups nearby");
+			}
         }
 
 		for(set<UINT32>::iterator it = l_GroupsToMove.begin();
