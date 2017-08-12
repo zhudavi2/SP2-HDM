@@ -2623,7 +2623,7 @@ REAL64 GDataAccessLayerServer::ResourceProductionModifier(UINT32 in_iCountryID, 
 	if(in_Type == EGovernmentType::Anarchy)
 		return g_ServerDAL.CountryData(in_iCountryID)->GvtApproval() / 2.f;
 	else
-		return g_SP2Server->GvtTypeProductionModifier(in_Type);
+		return SP2::c_pGvtTypeProductionModifier[in_Type];
 }
 
 void GDataAccessLayerServer::AddFutureGameEventCreateNewTreaty(UINT32 in_iCountryID, UINT32 in_iTreatyID)

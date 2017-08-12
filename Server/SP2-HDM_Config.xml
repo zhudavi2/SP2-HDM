@@ -157,23 +157,6 @@
     <privatizeAll>97</privatizeAll>
   </globalTaxSpecials>
   
-  <!-- Production modifiers per government type.
-  A country's in-game resource production will be multiplied by the specified
-  percentage corresponding to its government type. Effectively, when the game
-  starts, a country's in-game resource production will not necessarily match its
-  production according to the database.
-  This is a configurable version of the SP2 V1.5.1 feature where production is
-  naturally lower for non-multi-party-democracies.
-  Allowed values are 0-100. -->
-  <gvtTypeProductionModifiers>
-    <com>60</com>  <!-- Default is 60.  -->
-    <mil>40</mil>  <!-- Default is 40.  -->
-    <mon>70</mon>  <!-- Default is 70.  -->
-    <mpd>100</mpd> <!-- Default is 100. -->
-    <spd>80</spd>  <!-- Default is 80.  -->
-    <the>75</the>  <!-- Default is 75.  -->
-  </gvtTypeProductionModifiers>
-  
   <!-- Maximum income taxes per government type.
   Allowed values are 0-100. Defaults are 100 for all types. -->
   <incomeTaxLimits>

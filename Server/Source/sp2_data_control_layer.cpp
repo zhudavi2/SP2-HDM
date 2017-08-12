@@ -725,7 +725,7 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 
     //GCountryDataItf::GvtType seems to set production and demand modifiers automatically, but they appear to pick up unmodded GvtTypeProductionModifier values.
     //Set them again here to write the intended values from the modded sp2_constants.h.
-    l_pCountryData->ResourceProductionModifier(g_SP2Server->GvtTypeProductionModifier(in_NewGvtType));
+    l_pCountryData->ResourceProductionModifier(SP2::c_pGvtTypeProductionModifier[in_NewGvtType]);
     l_pCountryData->ResourceDemandModifier(SP2::c_pGvtTypeDemandModifier[in_NewGvtType]);
 
 	if( (in_NewGvtType == EGovernmentType::MultiPartyDemocracy) ||
