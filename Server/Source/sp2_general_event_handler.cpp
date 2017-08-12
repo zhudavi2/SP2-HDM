@@ -267,7 +267,7 @@ bool SP2::GGeneralEventHandler::HandleGetRegionCharacteristic(SDK::GGameEventSPt
 				if(l_pCountry->GvtType() == EGovernmentType::Anarchy)
 					l_fModifier = l_pCountry->GvtApproval() / 2.f;
 				else
-					l_fModifier = c_pGvtTypeProductionModifier[l_pCountry->GvtType()];
+					l_fModifier = g_SP2Server->GvtTypeProductionModifier(static_cast<EGovernmentType::Enum>(l_pCountry->GvtType()));
             l_vData[i - 1] *= l_fModifier;
          }
       }
