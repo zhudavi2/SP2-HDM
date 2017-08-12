@@ -503,29 +503,7 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
       // The game is started, if player is ready add it to the game...
       if(l_player->PlayerStatus() == SDK::PLAYER_STATUS_READY)
       {
-         //Synchronize the country data of each human player
-         {
-            SDK::GGameEventSPtr l_SyncEvt = CREATE_GAME_EVENT(SP2::Event::GSynchronizeCountryData);
-            //Check if the country data of that human player must be synchronized, if so, send it
-            GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_player->ModID());
-            gassert(l_pCountryData,"GServer::Iterate, Country Data does not exist for human player");
-            //Make sure everything is sent so set everything dirty
-            {
-               l_pCountryData->m_bBudgetDataDirty           = true;
-               l_pCountryData->m_bCovertActionCellsDirty    = true;
-               l_pCountryData->m_bEconomicDataDirty         = true;
-               l_pCountryData->m_bNuclearMissilesDataDirty  = true;
-               l_pCountryData->m_bResourceDataDirty         = true;
-               l_pCountryData->m_bOtherDataDirty            = true;
-            }
-            l_SyncEvt->m_iSource = SDK::Event::ESpecialTargets::Server;
-            l_SyncEvt->m_iTarget = l_player->Id();
-            SP2::Event::GSynchronizeCountryData* l_pEvent = (SP2::Event::GSynchronizeCountryData*)l_SyncEvt.get();
-            l_pEvent->CountryData(l_pCountryData);
-            g_Joshua.RaiseEvent(l_SyncEvt);
-            l_pCountryData->ClearModifications();
-         }//end of synchronize country data            
-
+         g_SP2Server->SynchronizePlayerCountryData(*l_player, true); 
 
          //Set the player objective
          g_ServerDAL.PlayersObjectives(l_player,g_ServerDAL.GameObjectives());
@@ -701,10 +679,20 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
 
    GCountryData* l_pData = g_ServerDAL.CountryData(l_pUpdate->m_iCountryID);
    
-   l_pUpdate->m_fArableLand      = l_pData->ArableLandLevel();
-   l_pUpdate->m_fForestLand      = l_pData->ForestLandLevel();
-   l_pUpdate->m_fParksLand       = l_pData->ParksLandLevel();
-   l_pUpdate->m_fUnusableLand    = l_pData->NotUsedLandLevel();
+   if(g_SP2Server->ShowHDIComponents())
+   {
+       l_pUpdate->m_fArableLand      = l_pData->HumanDevelopment();
+       l_pUpdate->m_fForestLand      = l_pData->LifeExpectancy()         / 100.f;
+       l_pUpdate->m_fParksLand       = l_pData->MeanYearsSchooling()     / 100.f;
+       l_pUpdate->m_fUnusableLand    = l_pData->ExpectedYearsSchooling() / 100.f;
+   }
+   else
+   {
+       l_pUpdate->m_fArableLand      = l_pData->ArableLandLevel();
+       l_pUpdate->m_fForestLand      = l_pData->ForestLandLevel();
+       l_pUpdate->m_fParksLand       = l_pData->ParksLandLevel();
+       l_pUpdate->m_fUnusableLand    = l_pData->NotUsedLandLevel();
+   }
 
    l_pUpdate->m_iPop15           = l_pData->Pop15();
    l_pUpdate->m_iPop1565         = l_pData->Pop1565();

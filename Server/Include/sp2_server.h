@@ -145,6 +145,13 @@ namespace SP2
 
       void SendChatMessage(INT32 in_iSource, INT32 in_iTarget, const GString& in_sMessage) const;
 
+      /*!
+      * Helper method to synchronize a player's own country data with client
+      * @param in_Player: Player, target of sync event. Non-const because GPlayer::Id and ModID are non-const
+      * @param in_bSendAll: True if all data should be sent, false if only dirty data should be sent
+      **/
+      void SynchronizePlayerCountryData(SDK::GPlayer& in_Player, bool in_bSendAll) const;
+
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline bool    AllowHumanClientStates() const { return m_bAllowHumanClientStates; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
@@ -177,7 +184,9 @@ namespace SP2
       inline REAL32  OccupiedRegionPercentageForNuclear() const { return m_fOccupiedRegionPercentageForNuclear; }
       inline REAL32  ProductionLossOnAnnex() const { return m_fProductionLossOnAnnex; }
       inline REAL32  ResourceTaxLimit() const { return m_fResourceTaxLimit; }
-      inline bool    ShowHDIComponents() const { return m_bShowHDIComponents; }
+      
+      bool ShowHDIComponents() const;
+
       inline REAL32  TributePercent() const { return m_fTributePercent; }
 
       //! Server message helpers

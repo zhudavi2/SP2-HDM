@@ -483,14 +483,6 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
            l_pCountryData->HumanDevelopment(l_fNewHumanDevelopment);
            //g_Joshua.Log(L"New HDI: " + GString::FormatNumber(l_fNewHumanDevelopment, 3));
 
-           if(g_SP2Server->ShowHDIComponents())
-           {
-               l_pCountryData->ArableLandLevel(l_fNewHumanDevelopment);
-               l_pCountryData->ForestLandLevel(l_fNewLifeExpectancy / 100.f);
-               l_pCountryData->ParksLandLevel(l_fNewMeanYearsSchooling / 100.f);
-               l_pCountryData->NotUsedLandLevel(l_fNewExpectedYearsSchooling / 100.f);
-           }
-
            //Lose stability, lose 0.25f of usual if region gained through trade.
            REAL32 l_fStabilityLoss = static_cast<REAL32>(l_pRegion->Population()) / static_cast<REAL32>(l_iCurrentCountryPop15 + l_iCurrentCountryPopOver15);
            l_fStabilityLoss *= in_bForceChange ? 0.25f : 1;

@@ -124,13 +124,10 @@ void GCountryData::SynchronizeWithRegions()
 	{
 		l_pRegion = g_ServerDAL.GetGRegion(*l_RegionItr);
 
-        if(!g_SP2Server->ShowHDIComponents())
-        {
-		    l_fArableLand += l_pRegion->ArableLand();
-		    l_fParksLand += l_pRegion->ParksLand();
-		    l_fForestLand += l_pRegion->ForestLand();
-		    l_fNotUsedLand += l_pRegion->NotUsedLand();
-        }
+        l_fArableLand += l_pRegion->ArableLand();
+        l_fParksLand += l_pRegion->ParksLand();
+        l_fForestLand += l_pRegion->ForestLand();
+        l_fNotUsedLand += l_pRegion->NotUsedLand();
 
 		m_fAreaTotal += l_pRegion->AreaTotal();
 		m_fAreaLandTotal += l_pRegion->AreaLand();
@@ -204,23 +201,20 @@ void GCountryData::SynchronizeWithRegions()
 
 	m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
 
-    if(!g_SP2Server->ShowHDIComponents())
+    if(m_fAreaLandTotal != 0.0f)
     {
-	    if(m_fAreaLandTotal != 0.0f)
-	    {
-		    m_fArableLandLevel = l_fArableLand / m_fAreaLandTotal;
-		    m_fParksLandLevel = l_fParksLand / m_fAreaLandTotal;
-		    m_fForestLandLevel = l_fForestLand / m_fAreaLandTotal;
-		    m_fNotUsedLandLevel = l_fNotUsedLand / m_fAreaLandTotal;
-	    }
-	    else
-	    {
-		    m_fArableLandLevel = 0.0f;
-		    m_fParksLandLevel = 0.0f;
-		    m_fForestLandLevel = 0.0f;
-		    m_fNotUsedLandLevel = 0.0f;
-	    }
+        m_fArableLandLevel = l_fArableLand / m_fAreaLandTotal;
+        m_fParksLandLevel = l_fParksLand / m_fAreaLandTotal;
+        m_fForestLandLevel = l_fForestLand / m_fAreaLandTotal;
+        m_fNotUsedLandLevel = l_fNotUsedLand / m_fAreaLandTotal;
     }
+    else
+    {
+        m_fArableLandLevel = 0.0f;
+        m_fParksLandLevel = 0.0f;
+        m_fForestLandLevel = 0.0f;
+        m_fNotUsedLandLevel = 0.0f;
+	}
 
     m_iStandardElevation = (m_fAreaLandTotal != 0.0f) ? (INT32)(l_fTempElevation / m_fAreaLandTotal) : m_iStandardElevation;
 
@@ -601,14 +595,6 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
                 m_fMeanYearsSchooling = l_fEI * c_fMaxMeanYearsSchooling;
                 m_fExpectedYearsSchooling = l_fEI * c_fMaxExpectedYearsSchooling;
             }
-        }
-
-        if(g_SP2Server->ShowHDIComponents())
-        {
-            m_fArableLandLevel = m_fHumanDevelopment;
-            m_fForestLandLevel = m_fLifeExpectancy / 100.f;
-            m_fParksLandLevel = m_fMeanYearsSchooling / 100.f;
-            m_fNotUsedLandLevel = m_fExpectedYearsSchooling / 100.f;
         }
 
         //Log out some country data right as the game starts.

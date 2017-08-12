@@ -1377,13 +1377,6 @@ bool GWorldBehavior::Iterate_Human_Development()
     REAL32 l_fNewHDLevel = GCountryData::FindHumanDevelopment(l_fLifeExpectancy, m_CountryData->MeanYearsSchooling(), l_fExpectedYearsSchooling, m_CountryData->GDPPerCapita(), true);
 	m_CountryData->HumanDevelopment(l_fNewHDLevel);
 
-    if(g_SP2Server->ShowHDIComponents())
-    {
-        m_CountryData->ArableLandLevel(l_fNewHDLevel);
-        m_CountryData->ForestLandLevel(l_fLifeExpectancy / 100.f);
-        m_CountryData->NotUsedLandLevel(l_fExpectedYearsSchooling / 100.f);
-    }
-
 	return true;
 }
 
@@ -1897,9 +1890,6 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
         const REAL32 l_fNewMys = l_fNewTotalYearsSchooling / l_iNewOver15Pop;
         GDZLOG(EDZLogLevel::Info2, L"Old MYS " + GString::FormatNumber(l_fOldMys, 6) + L", new MYS " + GString::FormatNumber(l_fNewMys, 6));
         m_CountryData->MeanYearsSchooling(l_fNewMys);
-
-        if(g_SP2Server->ShowHDIComponents())
-            m_CountryData->ParksLandLevel(l_fNewMys / 100.f);
     }
 
 	m_CountryData->PopulationPoliticalControl(l_iFinalPopulation);

@@ -692,26 +692,12 @@ SDK::GAME_MSG GServer::Iterate(void* param)
 
       //Synchronize the country data of each human player
       {
-         SDK::GGameEventSPtr l_SyncEvt = CREATE_GAME_EVENT(SP2::Event::GSynchronizeCountryData);
          for(SDK::GPlayers::const_iterator l_HumanPlayersIt = g_Joshua.HumanPlayers().begin() ;
             l_HumanPlayersIt != g_Joshua.HumanPlayers().end();
             l_HumanPlayersIt++)
          {
             if(l_HumanPlayersIt->second->PlayerStatus() ==  SDK::PLAYER_STATUS_ACTIVE)
-            {
-               //Check if the country data of that human player must be synchronized, if so, send it
-               GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_HumanPlayersIt->second->ModID());
-               gassert(l_pCountryData,"GServer::Iterate, Country Data does not exist for human player");
-               if(l_pCountryData->Dirty())
-               {                  
-                  l_SyncEvt->m_iSource = SDK::Event::ESpecialTargets::Server;
-                  l_SyncEvt->m_iTarget = l_HumanPlayersIt->second->Id();
-                  SP2::Event::GSynchronizeCountryData* l_pEvent = (SP2::Event::GSynchronizeCountryData*)l_SyncEvt.get();
-                  l_pEvent->CountryData(l_pCountryData);
-                  g_Joshua.RaiseEvent(l_SyncEvt);
-                  l_pCountryData->ClearModifications();
-               }
-            }
+                g_SP2Server->SynchronizePlayerCountryData(*(l_HumanPlayersIt->second), false);
          }
       }//end of synchronize country data
 
@@ -1954,32 +1940,12 @@ void GServer::TryStartGame(void)
    {
       //1st synchronisation of the country data of each human player, make sure everything is sent
       {
-         SDK::GGameEventSPtr l_SyncEvt = CREATE_GAME_EVENT(SP2::Event::GSynchronizeCountryData);
          for(SDK::GPlayers::const_iterator l_HumanPlayersIt = g_Joshua.HumanPlayers().begin() ;
             l_HumanPlayersIt != g_Joshua.HumanPlayers().end();
             l_HumanPlayersIt++)
          {
             if(l_HumanPlayersIt->second->PlayerStatus() ==  SDK::PLAYER_STATUS_READY)
-            {
-               //Check if the country data of that human player must be synchronized, if so, send it
-               GCountryData* l_pCountryData = g_ServerDAL.CountryData(l_HumanPlayersIt->second->ModID());
-               gassert(l_pCountryData,"GServer::Iterate, Country Data does not exist for human player");          
-               //Make sure everything is sent so set everything dirty
-               {
-                  l_pCountryData->m_bBudgetDataDirty           = true;
-                  l_pCountryData->m_bCovertActionCellsDirty    = true;
-                  l_pCountryData->m_bEconomicDataDirty         = true;
-                  l_pCountryData->m_bNuclearMissilesDataDirty  = true;
-                  l_pCountryData->m_bResourceDataDirty         = true;
-                  l_pCountryData->m_bOtherDataDirty            = true;
-               }
-               l_SyncEvt->m_iSource = SDK::Event::ESpecialTargets::Server;
-               l_SyncEvt->m_iTarget = l_HumanPlayersIt->second->Id();
-               SP2::Event::GSynchronizeCountryData* l_pEvent = (SP2::Event::GSynchronizeCountryData*)l_SyncEvt.get();
-               l_pEvent->CountryData(l_pCountryData);
-               g_Joshua.RaiseEvent(l_SyncEvt);
-               l_pCountryData->ClearModifications();
-            }
+                g_SP2Server->SynchronizePlayerCountryData(*(l_HumanPlayersIt->second), false);
          }
       }//end of synchronize country data
 
@@ -2723,6 +2689,62 @@ void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, co
     g_Joshua.RaiseEvent(l_pEvent);
 }
 
+void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool in_bSendAll) const
+{
+    SDK::GGameEventSPtr l_SyncEvt = CREATE_GAME_EVENT(SP2::Event::GSynchronizeCountryData);
+    //Check if the country data of that human player must be synchronized, if so, send it
+    GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_Player.ModID());
+    gassert(l_pCountryData != nullptr, "Country Data does not exist for human player");
+    
+    if(in_bSendAll)
+    {
+        //Make sure everything is sent so set everything dirty
+        l_pCountryData->m_bBudgetDataDirty           = true;
+        l_pCountryData->m_bCovertActionCellsDirty    = true;
+        l_pCountryData->m_bEconomicDataDirty         = true;
+        l_pCountryData->m_bNuclearMissilesDataDirty  = true;
+        l_pCountryData->m_bResourceDataDirty         = true;
+        l_pCountryData->m_bOtherDataDirty            = true;
+    }
+
+    if(in_bSendAll || l_pCountryData->Dirty())
+    {
+        REAL32 l_fArableLandLevel  = 0.f;
+        REAL32 l_fForestLandLevel  = 0.f;
+        REAL32 l_fParksLandLevel   = 0.f;
+        REAL32 l_fNotUsedLandLevel = 0.f;
+
+        if(g_SP2Server->ShowHDIComponents())
+        {
+            l_fArableLandLevel  = l_pCountryData->m_fArableLandLevel;
+            l_fForestLandLevel  = l_pCountryData->m_fForestLandLevel;
+            l_fParksLandLevel   = l_pCountryData->m_fParksLandLevel;
+            l_fNotUsedLandLevel = l_pCountryData->m_fNotUsedLandLevel;
+
+            l_pCountryData->m_fArableLandLevel  = l_pCountryData->m_fHumanDevelopment;
+            l_pCountryData->m_fForestLandLevel  = l_pCountryData->m_fLifeExpectancy         / 100.f;
+            l_pCountryData->m_fParksLandLevel   = l_pCountryData->m_fMeanYearsSchooling     / 100.f;
+            l_pCountryData->m_fNotUsedLandLevel = l_pCountryData->m_fExpectedYearsSchooling / 100.f;
+        }
+
+        l_SyncEvt->m_iSource = SDK::Event::ESpecialTargets::Server;
+        l_SyncEvt->m_iTarget = in_Player.Id();
+        SP2::Event::GSynchronizeCountryData* const l_pEvent = dynamic_cast<SP2::Event::GSynchronizeCountryData*>(l_SyncEvt.get());
+        l_pEvent->CountryData(l_pCountryData);
+        g_Joshua.RaiseEvent(l_SyncEvt);
+
+        if(g_SP2Server->ShowHDIComponents())
+        {
+            l_pCountryData->m_fArableLandLevel  = l_fArableLandLevel;
+            l_pCountryData->m_fForestLandLevel  = l_fForestLandLevel;
+            l_pCountryData->m_fParksLandLevel   = l_fParksLandLevel;
+            l_pCountryData->m_fNotUsedLandLevel = l_fNotUsedLandLevel;
+        }
+
+        l_pCountryData->ClearModifications();
+    }
+}
+
 GAnarchyConfig GServer::AnarchyConfig() const
 {
     return m_AnarchyConfig;
@@ -2731,6 +2753,11 @@ GAnarchyConfig GServer::AnarchyConfig() const
 REAL64 GServer::GvtTypeProductionModifier(const EGovernmentType::Enum in_iGvtType) const
 {
 	return m_mGvtTypeProductionModifiers.at(in_iGvtType);
+}
+
+bool GServer::ShowHDIComponents() const
+{
+    return m_bShowHDIComponents;
 }
 
 /*!
