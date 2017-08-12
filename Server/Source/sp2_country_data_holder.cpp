@@ -2137,7 +2137,7 @@ void GCountryData::CheckForCivilWar()
     const ENTITY_ID l_iRebelsId = l_CivilWarConfig.m_iRebelsId;
     GDZLOG(EDZLogLevel::Info1, L"Rebels ID: " + GString(l_iRebelsId));
 
-    if(g_ServerDAL.CountryValidityArray(l_iRebelsId))
+    if(static_cast<ENTITY_ID>(m_iCountryID) != l_iRebelsId && g_ServerDAL.CountryValidityArray(l_iRebelsId))
     {
         GCountryData* const l_pRebelsData = g_ServerDAL.CountryData(l_iRebelsId);
         const GString l_sRebelsName = l_pRebelsData->NameAndIDForLog();
