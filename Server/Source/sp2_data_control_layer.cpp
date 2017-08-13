@@ -6946,6 +6946,11 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 	INT32 l_iSpecificSector = -1;
 	REAL32 l_fRelationLoss = 0.f;	
 	REAL32 l_fDifficultyOfKnowing = 0.f;
+
+    Random::GQuick l_Rand;
+    const UINT64 l_i64BitSeed = (static_cast<UINT64>(g_Joshua.GameTime()) * time(nullptr)) + l_iCountryTarget + in_Cell.ID();
+    l_Rand.Seed(l_i64BitSeed & 0x00000000FFFFFFFFULL);
+
 	{		
 		//Possible relation loss		
 		REAL32 l_fStabilityRate = 0.f;
@@ -7075,8 +7080,6 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
         }
 
 		//Success?
-		Random::GQuick l_Rand;
-		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)(l_fSuccessRate*100.f) * time(NULL)) );
         const REAL32 l_fRandomReal = l_Rand.RandomReal();
         GDZLOG(EDZLogLevel::Info1, L"Success rate " + GString(l_fSuccessRate) + L" vs random " + GString(l_fRandomReal));
 		if(l_fRandomReal < l_fSuccessRate)
@@ -7109,8 +7112,6 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		l_eType = l_eTypeFailed;
 
 		//Check if the cell has been captured
-		Random::GQuick l_Rand;
-		l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryB * time(NULL)) );
         const REAL32 l_fRandomReal = l_Rand.RandomReal();
         GDZLOG(EDZLogLevel::Info1, L"Capture rate " + GString(c_fChanceOfCapture) + L" vs random " + GString(l_fRandomReal));
 		if(l_fRandomReal < SP2::c_fChanceOfCapture)
@@ -7139,8 +7140,6 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 			REAL32 l_fChanceOfKnowingAttacker = max(0.f,l_fDifficultyOfKnowing * ((FindNationalSecurity(l_iCountryTarget) * 0.75f) - (l_fTrainingModifier * 0.2f)));
 
 			//Success?
-			Random::GQuick l_Rand;
-			l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * time(NULL)) );
             const REAL32 l_fRandomReal = l_Rand.RandomReal();
             GDZLOG(EDZLogLevel::Info1, L"Uncover rate " + GString(l_fChanceOfKnowingAttacker) + L" vs random " + GString(l_fRandomReal));
 			if(l_fRandomReal < l_fChanceOfKnowingAttacker)
@@ -7237,8 +7236,6 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 		            }
 
                     //0.125f <= l_fDeterminer <= 4.f
-                    Random::GQuick l_Rand;
-                    l_Rand.Seed(static_cast<UINT32>(g_Joshua.GameTime() * l_iCountryTarget * time(NULL)));
                     if(l_fDeterminer > l_Rand.RandomReal(10.f))
                     {
                         const vector<GCovertActionCell>& l_vTotalCells = l_pCountryData->CovertActionCells();
@@ -7260,8 +7257,6 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
                         if(!l_vEligibleCells.empty())
                         {
                             //There exist eligible cells to remove, so remove one at random
-                            Random::GQuick l_Rand;
-                            l_Rand.Seed(static_cast<UINT32>(g_Joshua.GameTime() * l_iCountryTarget * l_vEligibleCells.size() * time(NULL)));
                             INT32 l_iEligibleCellToRemove = static_cast<INT32>(l_Rand.RandomReal(static_cast<REAL32>(l_vEligibleCells.size())));
                             l_pCountryData->RemoveCovertActionCell(*l_vEligibleCells.at(l_iEligibleCellToRemove));
                             l_pCountryData->m_bCovertActionCellsDirty = true;
@@ -7351,11 +7346,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 					SP2::GResearchInformation* l_pResearchInfoTarget = (SP2::GResearchInformation*)l_pCountryData->ResearchInfo();
 					SP2::GResearchInformation* l_pResearchInfoSource = (SP2::GResearchInformation*)g_ServerDAL.CountryData(l_iCellOwnerID)->ResearchInfo();
 					if(l_TargetType == EUnitCategory::ItemCount || l_TargetType == -1)
-					{					
-						Random::GQuick l_Rand;
-						l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)l_pCountryData->Population()) );
 						l_TargetType = (EUnitCategory::Enum)(1 + (UINT32)(l_Rand.RandomReal() * 4.f));
-					}
 
                //Create and initialize the 2 research arrays
                UINT8 l_TargetResearch[EUnitDesignCharacteristics::ItemCount];
@@ -7454,11 +7445,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
 					EUnitCategory::Enum l_TargetType = in_Cell.UnitCategory();
 					SP2::GResearchInformation* l_pResearchInfoTarget = (SP2::GResearchInformation*)l_pCountryData->ResearchInfo();
 					if(l_TargetType == EUnitCategory::ItemCount || l_TargetType == -1)
-					{					
-						Random::GQuick l_Rand;
-						l_Rand.Seed( (UINT32) (g_Joshua.GameTime() * (REAL64)l_iCountryTarget * (REAL64)l_pCountryData->Population()) );
 						l_TargetType = (EUnitCategory::Enum)(1 + (UINT32)(l_Rand.RandomReal() * 4.f));
-					}
 
 					UINT32 l_iIndex = 0;
 					REAL32 l_fMaxValue = 0.f;
