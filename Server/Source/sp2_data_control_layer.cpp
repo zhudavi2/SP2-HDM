@@ -9408,10 +9408,11 @@ void GDataControlLayer::SendCountryList(INT32 in_iTarget) const
 
 void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClient, UINT32 in_iTreaty, bool in_bLoadingGame)
 {
+    GDZLOG(EDZLogLevel::Entry, L"in_iMaster " + GString(in_iMaster) + L", in_iClient " + GString(in_iClient) + L", in_bLoadingGame " + GString(in_bLoadingGame));
+
     GCountryData* const l_pClientData = g_ServerDAL.CountryData(in_iClient);
     GCountryData* const l_pMasterData = g_ServerDAL.CountryData(in_iMaster);
-    gassert(in_iMaster != in_iClient,
-            l_pClientData->NameAndIDForLog() + L" can't be its own client!");
+    gassert(in_iMaster != in_iClient, l_pClientData->NameAndIDForLog() + L" can't be its own client!");
 
     l_pClientData->Master(in_iMaster, in_iTreaty);
     l_pMasterData->AddClient(in_iClient, in_iTreaty);
@@ -9422,6 +9423,7 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
                l_pMasterData->NameAndIDForLog());
 
         //Leave all wars, but join wars on same side as master
+        //Clear all war statuses
         set<ENTITY_ID> l_vHostileCountries;
         g_ServerDAL.IsAtWarWith(in_iClient, l_vHostileCountries);
         for(auto it = l_vHostileCountries.cbegin(); it != l_vHostileCountries.end(); ++it)
@@ -9430,45 +9432,46 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
             g_ServerDAL.RemoveWarStatus(in_iClient, *it);
         }
 
-        auto& l_mWars = g_ServerDAL.m_CurrentWars;
-        for(auto it = l_mWars.begin(); it != l_mWars.end(); ++it)
+        //Make a copy of the war IDs and iterate over those
+        //Don't iterate over g_ServerDAL.m_CurrentWars directly, as ending a war while iterating will trigger m_CurrentWars.erase, thereby invalidating that war's iterator
+        set<UINT32> l_vWarIds;
+        const auto& l_mWars = g_ServerDAL.m_CurrentWars;
+        for(auto it = l_mWars.cbegin(); it != l_mWars.cend(); ++it)
+            l_vWarIds.insert(it->first);
+
+        for(auto it = l_vWarIds.cbegin(); it != l_vWarIds.cend(); ++it)
         {
-            GWar& l_War = it->second;
+            GWar* const l_pWar = g_ServerDAL.War(*it);
+            gassert(l_pWar != nullptr, L"Invalid war ID " + GString(*it));
+            gassert(*it == l_pWar->ID(), L"War ID mismatch, war list " + GString(*it) + L" vs war object " + GString(l_pWar->ID()));
 
-            if(l_War.MasterAttacking() == in_iClient ||
-               l_War.MasterDefending() == in_iClient)
+            if(l_pWar->MasterAttacking() == in_iClient || l_pWar->MasterDefending() == in_iClient)
             {
-                GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " +
-                       g_ServerDAL.WarInfoForLog(it->first, true) +
-                       L" in which it's a master");
+                GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " + g_ServerDAL.WarInfoForLog(*it, true) + L" in which it's a master combatant");
 
-                //Call ChangeOpinionOnWar instead of DeclarePeace, as DeclarePeace alone isn't sufficient to clear war status, and ChangeOpinionOnWar calls down to DeclarePeace via VerifyPeaceStatus anyway
-                ChangeOpinionOnWar(l_War.MasterAttacking(), it->first, true);
-                ChangeOpinionOnWar(l_War.MasterDefending(), it->first, true);
+                //Call ChangeOpinionOnWar instead of DeclarePeace, as ChangeOpinionOnWar calls down to DeclarePeace via VerifyPeaceStatus anyway
+                ChangeOpinionOnWar(l_pWar->MasterAttacking(), *it, true);
+                ChangeOpinionOnWar(l_pWar->MasterDefending(), *it, true);
             }
             else
             {
-                if(l_War.AttackingSide().count(in_iClient) == 1)
+                if(l_pWar->AttackingSide().count(in_iClient) == 1)
                 {
-                    GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " +
-                           g_ServerDAL.WarInfoForLog(it->first, true));
-
-                    l_War.RemoveCountryFromAttackingSide(in_iClient);
-                    g_ServerDAL.ModifyWar(it->first);
+                    GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " + g_ServerDAL.WarInfoForLog(*it, true) + L" as an attacker");
+                    l_pWar->RemoveCountryFromAttackingSide(in_iClient);
+                    g_ServerDAL.ModifyWar(*it);
                 }
-                else if(l_War.DefendingSide().count(in_iClient) == 1)
+                else if(l_pWar->DefendingSide().count(in_iClient) == 1)
                 {
-                    GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " +
-                           g_ServerDAL.WarInfoForLog(it->first, true));
-
-                    l_War.RemoveCountryFromDefendingSide(in_iClient);
-                    g_ServerDAL.ModifyWar(it->first);
+                    GDZLOG(EDZLogLevel::Info1, l_pClientData->NameAndIDForLog() + L" is leaving the war " + g_ServerDAL.WarInfoForLog(*it, true) + L" as a defender");
+                    l_pWar->RemoveCountryFromDefendingSide(in_iClient);
+                    g_ServerDAL.ModifyWar(*it);
                 }
 
-                if(l_War.AttackingSide().count(in_iMaster) == 1)
-                    JoinAWar(in_iClient, it->first, 1, !l_War.MasterAttackingWantsPeace());
-                else if(l_War.DefendingSide().count(in_iMaster) == 1)
-                    JoinAWar(in_iClient, it->first, 2, !l_War.MasterDefendingWantsPeace());
+                if(l_pWar->AttackingSide().count(in_iMaster) == 1)
+                    JoinAWar(in_iClient, *it, 1, !l_pWar->MasterAttackingWantsPeace());
+                else if(l_pWar->DefendingSide().count(in_iMaster) == 1)
+                    JoinAWar(in_iClient, *it, 2, !l_pWar->MasterDefendingWantsPeace());
             }
         }
 
@@ -9502,7 +9505,7 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
     if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::Off)
         SendCountryList();
 
-    GDZLOG(EDZLogLevel::Info2, L"<<<");
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 bool GDataControlLayer::VerifyRegionPopulationConsistency(const bool in_bByReligion, GRegion& in_Region) const
