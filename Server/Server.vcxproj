@@ -96,7 +96,8 @@
       </ResourceOutputFileName>
     </ResourceCompile>
     <CustomBuildStep>
-      <Command>copy Server.dll "D:/SteamLibrary/SteamApps/common/SuperPower 2/MODS/SP2-HDM"</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(Configuration)\\$(SolutionName).dll" "C:/Program Files (x86)/Steam/steamapps/common/SuperPower 2/MODS/SP2-HDM"</Command>
