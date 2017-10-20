@@ -1296,7 +1296,7 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
 }
 void GWorldBehavior::Iterate_Death_Rate_Expected()
 {
-    //Limits for health spending and income index contributions only
+    //Limits for health spending and income index contributions, plus when death rate should be limited due to config option
 	static const REAL32 c_fMaxDeathRate = 0.035f;
     static const REAL32 c_fMinDeathRate = 0.0015f;
 
@@ -1322,7 +1322,23 @@ void GWorldBehavior::Iterate_Death_Rate_Expected()
         const INT64 l_fNewOver65 = ReturnInteger64((1.f / 50.f) * m_CountryData->Pop1565());
         const INT64 l_iPopOver65 = m_CountryData->Pop65();
         const REAL32 l_fMaxDeathRate = (l_fNewOver65 - (m_CountryData->BirthRate() * l_iPopOver65)) / (m_CountryData->Population() - l_iPopOver65);
-        l_fExpected = (l_fMaxDeathRate >= 0.f) ? min(l_fExpected, l_fMaxDeathRate) : l_fExpected;
+
+        REAL32 l_fExpectedCap = l_fExpected;
+        if(l_fMaxDeathRate >= 0.f)
+            l_fExpectedCap = l_fMaxDeathRate;
+        else
+        {
+            GDZLOG(EDZLogLevel::Info1, m_CountryData->NameAndIDForLog() + L": Expected DR = " + GString(l_fExpected) + L", over-65 proportion = " + GString(l_fPopOver65Percent) + L", calculated max DR = " + GString(l_fMaxDeathRate));
+
+            if(!g_SP2Server->IncreaseDeathRateForAgingPopulation())
+                l_fExpectedCap = c_fMinDeathRate;
+            else
+                l_fExpectedCap = -l_fMaxDeathRate;
+
+            GDZLOG(EDZLogLevel::Info1, L"Capping DR at " + GString(l_fExpectedCap));
+        }
+
+        l_fExpected = min(l_fExpected, l_fExpectedCap);
     }
 
     gassert(0.f <= l_fExpected, L"Expected death rate " + GString(l_fExpected) + L" below 0");

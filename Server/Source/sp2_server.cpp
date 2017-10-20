@@ -2750,6 +2750,11 @@ GAnarchyConfig GServer::AnarchyConfig() const
     return m_AnarchyConfig;
 }
 
+bool GServer::IncreaseDeathRateForAgingPopulation() const
+{
+    return m_bIncreaseDeathRateForAgingPopulation;
+}
+
 REAL64 GServer::GvtTypeProductionModifier(const EGovernmentType::Enum in_iGvtType) const
 {
 	return m_mGvtTypeProductionModifiers.at(in_iGvtType);
@@ -2805,8 +2810,9 @@ void GServer::InitializeDefaultConfig()
 		m_IncomeTaxLimits[l_eGvtType] = PersonalTaxes_UpperCap;
 	}
 
-    m_bLogBankruptcies              = false;
-    m_iMaximumCellsInForeignCountry = 0;
+    m_bIncreaseDeathRateForAgingPopulation = true;
+    m_bLogBankruptcies                     = false;
+    m_iMaximumCellsInForeignCountry        = 0;
 
     // Training levels don't exist for nuclear units, so store their upkeep separately from the main map
     for(INT32 i = EUnitCategory::Infantry; i < EUnitCategory::Nuclear; i++)
@@ -3054,6 +3060,11 @@ void GServer::LoadSP2HDMConfigXML()
                             m_IncomeTaxLimits[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL64() / 100.0;
                             g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " + GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }
+                    }
+                    else if(l_sElementName == L"increaseDeathRateForAgingPopulation")
+                    {
+                        m_bIncreaseDeathRateForAgingPopulation = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"increaseDeathRateForAgingPopulation: " + GString(m_bIncreaseDeathRateForAgingPopulation));
                     }
                     else if(l_sElementName == L"logBankruptcies")
                     {

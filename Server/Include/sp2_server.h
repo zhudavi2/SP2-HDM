@@ -174,6 +174,9 @@ namespace SP2
 	  REAL64 GvtTypeProductionModifier(EGovernmentType::Enum in_iGvtType) const;
 
       inline REAL64  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
+
+      bool IncreaseDeathRateForAgingPopulation() const;
+
       inline bool    LogBankruptcies() const { return m_bLogBankruptcies; }
       inline INT32   MaximumCellsInForeignCountry() const { return m_iMaximumCellsInForeignCountry; }
       inline GString Message() const { return m_sMessage; }
@@ -324,6 +327,7 @@ namespace SP2
 	  map<EGovernmentType::Enum, REAL64> m_mGvtTypeProductionModifiers;
       map<EGovernmentType::Enum, REAL64> m_IncomeTaxLimits;
 
+      bool    m_bIncreaseDeathRateForAgingPopulation;
       bool    m_bLogBankruptcies;
       INT32   m_iMaximumCellsInForeignCountry;
       GString m_sMessage;
