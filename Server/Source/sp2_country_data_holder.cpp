@@ -246,8 +246,10 @@ void GCountryData::SynchronizeWithRegions()
 
 void GCountryData::IterateDemand()
 {
+    GDZLOG(EDZLogLevel::Entry, NameAndIDForLog());
+
 	//Find new demand
-    REAL32 l_fUncappedHdi = GCountryData::FindHumanDevelopment(m_fLifeExpectancy,
+    REAL64 l_fUncappedHdi = GCountryData::FindHumanDevelopment(m_fLifeExpectancy,
                                                                m_fMeanYearsSchooling,
                                                                m_fExpectedYearsSchooling,
                                                                (0 < m_iPopulation) ? GDPPerCapita() : 0,
@@ -306,6 +308,72 @@ void GCountryData::IterateDemand()
 	m_pResourceDemand[EResources::Marketing_Advertising] = (((l_fTemp * 1349.f) + ((REAL64)m_iPopulation * 8.f))*0.98f) +
 		(0.02f * m_pResourceDemand[EResources::Retail]);
 
+    const REAL64 l_fDemographicFactor = ((GWorldBehavior::FindDemographicFinancingFactor(m_iCountryID) * 3.0) + m_fBudgetExpenseRatioInfrastructure) / 4.0;
+    GDZLOG(EDZLogLevel::Info2, L"m_fPersonalIncomeTax = " + GString(m_fPersonalIncomeTax) + L", l_fDemographicFactor = " + GString(l_fDemographicFactor));
+
+    //Modify demand based on PIT
+    REAL64 l_fPitForNormalDemand = 1.0;
+    REAL64 l_fBaseTrend = 0.0;
+    REAL64 l_fMaxBudgetTrend = l_fBaseTrend;
+    for(INT32 i = EResources::Cereals; i < EResources::ItemCount; i++)
+    {
+        //(PIT, demand)
+        if(i <= EResources::Drugs)
+        {
+            if(i <= EResources::Dairy)
+            {
+                //(0.8, 1) linear decrease to (1, 0.5)
+                l_fPitForNormalDemand = 0.8;
+                l_fBaseTrend = (-2.5 * m_fPersonalIncomeTax) + 3.0;
+                l_fMaxBudgetTrend = l_fBaseTrend;
+            }
+            else
+            {
+                //(0, 1) parabolic decrease to (1, 0)
+                l_fPitForNormalDemand = 0.0;
+                l_fBaseTrend = -pow(m_fPersonalIncomeTax, 2.0) + 1.0;
+                l_fMaxBudgetTrend = l_fBaseTrend;
+            }
+        }
+        else if(i >= EResources::Electricity && i <= EResources::Fossile_Fuels)
+        {
+            //Base: (2/3, 1) linear decrease to (1, 0)
+            //Max budget: (2/3, 1) linear decrease to (1, 0.5)
+
+            l_fPitForNormalDemand = 2.0 / 3.0;
+            l_fBaseTrend = (-3.0 * m_fPersonalIncomeTax) + 3.0;
+            l_fMaxBudgetTrend = (-1.5 * m_fPersonalIncomeTax) + 2.0;
+        }
+        else if(i >= EResources::Wood_Paper && i <= EResources::Luxury_Commodities)
+        {
+            //Base: (0.5, 1) linear decrease to (1, 0)
+            //Max budget: (0.5, 1) linear decrease to (1, 0.5)
+
+            l_fPitForNormalDemand = 0.5;
+            l_fBaseTrend = (-2.0 * m_fPersonalIncomeTax) + 2.0;
+            l_fMaxBudgetTrend = -m_fPersonalIncomeTax + 1.5;
+        }
+        else
+        {
+            //Base: (0.4, 1) linear decrease to (1, 0)
+            //Max budget: (0.4, 1) linear decrease to (1, 0.25)
+
+            l_fPitForNormalDemand = 0.4;
+            l_fBaseTrend = ((-5.0 / 3.0) * m_fPersonalIncomeTax) + (5.0 / 3.0);
+            l_fMaxBudgetTrend = (-1.25 * m_fPersonalIncomeTax) + 1.5;
+        }
+
+        const REAL64 l_fDifference = l_fMaxBudgetTrend - l_fBaseTrend;
+        const REAL64 l_fDemandMultiplier = (m_fPersonalIncomeTax < l_fPitForNormalDemand) ? 1.0 : (l_fBaseTrend + (l_fDifference * l_fDemographicFactor));
+        gassert(l_fDemandMultiplier <= 1.0, L"l_fDemandMultiplier can't be less than 0");
+        GDZLOG(EDZLogLevel::Info2, g_ServerDAL.GetString(g_ServerDAL.StringIdResource(static_cast<EResources::Enum>(i))) + L": l_fDemandMultiplier = " + GString(l_fDemandMultiplier));
+
+        //Have demand approach "expected" demand according to demand multiplier, about 50% closer per year
+        const REAL64 l_fExpectedDemand = m_pResourceDemand[i] * l_fDemandMultiplier;
+        m_pResourceDemand[i] = l_fExpectedDemand;
+    }
+
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
