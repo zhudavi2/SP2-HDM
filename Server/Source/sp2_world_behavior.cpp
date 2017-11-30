@@ -1836,7 +1836,9 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 	Iterate_Infrastructure_Expected();
 	Iterate_Telecom_Expected();
 
-	INT64 l_iFinalPopulation = 0;
+    const INT64 l_iOldPopulation = m_CountryData->Population();
+
+	INT64 l_iNewPopulationPoliticalControl = 0;
 
     const INT64 l_iInitialOver15Pop = m_CountryData->Pop1565() + m_CountryData->Pop65();
     GDZLOG(EDZLogLevel::Info2, L"Initial over-15 population " + GDZDebug::FormatInt(l_iInitialOver15Pop));
@@ -1885,7 +1887,7 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 		Iterate_Tourism(l_pRegion);
 
 		if(l_pRegion->OwnerId() == l_pRegion->OwnerMilitaryId())
-			l_iFinalPopulation += l_pRegion->Population();
+			l_iNewPopulationPoliticalControl += l_pRegion->Population();
 
 	}
 
@@ -1908,7 +1910,7 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
         m_CountryData->MeanYearsSchooling(l_fNewMys);
     }
 
-	m_CountryData->PopulationPoliticalControl(l_iFinalPopulation);
+	m_CountryData->PopulationPoliticalControl(l_iNewPopulationPoliticalControl);
 	m_CountryData->IterateDemand();
 
 	for(set<UINT32>::const_iterator l_RegionItr = l_vRegions.begin();
@@ -1926,6 +1928,17 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 		l_fNewGDPGrowth = (REAL32)( (l_fNewGDP - l_fOldGDP) / l_fOldGDP ) * (1.f/m_fFrequency);
 
 	m_CountryData->GDPGrowth(l_fNewGDPGrowth);
+
+    const INT64 l_iNewPopulation = m_CountryData->Population();
+    REAL32 l_fNewPopulationGrowth = 0.f;
+    if(l_iOldPopulation > 0 && m_fFrequency > 0.f)
+    {
+        const REAL32 l_fOldPopulation = static_cast<REAL32>(l_iOldPopulation);
+        const REAL32 l_fNewPopulation = static_cast<REAL32>(l_iNewPopulation);
+        l_fNewPopulationGrowth = ((l_fNewPopulation - l_fOldPopulation) / l_fOldPopulation) * (1.f / m_fFrequency);
+    }
+
+    m_CountryData->PopulationGrowth(l_fNewPopulationGrowth);
 
 	// figures out by themselves
 	//Iterate_Available_Money();      	 

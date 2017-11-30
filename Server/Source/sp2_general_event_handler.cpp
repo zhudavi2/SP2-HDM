@@ -173,7 +173,7 @@ bool SP2::GGeneralEventHandler::HandleGetRegionCharacteristic(SDK::GGameEventSPt
 
    case ECharacteristicToHighlight::CountryPopulationGrowth:
       for (INT32 i = 1; i <= g_ServerDAL.NbCountry(); i++)
-         l_vData[i - 1] = (REAL64)g_ServerDAL.CountryData(i)->GrowthRate();
+         l_vData[i - 1] = g_ServerDAL.CountryData(i)->PopulationGrowth();
       break;
    case ECharacteristicToHighlight::CountryGrossDomesticProduct:
       for (INT32 i = 1; i <= g_ServerDAL.NbCountry(); i++)

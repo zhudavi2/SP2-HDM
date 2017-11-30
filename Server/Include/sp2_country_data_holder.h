@@ -152,6 +152,9 @@ namespace SP2
       //! Called when country falls into anarchy and civil wars are enabled
       void CheckForCivilWar();
 
+      REAL32 PopulationGrowth() const;
+      void   PopulationGrowth(REAL32 in_fPopulationGrowth);
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
@@ -188,6 +191,8 @@ namespace SP2
 
         pair<ENTITY_ID, UINT32> m_Master;
         map<ENTITY_ID, UINT32>  m_mClients;
+
+        REAL32 m_fPopulationGrowth;
 
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;

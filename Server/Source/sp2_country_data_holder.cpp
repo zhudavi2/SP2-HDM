@@ -25,6 +25,8 @@ GCountryData::GCountryData() : GCountryDataItf()
 
    m_pResearchInformation = new GResearchInformation();
 
+   m_fPopulationGrowth = 0.f;
+
    //Unused
    m_fGDPValueBase     = 0.f;
    m_fEconomicActivity = 0.f;
@@ -2937,4 +2939,14 @@ REAL32 GCountryData::PercentageOfPopulationOccupiedByCountry(ENTITY_ID in_iCount
                                  0.f;
     }
     return l_fPercentageOccupied;
+}
+
+REAL32 GCountryData::PopulationGrowth() const
+{
+    return m_fPopulationGrowth;
+}
+
+void GCountryData::PopulationGrowth(REAL32 in_fPopulationGrowth)
+{
+    m_fPopulationGrowth = in_fPopulationGrowth;
 }
