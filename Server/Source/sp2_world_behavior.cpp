@@ -110,8 +110,6 @@ bool GWorldBehavior::Reset()
 	m_fLastBudgetIteration = 0.f;
 	m_QuickRandom.Seed(GetTickCount() );
 
-    m_iHDILogStartingCountryID = 0;
-
 	return true;
 }
 
