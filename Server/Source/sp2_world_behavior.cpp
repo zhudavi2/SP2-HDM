@@ -1922,21 +1922,24 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 
 	REAL64 l_fNewGDP = m_CountryData->GDPValue();
 	REAL32 l_fNewGDPGrowth = 0.f;
-	if(l_fOldGDP > 0.f && m_fFrequency > 0.f)
-		l_fNewGDPGrowth = (REAL32)( (l_fNewGDP - l_fOldGDP) / l_fOldGDP ) * (1.f/m_fFrequency);
+    if(l_fOldGDP > 0.f && m_fFrequency > 0.f)
+        l_fNewGDPGrowth = ConvertRate(true, (l_fNewGDP - l_fOldGDP) / l_fOldGDP);
 
 	m_CountryData->GDPGrowth(l_fNewGDPGrowth);
 
-    const INT64 l_iNewPopulation = m_CountryData->Population();
-    REAL32 l_fNewPopulationGrowth = 0.f;
-    if(l_iOldPopulation > 0 && m_fFrequency > 0.f)
     {
-        const REAL32 l_fOldPopulation = static_cast<REAL32>(l_iOldPopulation);
-        const REAL32 l_fNewPopulation = static_cast<REAL32>(l_iNewPopulation);
-        l_fNewPopulationGrowth = ((l_fNewPopulation - l_fOldPopulation) / l_fOldPopulation) * (1.f / m_fFrequency);
+        const INT64 l_iNewPopulation = m_CountryData->Population();
+        REAL32 l_fNewPopulationGrowth = 0.f;
+        if(l_iOldPopulation > 0 && m_fFrequency > 0.f)
+        {
+            const REAL64 l_fOldPopulation = static_cast<REAL64>(l_iOldPopulation);
+            const REAL64 l_fNewPopulation = static_cast<REAL64>(l_iNewPopulation);
+            l_fNewPopulationGrowth = ConvertRate(true, (l_fNewPopulation - l_fOldPopulation) / l_fOldPopulation);
+        }
+
+        m_CountryData->PopulationGrowth(l_fNewPopulationGrowth);
     }
 
-    m_CountryData->PopulationGrowth(l_fNewPopulationGrowth);
 
 	// figures out by themselves
 	//Iterate_Available_Money();      	 
@@ -4841,6 +4844,17 @@ void GWorldBehavior::EconomicFriends(UINT32 in_iCountryID, set<UINT32>& out_Frie
 		}
 		out_Friends.erase(in_iCountryID);
 	}
+}
+
+REAL32 GWorldBehavior::ConvertRate(const bool in_bAnnualize, const REAL64 in_fRate)
+{
+    gassert(in_fRate >= -1.0, L"Invalid input rate " + GString(in_fRate));
+
+    const REAL64 l_fExponent = in_bAnnualize ? (1.0 / m_fFrequency) : m_fFrequency;
+
+    const REAL32 l_fConvertedRate = static_cast<REAL32>(pow(1.0 + in_fRate, l_fExponent) - 1.0);
+    gassert(in_fRate >= -1.f, L"Invalid converted rate " + GString(l_fConvertedRate));
+    return l_fConvertedRate;
 }
 
 bool GWorldBehavior::OnSave(GIBuffer& io_Buffer)

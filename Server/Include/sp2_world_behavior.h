@@ -151,6 +151,9 @@ private:
     //! Returns annual life expectancy increase, in years
     REAL32 FindAnnualLifeExpectancyGain() const;
 
+    //! Convert between annualized rate and per-frequency rate
+    REAL32 ConvertRate(bool in_bAnnualize, REAL64 in_fRate);
+
 	//! Returns number between 0 and 1
 	static REAL32 AdjustMod(REAL64 in_fMod);
 
