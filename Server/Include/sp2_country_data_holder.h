@@ -155,6 +155,9 @@ namespace SP2
       REAL32 PopulationGrowth() const;
       void   PopulationGrowth(REAL32 in_fPopulationGrowth);
 
+      REAL32 Population1565Growth() const;
+      void   Population1565Growth(REAL32 in_fPopulation1565Growth);
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
@@ -193,6 +196,7 @@ namespace SP2
         map<ENTITY_ID, UINT32>  m_mClients;
 
         REAL32 m_fPopulationGrowth;
+        REAL32 m_fPopulation1565Growth;
 
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;

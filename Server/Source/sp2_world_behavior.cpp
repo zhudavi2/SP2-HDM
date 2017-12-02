@@ -1222,21 +1222,34 @@ bool GWorldBehavior::Iterate_Political_Party_Popularity()
 
 bool GWorldBehavior::Iterate_Pop_15_65_Unemployed()
 {
-	REAL32 l_fEconomicHealth = m_CountryData->EconomicHealth();
-	REAL32 l_fNewUnemployement = 0.f;
-	if(l_fEconomicHealth >= 0.5f)
-		l_fNewUnemployement = (-0.04f*l_fEconomicHealth) + 0.06f;
-	else
-		l_fNewUnemployement = (-0.32f*l_fEconomicHealth) + 0.2f;
+    static const REAL32 c_fMaxValueForEcoHealth = 0.2f;
 
-    const REAL32 l_fMaximumEmploymentChangePerIteration = 0.005f * m_fFrequency;
-    const REAL32 l_fOldUnemployment = m_CountryData->Pop1565Unemployed();
-    if(l_fNewUnemployement - l_fOldUnemployment < -l_fMaximumEmploymentChangePerIteration)
-        l_fNewUnemployement = l_fOldUnemployment - l_fMaximumEmploymentChangePerIteration;
-    else if(l_fNewUnemployement - l_fOldUnemployment > l_fMaximumEmploymentChangePerIteration)
-        l_fNewUnemployement = l_fOldUnemployment + l_fMaximumEmploymentChangePerIteration;
+    static const REAL32 c_fEcoHealthContrib = 0.5f;
+    static const REAL32 c_fGdpGrowthContrib = 0.5f;
 
-	m_CountryData->Pop1565Unemployed(l_fNewUnemployement);	
+    const REAL32 l_fOldValue = m_CountryData->Pop1565Unemployed();
+
+    const REAL32 l_fEconomicHealth = m_CountryData->EconomicHealth();
+    REAL32 l_fValueForEcoHealth    = ((c_fMaxValueForEcoHealth - SP2::c_fMinUnemployment) * powf(l_fEconomicHealth - 1.f, 2.f)) + SP2::c_fMinUnemployment;
+    {
+        const REAL32 l_fMaxChangePerIteration = 0.005f * m_fFrequency;
+        l_fValueForEcoHealth = min(l_fValueForEcoHealth, l_fOldValue + l_fMaxChangePerIteration);
+        l_fValueForEcoHealth = max(l_fValueForEcoHealth, l_fOldValue - l_fMaxChangePerIteration);
+    }
+
+    const REAL32 l_fPop1565Growth = ConvertRate(false, m_CountryData->Population1565Growth());
+    REAL32 l_fValueForGrowth = 0.f;
+    if(l_fPop1565Growth > -1.f)
+    {
+        const REAL32 l_fGdpGrowth = ConvertRate(false, m_CountryData->GDPGrowth());
+        l_fValueForGrowth = 1.f - ((1.f - l_fOldValue) * (1.f + l_fGdpGrowth) / (1.f + l_fPop1565Growth));
+    }
+
+    REAL32 l_fNewValue = (c_fEcoHealthContrib * l_fValueForEcoHealth) + (c_fGdpGrowthContrib * l_fValueForGrowth);
+    l_fNewValue = max(l_fNewValue, SP2::c_fMinUnemployment);
+    gassert((l_fNewValue >= SP2::c_fMinUnemployment) && (l_fNewValue <= 1.f), m_CountryData->NameAndIDForLog() + L" unemployment out of range " + GString(l_fNewValue));
+
+    m_CountryData->Pop1565Unemployed(l_fNewValue);
 
 	return true;
 }
@@ -1485,6 +1498,8 @@ void GWorldBehavior::Iterate_Gvt_Stability_Expected()
 		l_fResults *= (REAL32)l_fAdjustment;
 	}
 	
+    //Adjust with unemployment
+    l_fResults *= (1.f - (m_CountryData->Pop1565Unemployed() - SP2::c_fMinUnemployment));
 
 	m_CountryData->GvtStabilityExpected(l_fResults);
 
@@ -1834,7 +1849,8 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 	Iterate_Infrastructure_Expected();
 	Iterate_Telecom_Expected();
 
-    const INT64 l_iOldPopulation = m_CountryData->Population();
+    const INT64 l_iOldPopulation     = m_CountryData->Population();
+    const INT64 l_iOldPopulation1565 = m_CountryData->Pop1565();
 
 	INT64 l_iNewPopulationPoliticalControl = 0;
 
@@ -1940,6 +1956,18 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
         m_CountryData->PopulationGrowth(l_fNewPopulationGrowth);
     }
 
+    {
+        const INT64 l_iNewPopulation1565 = m_CountryData->Pop1565();
+        REAL32 l_fNewPopulation1565Growth = 0.f;
+        if(l_iOldPopulation1565 > 0 && m_fFrequency > 0.f)
+        {
+            const REAL64 l_fOldPopulation = static_cast<REAL64>(l_iOldPopulation1565);
+            const REAL64 l_fNewPopulation = static_cast<REAL64>(l_iNewPopulation1565);
+            l_fNewPopulation1565Growth = ConvertRate(true, (l_fNewPopulation - l_fOldPopulation) / l_fOldPopulation);
+        }
+
+        m_CountryData->Population1565Growth(l_fNewPopulation1565Growth);
+    }
 
 	// figures out by themselves
 	//Iterate_Available_Money();      	 

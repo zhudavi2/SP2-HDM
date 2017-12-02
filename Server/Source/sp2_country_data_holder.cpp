@@ -2950,3 +2950,13 @@ void GCountryData::PopulationGrowth(REAL32 in_fPopulationGrowth)
 {
     m_fPopulationGrowth = in_fPopulationGrowth;
 }
+
+REAL32 GCountryData::Population1565Growth() const
+{
+    return m_fPopulation1565Growth;
+}
+
+void GCountryData::Population1565Growth(REAL32 in_fPopulation1565Growth)
+{
+    m_fPopulation1565Growth = in_fPopulation1565Growth;
+}

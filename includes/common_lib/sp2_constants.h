@@ -2178,6 +2178,8 @@ const GColorRGBReal SP2_PAINT_MAP_HIGH_VALUE_COLOR     = GColorRGBReal(1.0f,0.0f
    static const REAL32 c_fMinLifeExpectancy         = 20.f;
    static const REAL32 c_fMaxMeanYearsSchooling     = 15.f;
    static const REAL32 c_fMaxExpectedYearsSchooling = 18.f;
+
+   static const REAL32 c_fMinUnemployment = 0.02f;
 }
 
 
