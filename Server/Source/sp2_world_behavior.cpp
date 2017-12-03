@@ -767,15 +767,21 @@ void GWorldBehavior::Iterate_Gvt_Approval_Expected()
 	else
 		l_fPhilosophy = (-2.17391304347f * l_fPhilosophy) + 1.0434782608694f;
 
+    //Adjust budget contribution to approval based on unemployment
+    const REAL32 l_fBudgetContrib = PourcBudgetExpenses * (1.f + (m_CountryData->Pop1565Unemployed() - SP2::c_fMinUnemployment));
+
 	l_fResults = (PourcObjTaxes * l_fPersonalIncomeTax) 
       + (PourcObjUnemployment * l_fUnemployment)
 		+ (PourcObjStability * l_fStability) 
       + (PourcObjPhilosophy * l_fPhilosophy)
-		+ (PourcBudgetExpenses * l_fExpenses)
+		+ (l_fBudgetContrib * l_fExpenses)
 		+ (PourcFreedomOfDemonstration * l_fDemonstration) 
       + (PourcFreedomOfSpeech * l_fSpeech)
 		+ (PourcDensityOfPopulation * l_fDensity)
       + (PourcObjTaxesRaw * l_fPersonalIncomeTaxRaw);
+
+    //Exclude PourcObjTaxesRaw from divisor, as it's the only negative contribution and the positive contributions already add up to 1.f.
+    l_fResults /= PourcObjTaxes + PourcObjUnemployment + PourcObjStability + PourcObjPhilosophy + l_fBudgetContrib + PourcFreedomOfDemonstration + PourcFreedomOfSpeech + PourcDensityOfPopulation;
 
 	//If the martial law is on, there is a fix penalty.
 	if(m_CountryData->MartialLaw())
@@ -1222,17 +1228,15 @@ bool GWorldBehavior::Iterate_Political_Party_Popularity()
 
 bool GWorldBehavior::Iterate_Pop_15_65_Unemployed()
 {
-    static const REAL32 c_fMaxValueForEcoHealth = 0.2f;
-
     static const REAL32 c_fEcoHealthContrib = 0.5f;
     static const REAL32 c_fGdpGrowthContrib = 0.5f;
 
     const REAL32 l_fOldValue = m_CountryData->Pop1565Unemployed();
 
     const REAL32 l_fEconomicHealth = m_CountryData->EconomicHealth();
-    REAL32 l_fValueForEcoHealth    = ((c_fMaxValueForEcoHealth - SP2::c_fMinUnemployment) * powf(l_fEconomicHealth - 1.f, 2.f)) + SP2::c_fMinUnemployment;
+    REAL32 l_fValueForEcoHealth    = ((1.f - SP2::c_fMinUnemployment) * powf(l_fEconomicHealth - 1.f, 8.f)) + SP2::c_fMinUnemployment;
     {
-        const REAL32 l_fMaxChangePerIteration = 0.005f * m_fFrequency;
+        const REAL32 l_fMaxChangePerIteration = 0.01f * m_fFrequency;
         l_fValueForEcoHealth = min(l_fValueForEcoHealth, l_fOldValue + l_fMaxChangePerIteration);
         l_fValueForEcoHealth = max(l_fValueForEcoHealth, l_fOldValue - l_fMaxChangePerIteration);
     }
@@ -1242,7 +1246,12 @@ bool GWorldBehavior::Iterate_Pop_15_65_Unemployed()
     if(l_fPop1565Growth > -1.f)
     {
         const REAL32 l_fGdpGrowth = ConvertRate(false, m_CountryData->GDPGrowth());
-        l_fValueForGrowth = 1.f - ((1.f - l_fOldValue) * (1.f + l_fGdpGrowth) / (1.f + l_fPop1565Growth));
+        REAL32 l_fEmploymentGrowth = ((1.f + l_fGdpGrowth) / (1.f + l_fPop1565Growth)) - 1.f;
+
+        //Employment growth/reduction is generally less volatile than economic trend
+        l_fEmploymentGrowth /= 2.f;
+
+        l_fValueForGrowth = 1.f - ((1.f - l_fOldValue) * (1.f + l_fEmploymentGrowth));
     }
 
     REAL32 l_fNewValue = (c_fEcoHealthContrib * l_fValueForEcoHealth) + (c_fGdpGrowthContrib * l_fValueForGrowth);
