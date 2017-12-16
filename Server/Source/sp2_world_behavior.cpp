@@ -1234,7 +1234,15 @@ bool GWorldBehavior::Iterate_Pop_15_65_Unemployed()
     const REAL32 l_fOldValue = m_CountryData->Pop1565Unemployed();
 
     const REAL32 l_fEconomicHealth = m_CountryData->EconomicHealth();
-    REAL32 l_fValueForEcoHealth    = ((1.f - SP2::c_fMinUnemployment) * powf(l_fEconomicHealth - 1.f, 8.f)) + SP2::c_fMinUnemployment;
+    REAL32 l_fValueForEcoHealth    = 0.f;
+    if(l_fEconomicHealth > 0.5f)
+        l_fValueForEcoHealth = (-0.04f * l_fEconomicHealth) + 0.06f;
+    else
+    {
+        //100% unemployment at 0% health, 4% unemployment and -4pp derivative at 50% health
+        l_fValueForEcoHealth = ((94.f / 25.f) * powf(l_fEconomicHealth - (95.f / 188.f), 2.f)) + (15.f / 376.f);
+    }
+
     {
         const REAL32 l_fMaxChangePerIteration = 0.01f * m_fFrequency;
         l_fValueForEcoHealth = min(l_fValueForEcoHealth, l_fOldValue + l_fMaxChangePerIteration);
@@ -2112,6 +2120,12 @@ void GWorldBehavior::BankruptCountry(INT16 in_iCountryID)
    l_pCountryData->CovertActionCells().clear();
 
    // 4. Reduce Resource Production:
+   // Determine old GDP per person employed
+   const INT64 l_iPop1565 = l_pCountryData->Pop1565();
+   REAL64 l_fOldGdpPerEmployed = 0.0;
+   if(l_iPop1565 > 0)
+       l_fOldGdpPerEmployed = l_pCountryData->GDPValue() / (l_iPop1565 * (1.f - l_pCountryData->Pop1565Unemployed()));
+
    // Iterate over regions
    const set<UINT32>& l_PoliticalRegions = g_ServerDAL.CountryPoliticalControl(in_iCountryID);
    set<UINT32>::const_iterator l_iRegionIterator =l_PoliticalRegions.begin();
@@ -2154,6 +2168,15 @@ void GWorldBehavior::BankruptCountry(INT16 in_iCountryID)
       l_pRegion->ResourceProduction(EResources::Retail,l_pRegion->ResourceProduction(EResources::Retail) * 0.10f);
 
       l_iRegionIterator++;
+   }
+
+   if(l_iPop1565 > 0 && l_fOldGdpPerEmployed > 0.0)
+   {
+       // Update country GDP
+       l_pCountryData->SynchronizeWithRegions();
+
+       const REAL64 l_fEmployedPop = l_pCountryData->GDPValue() / l_fOldGdpPerEmployed;
+       l_pCountryData->Pop1565Unemployed(static_cast<REAL32>(1.0 - (l_fEmployedPop / l_iPop1565)));
    }
 
    // 5. Quit all Economic Aid treaties in which the country pays to help others
