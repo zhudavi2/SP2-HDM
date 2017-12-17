@@ -552,6 +552,12 @@ SDK::GAME_MSG GServer::Initialize()
           L"country falls into anarchy",
           (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
           this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"set_stability",
+          L"II",
+          L"Set country stability, 2 Params needed: CountryID Stability%",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
    } 
 #endif
 
@@ -1878,6 +1884,16 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
        const ENTITY_ID l_iCountryId = in_vArgs[0].ToINT32();
        if(m_DAL.CountryValidityArray(l_iCountryId))
            m_DCL.ChangeGovernmentType(l_iCountryId, static_cast<EGovernmentType::Enum>(m_DAL.CountryData(l_iCountryId)->GvtType()), EGovernmentType::Anarchy);
+   }
+   else if(in_sCommand == L"set_stability")
+   {
+       const ENTITY_ID l_iCountryId = in_vArgs[0].ToINT32();
+       const REAL32    l_fStability = in_vArgs[1].ToREAL32() / 100.f;
+       if(m_DAL.CountryValidityArray(l_iCountryId))
+       {
+           const REAL32 l_fOldStability = m_DAL.CountryData(l_iCountryId)->GvtStability();
+           m_DCL.ChangeCountryStability(l_iCountryId, l_fStability - l_fOldStability, false);
+       }
    }
 #endif //#define GOLEM_DEBUG
    return L"";
