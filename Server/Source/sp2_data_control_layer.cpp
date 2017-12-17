@@ -1721,7 +1721,7 @@ bool GDataControlLayer::ChangePersonalIncomeTax(ENTITY_ID in_iCountryID,
 	REAL32 l_fDifference = -(REAL32)(l_fNewPersonalIncomeTax - l_fOldPersonalIncomeTax);
 
     // Nothing to do when value is identical
-    if(fabs(l_fDifference) < 0.05f)
+    if(fabs(l_fDifference) < 0.0005f)
         return true;
 
    // are we lowering taxes ?
