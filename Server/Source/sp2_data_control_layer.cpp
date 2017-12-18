@@ -3714,7 +3714,7 @@ bool GDataControlLayer::ChangeCountryStability(ENTITY_ID in_iCountryID, REAL32 i
         const bool l_bExpectedStabilityAnarchyCondition = l_fStability < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus) && l_pCountryData->GvtStabilityExpected() < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus);
 
         bool l_bActualStabilityAnarchyCondition = false;
-        if(l_fStability < l_AnarchyConfig.m_fStabilityLowerLimit)
+        if(l_fStability < l_AnarchyConfig.m_fStabilityLowerLimit - l_fBonus)
         {
             Random::GQuick l_Rand;
             l_Rand.Seed(static_cast<UINT32>(g_Joshua.GameTime() * in_iCountryID * time(nullptr)));

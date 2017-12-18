@@ -2914,7 +2914,7 @@ void GServer::LoadSP2HDMConfigXML()
                         m_bAllowDefenderAttackAttackerTerritory = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowDefenderAttackAttackerTerritory: " + GString(m_bAllowDefenderAttackAttackerTerritory));
                     }
-                    else if(l_sElementName == L"anarchyConfig")
+                    else if(l_sElementName == L"anarchy")
                     {
                         for(UINT32 j=0; j<objectNode->NbChilds(); j++)
                         {
