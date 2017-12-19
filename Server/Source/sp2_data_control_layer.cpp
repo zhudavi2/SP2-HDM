@@ -5563,12 +5563,18 @@ void GDataControlLayer::LoseRelationsWarDeclaration(UINT32 in_iCountryDeclaringW
 
 		l_fChangeOfRelations = l_fRelationsTowardAttacker - l_fRelationsTowardTarget;
 
-		REAL32 l_fPoliticIdeology = l_pObserver->LeaderParty()->PoliticalIdeology();
-		if(l_fPoliticIdeology >= 0.5f)
-			l_fChangeOfRelations *= (l_fPoliticIdeology * 2.f);
-		else
-			l_fChangeOfRelations *= (l_fPoliticIdeology + 0.5f);
-		
+        const GPoliticalParty* const l_pLeaderParty = l_pObserver->LeaderParty();
+        if(l_pLeaderParty != nullptr)
+        {
+            REAL32 l_fPoliticIdeology = l_pLeaderParty->PoliticalIdeology();
+            if(l_fPoliticIdeology >= 0.5f)
+                l_fChangeOfRelations *= (l_fPoliticIdeology * 2.f);
+            else
+                l_fChangeOfRelations *= (l_fPoliticIdeology + 0.5f);
+        }
+        else
+            //#91, l_pObserver->LeaderParty() sometimes returns nullptr when in anarchy, sometimes returns valid party
+            GDZLOG(EDZLogLevel::Error, l_pObserver->NameAndIDForLog() + L" has invalid leader party " + GString(l_pObserver->LeadingPoliticalPartyID()) + L", government type " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(l_pObserver->GvtType())));
 
 		//Then, we must use the relations between the 2 countries attacking each other
 		l_fChangeOfRelations -= (l_fRelationsAttackerTarget * l_fEconomicStrengthObserver) ;
