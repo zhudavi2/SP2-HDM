@@ -3708,10 +3708,11 @@ bool GDataControlLayer::ChangeCountryStability(ENTITY_ID in_iCountryID, REAL32 i
 		l_fBonus += SP2::c_fFreedomOfDemonstrationStabilityBonus;
 
     const GAnarchyConfig l_AnarchyConfig = g_SP2Server->AnarchyConfig();
+    const REAL32 l_fStabilityEx = l_pCountryData->GvtStabilityExpected();
 
     if(l_pCountryData->GvtType() != EGovernmentType::Anarchy)
     {
-        const bool l_bExpectedStabilityAnarchyCondition = l_fStability < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus) && l_pCountryData->GvtStabilityExpected() < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus);
+        const bool l_bExpectedStabilityAnarchyCondition = l_fStability < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus) && l_fStabilityEx < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit - l_fBonus);
 
         bool l_bActualStabilityAnarchyCondition = false;
         if(l_fStability < l_AnarchyConfig.m_fStabilityLowerLimit - l_fBonus)
@@ -3725,10 +3726,11 @@ bool GDataControlLayer::ChangeCountryStability(ENTITY_ID in_iCountryID, REAL32 i
         if(l_bExpectedStabilityAnarchyCondition || l_bActualStabilityAnarchyCondition)
             ChangeGovernmentType(in_iCountryID, (EGovernmentType::Enum)l_pCountryData->GvtType(), EGovernmentType::Anarchy);
     }
-	else if(l_fStability > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit-l_fBonus) &&
-		l_pCountryData->GvtStabilityExpected() > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit-l_fBonus) &&
-		l_pCountryData->GvtType() == EGovernmentType::Anarchy)
+	else if(l_fStability   > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit - l_fBonus) &&
+            l_fStabilityEx > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit - l_fBonus) &&
+            l_fStability   > (l_AnarchyConfig.m_fStabilityLowerLimit - l_fBonus))
 	{
+        gassert(l_pCountryData->GvtType() == EGovernmentType::Anarchy, l_pCountryData->NameAndIDForLog() + L" isn't in anarchy but is eligible to leave anarchy");
 		ChangeGovernmentType(in_iCountryID, EGovernmentType::Anarchy, l_pCountryData->LeaderParty()->GvtType());
 	}	
 

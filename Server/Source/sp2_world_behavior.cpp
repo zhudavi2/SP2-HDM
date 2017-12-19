@@ -3130,31 +3130,8 @@ void GWorldBehavior::IterateChangingVariables(REAL64 in_fGameTime)
 		gassert(l_fEmigrationEx >= 0.f,"GWorldBehavior::IterateChangingVariables(): Emigration expected is negative");		
 		
 		//Change stability
-		l_pCountryData->GvtStability(l_fStability + ((l_fStabilityEx - l_fStability)*l_fModStability));
-        l_fStability = l_pCountryData->GvtStability();
-
-		REAL32 l_fBonus = 0.f;
-		if(!l_pCountryData->InternalLaw(EInternalLaws::FreedomOfSpeech))
-			l_fBonus += SP2::c_fFreedomOfSpeechStabilityBonus;
-		if(!l_pCountryData->InternalLaw(EInternalLaws::FreedomOfDemonstration))
-			l_fBonus += SP2::c_fFreedomOfDemonstrationStabilityBonus;
-
-        const GAnarchyConfig l_AnarchyConfig = g_SP2Server->AnarchyConfig();
-
-		if(l_pCountryData->GvtType() == EGovernmentType::Anarchy &&
-           l_fStability   > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit-l_fBonus) &&
-           l_fStabilityEx > (l_AnarchyConfig.m_fExpectedStabilityUpperLimit-l_fBonus) &&
-           l_fStability   > (l_AnarchyConfig.m_fStabilityLowerLimit-l_fBonus))
-		{
-			g_ServerDCL.ChangeGovernmentType(i, EGovernmentType::Anarchy, l_pCountryData->LeaderParty()->GvtType());
-		}
-		else if(l_fStability   < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit-l_fBonus) &&
-                l_fStabilityEx < (l_AnarchyConfig.m_fExpectedStabilityLowerLimit-l_fBonus) &&
-                l_fStability   < (l_AnarchyConfig.m_fStabilityLowerLimit-l_fBonus) &&
-			    l_pCountryData->GvtType() != EGovernmentType::Anarchy)
-		{
-			g_ServerDCL.ChangeGovernmentType(i, (EGovernmentType::Enum)l_pCountryData->GvtType(), EGovernmentType::Anarchy);
-		}
+        const REAL32 l_fStabilityChange = (l_fStabilityEx - l_fStability) * l_fModStability;
+        g_ServerDCL.ChangeCountryStability(i, l_fStabilityChange, false);
 
 		//Change approval
 		l_pCountryData->GvtApproval(l_fApproval + ((l_fApprovalEx - l_fApproval)*l_fModApproval));
