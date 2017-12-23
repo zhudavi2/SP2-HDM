@@ -72,7 +72,8 @@
     
     <!-- Percentage chance of any given region of a country, under civil war, to
     fall under rebel military control. All deployed military units of the
-    original country, in that region, will also defect to the rebel side.
+    original country, in that region, will also defect to the rebel side,
+	unless if they are in battle when the civil war begins.
     If this is 0, then annexChance has no effect.
     Allowed values are 0-100. Default is 40. -->
     <controlChance>40</controlChance>
