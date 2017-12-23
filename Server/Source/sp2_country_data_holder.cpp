@@ -2231,31 +2231,31 @@ void GCountryData::CheckForCivilWar()
                         SP2::GUnitGroup* const l_pGroup = dynamic_cast<SP2::GUnitGroup*>(g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIt));
                         if(l_pGroup->OwnerId() == static_cast<ENTITY_ID>(m_iCountryID))
                         {
-                            if(l_pGroup->Status() == EMilitaryStatus::Attacking)
+                            if(l_pGroup->Status() != EMilitaryStatus::Attacking)
                             {
-                                GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" in " + l_sRegionName + L" leaves combat");
-                                l_pGroup->LeaveCombat();
+                                GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" switches sides");
+
+                                //Need to create brand-new unit group; for some reason, trying to change an existing group's ownership would cause client-side crashes
+                                SP2::GUnitGroup* const l_pNewGroup = dynamic_cast<SP2::GUnitGroup*>(l_UnitManager.CreateUnitGroup());
+                                l_pNewGroup->Id(l_UnitManager.NewUnitGroupID());
+                                l_pNewGroup->OwnerId(l_iRebelsId);
+                                l_UnitManager.SetGroupPosition(l_pNewGroup, l_pGroup->Position());
+
+                                vector<SDK::Combat::GUnit*> l_vUnits = l_pGroup->Units();
+                                for(auto l_UnitIt = l_vUnits.begin(); l_UnitIt < l_vUnits.end(); ++l_UnitIt)
+                                    l_UnitManager.AddUnit2Group(*l_UnitIt, l_pNewGroup);
+
+                                l_UnitManager.AddUnitGroup(l_pNewGroup);
+                                l_UnitMover.AddGroup(l_pNewGroup);
+
+                                l_UnitManager.RemoveUnitGroup(*l_UnitGroupIt);
+
+                                l_bDirtyUnitGroups = true;
                             }
-
-                            GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" switches sides");
-
-                            //Need to create brand-new unit group; for some reason, trying to change an existing group's ownership would cause client-side crashes
-                            SP2::GUnitGroup* const l_pNewGroup = dynamic_cast<SP2::GUnitGroup*>(l_UnitManager.CreateUnitGroup());
-                            l_pNewGroup->Id(l_UnitManager.NewUnitGroupID());
-                            l_pNewGroup->OwnerId(l_iRebelsId);
-                            l_UnitManager.SetGroupPosition(l_pNewGroup, l_pGroup->Position());
-                            l_pGroup->ChangeStatus(EMilitaryStatus::Ready);
-
-                            vector<SDK::Combat::GUnit*> l_vUnits = l_pGroup->Units();
-                            for(auto l_UnitIt = l_vUnits.begin(); l_UnitIt < l_vUnits.end(); ++l_UnitIt)
-                                l_UnitManager.AddUnit2Group(*l_UnitIt, l_pNewGroup);
-
-                            l_UnitManager.AddUnitGroup(l_pNewGroup);
-                            l_UnitMover.AddGroup(l_pNewGroup);
-
-                            l_UnitManager.RemoveUnitGroup(*l_UnitGroupIt);
-
-                            l_bDirtyUnitGroups = true;
+                            else
+                            {
+                                GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is in battle, won't switch sides");
+                            }
                         }
                     }
 
