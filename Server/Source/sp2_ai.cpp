@@ -1106,7 +1106,8 @@ void GAI::ExamineBudgetFundings(UINT32 in_iCountryID) const
 	REAL32 l_fImportance[EBudgetExpenses::ItemCount];
 	Memory::Fill<REAL32>(l_fImportance,1.f,EBudgetExpenses::ItemCount);
 	
-	REAL32 l_fMinimumPourcAllowedToArmy = 0.25f * l_pCountryData->LeaderParty()->PoliticalIdeology();
+    const GPoliticalParty* const l_pLeaderParty = l_pCountryData->LeaderParty();
+	REAL32 l_fMinimumPourcAllowedToArmy = 0.25f * ((l_pLeaderParty != nullptr) ? l_pLeaderParty->PoliticalIdeology() : 0.5f);
 	if(l_pCountryData->BudgetExpenseUnitUpkeep() /  l_pCountryData->BudgetExpenses() < (REAL64)l_fMinimumPourcAllowedToArmy
 		&& !l_bIsAtWar)
 	{
