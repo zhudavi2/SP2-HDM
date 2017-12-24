@@ -1,4 +1,4 @@
-SuperPower 2 Human Development Modification (SP2-HDM) V9
+Human Development Modification (HDM) V10
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -20,6 +20,9 @@ Client state changes:
 - (V8) A country that economically fails, or is conquered, automatically releases its client states.
 
 Political changes:
+- (V10) A country's budget spending level has more effect on its approval when unemployment is high.
+- (V10) A country's stability scales with its unemployment rate.
+- (V10) Send a chat message to all players upon the beginning of any annexation, including treaty annexation and civil-war-related annexation.
 - (V9) A player who fails to create a treaty (i.e., not that other parties don't accept the treaty, but the treaty itself can't be created) will receive a chat notification of that fact.
 - (V9) A chat message is broadcast to every player when a country changes its government type. Thanks to memento mori for initial code.
 - (V5) When a country gains a region, it will lose stability based on the ratio of the region's population to the gaining country's population. The stability penalty is lower if the region is gained through trade.
@@ -43,6 +46,10 @@ Military changes:
 - A country's covert mission will have a higher chance of succeeding if it has other active cells in the target country.
 
 Economic changes:
+- (V10) A country whose economy fails will experience an unemployment surge.
+- (V10) 0% economic health can lead to 100% unemployment.
+- (V10) Base unemployment rate partially on growth of GDP and 15-65 population.
+- (V10) Reduce domestic consumption when PIT is high. Consumption of food resources decreases less than that of other resources, and decreases less if government spending is high.
 - (V9) A region's resource production growth now depends on whether or not a battle is occurring in the region and whether or not it's foreign-occupied. Better relations with occupier leads to more normal growth.
 - (V9) A country's ability to trade now depends on how much of its production is in foreign-occupied regions. Better relations with occupiers leads to more normal trading ability.
 - (V9) A region keeps its original level of resource demand when it becomes foreign-occupied.
@@ -66,6 +73,11 @@ AI changes:
 
 Configurable settings:
 - SP2-HDM_Config.xml is the configuration XML file.
+- (V10) Control whether to limit death rate to 0.2% when a country's LE and over-65 population are high enough to yield a death rate higher than 0.2%.
+- (V10) Control production modifiers per government type. This is the same as the V1.5.1 feature that applies multipliers to resource production based on government type, but the specific multiplier values are now configurable.
+- (V10) Set a stability criterion such that a country with less than the specified stability value would have a chance of immediately falling into anarchy, with that chance also being configurable.
+- (V10) Enable or disable human players playing past their own economic failure.
+- (V10) Enable or disable "civil war" and related options. A country that falls into anarchy might have some of its regions automatically fall under occupation, or begin becoming annexed, by the designated "rebel" country (country ID 194, Rebels, for default V1.5.1 database); native military units in the affected regions will become owned by the rebel country.
 - (V9) Enable or disable automatic covert mission execution. Covert cells, when given a mission, will continuously prepare and execute the given mission until cell capture, cell disbanding, or mission cancellation; some restrictions apply. Thanks to memento mori for initial code.
 - (V9) Adjust relations loss upon annexing regions.
 - (V9) Adjust military unit upkeep, as a percentage of default, based on training level. Thanks to Fenix for the suggestion
@@ -95,7 +107,10 @@ Configurable settings:
 - (V3) HDI component (LE, MYS, EYS) viewing through the country info window.
 
 Other changes:
-- (V9) Death rate now depends on LE instead of HDI as a whole. In addition, if LE is increasing while LE and the percentage of population over 65 are high enough, then the death rate will be limited to prevent the percentage of population over 65 from decreasing (increasing LE should lead to aging population).
+- (V10) Prevent some displayed percentages and rates from going negative, and make such displays more accurate, by exponentially annualizing and de-annualizing growth rates rather than multiplicatively doing so.
+- (V10) If LE is increasing while LE and the percentage of population over 65 are high enough, then the death rate will initially be limited to prevent the percentage of population over 65 from decreasing (increasing LE should lead to aging population), but in the long term, the death rate will rise again (as the over-65 population becomes so high that much of the population is dying of old age).
+- (V10) Upon game start or load, each region will be checked so that its population breakdowns by age, religion, and language are consistent, taking breakdown by age as correct.
+- (V9) Death rate now depends on LE instead of HDI as a whole.
 - (V9) Birth rate is now sharply reduced when LE is under 20.
 - (V9) Expected birth rate now depends on EYS and percentage of population over 65.
 - (V9) Added a console command, print_military_control, to list all regions under a country's military control.
@@ -112,16 +127,22 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous SP2-HDM releases:
+- (V10) Fixed a crash that would occur in certain situations when creating a client state.
+- (V10) Fixed a crash related to calculation of nuclear military unit upkeep.
 - (V9) A player who tries and fails to attack a country, because they're fighting a non-offensive war against that country, will receive a chat notification of that fact.
 - (V9) When a country changes its government type, its income tax rate will be automatically set to no more than its new government type's tax limit, if configured and if necessary. Thanks to memento mori for initial code.
 - (V9) MYS now automatically trends towards EYS, instead of being affected directly by other factors that affect HDI components.
 - (V9) Estimate HDI components more accurately at game start.
 - (V9) Fixed an issue where client state relationships would persist after loading a game that didn't have them.
 - (V6) When performing covert actions against a target country, the positive effect on success rate of having additional cells in the target country has been lessened, further than it was in V5. Thanks to Fenix for the suggestion.
+- (V6) When performing covert actions against a target country, the positive effect on success rate of having additional cells in the target country has been lessened, further than it was in V5. Thanks to Fenix for the suggestion.
 - (V5) Fixed an issue in which if a country is conquered, and then another country changes its name, then the conquered country would reappear in country listings.
 - (V5) Fixed a potential issue in which countries with extremely low revenue wouldn't be able to build or buy non-infantry units.
 
 Fixes to SP2 V1.5.1 issues:
+- (V10) Population growth thematic map is no longer misleading.
+- (V10) Increase covert mission result randomness so that multiple missions wouldn't always all yield the same result if they were all executed around the same game time.
+- (V10) Fixed regions still appearing to be bombarded when bombardment has actually already stopped.
 - (V9) The Big-time Friend achievement is now obtainable.
 - (V9) Fixed an issue where the AI would unintentionally execute covert missions against the conqueror of the originally-intended target.
 - (V9) Fixed an issue where covert cells could travel to and execute missions in a conquered country.
@@ -150,12 +171,12 @@ SDK notes:
 - The Release DLL is included with each commit for those interested in testing out the latest changes.
 - Added a new class, GDZDebug, which offers assert and logging logic. Please see https://github.com/zhudavi2/SP2-HDM/wiki/DZDebug.
 - Changed debug console commands: print_relations
-- New debug console commands: build_amds, print_amds, force_occupy, research_nuclear, print_nuclear_research, declare_war_2v2
+- New debug console commands: build_amds, print_amds, force_occupy, research_nuclear, print_nuclear_research, declare_war_2v2, force_anarchy, set_stability
 - Please credit the below people and entities, and me, if you release your own work that's based on this mod. Thanks!
 
 Credits:
-- Fenix/memento mori for code suggestions and support.
+- Fenix/memento mori for code suggestions, support, and testing help.
 - awolfska for testing help.
-- IceyVVind, Illuminati, Mr Monday, p2, Radu, Tannman, The Patriot, and thereversedguy for suggestions and support.
-- Many more people on the SP2-HDM discussion thread and the SP2 Discussion forum.
+- BlueS3xy`=;], IceyVVind, Illuminati, Mr Monday, p2, Radu, Slajavck, Tannman, The Patriot, thereversedguy, and ZDisket for suggestions and support.
+- Many more people on the HDM discussion thread and the SP2 Discussion forum.
 - Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.
