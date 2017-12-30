@@ -58,6 +58,7 @@
 #include <hash_set>
 #include <limits>
 #include <regex>
+#include <sstream>
 
 #pragma warning (pop)
 

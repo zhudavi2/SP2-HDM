@@ -60,6 +60,9 @@ namespace SP2
         //! Helper to add thousands separators to a large integer
         static inline GString FormatInt(INT64 in_iInt);
 
+        //! Helper for pointer values
+        static GString FormatPtr(const void* in_pPtr);
+
     private:
         typedef pair<EDZLogLevel::Enum, GString> GLogLevelNamePair;
         typedef pair<GString, UINT32> GLogLevelEnabled;

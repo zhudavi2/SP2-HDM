@@ -45,3 +45,10 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 map<GString, UINT32> GDZDebug::m_mLogLevelsEnabled(c_LogLevelsEnabled, c_LogLevelsEnabled + sizeof(c_LogLevelsEnabled) / sizeof(GLogLevelEnabled));
 
 bool GDZDebug::m_bAssertEnable = m_bLogEnable || false;
+
+GString GDZDebug::FormatPtr(const void* const in_pPtr)
+{
+    stringstream l_StringStream;
+    l_StringStream << in_pPtr;
+    return GString(L"0x") + l_StringStream.str();
+}
