@@ -411,6 +411,8 @@ void SP2::GGeneralEventHandler::HandleSetGouvernementType(GSetPlayerInfo *in_pPl
 
 bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
+
    GSetPlayerInfo *l_pSetPlayerInfo = (GSetPlayerInfo *)in_Event.get();
 
    SDK::GPlayer * l_player = g_Joshua.HumanPlayer(l_pSetPlayerInfo->m_PlayerInfo.ClientID);
@@ -494,6 +496,7 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
    g_SP2Server->SendPlayersList();
 
    // Try to start the game if its not started
+   GDZLOG(EDZLogLevel::Info1, L"g_SP2Server->GameStarted = " + GString(g_SP2Server->GameStarted()));
    if(g_SP2Server->GameStarted() == false)
    {
       g_SP2Server->TryStartGame();
@@ -501,6 +504,7 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
    else
    {
       // The game is started, if player is ready add it to the game...
+      GDZLOG(EDZLogLevel::Info1, L"l_player->PlayerStatus = " + GString(l_player->PlayerStatus()));
       if(l_player->PlayerStatus() == SDK::PLAYER_STATUS_READY)
       {
          g_SP2Server->SynchronizePlayerCountryData(*l_player, true); 
@@ -520,6 +524,7 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
 
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 

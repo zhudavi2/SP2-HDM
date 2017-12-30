@@ -1939,6 +1939,8 @@ bool GServer::CombatEngineShutdown()
 
 void GServer::TryStartGame(void)
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+
    // Get Player list
    const SDK::GPlayers & l_players = g_Joshua.HumanPlayers();
    SDK::GPlayers::const_iterator l_itrPlayer = l_players.begin();
@@ -1961,12 +1963,14 @@ void GServer::TryStartGame(void)
             l_HumanPlayersIt++)
          {
             if(l_HumanPlayersIt->second->PlayerStatus() ==  SDK::PLAYER_STATUS_READY)
-                g_SP2Server->SynchronizePlayerCountryData(*(l_HumanPlayersIt->second), false);
+                g_SP2Server->SynchronizePlayerCountryData(*(l_HumanPlayersIt->second), true);
          }
       }//end of synchronize country data
 
       StartGame();
    }
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GServer::ActivateReadyHumanPlayers(void)
@@ -2707,6 +2711,8 @@ void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, co
 
 void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool in_bSendAll) const
 {
+    GDZLOG(EDZLogLevel::Entry, L"in_Player.Id = " + GString(in_Player.Id()) + L", in_Player.ModID = " + GString(in_Player.ModID()) + L", in_bSendAll = " + GString(in_bSendAll));
+
     SDK::GGameEventSPtr l_SyncEvt = CREATE_GAME_EVENT(SP2::Event::GSynchronizeCountryData);
     //Check if the country data of that human player must be synchronized, if so, send it
     GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_Player.ModID());
@@ -2722,6 +2728,8 @@ void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool i
         l_pCountryData->m_bResourceDataDirty         = true;
         l_pCountryData->m_bOtherDataDirty            = true;
     }
+
+    GDZLOG(EDZLogLevel::Info1, L"l_pCountryData->Dirty = " + GString(l_pCountryData->Dirty()));
 
     if(in_bSendAll || l_pCountryData->Dirty())
     {
@@ -2759,6 +2767,8 @@ void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool i
 
         l_pCountryData->ClearModifications();
     }
+
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 GAnarchyConfig GServer::AnarchyConfig() const
