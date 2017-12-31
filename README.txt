@@ -1,4 +1,4 @@
-Human Development Modification (HDM) V10
+Human Development Modification (HDM) V10.0.1
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -127,6 +127,7 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous SP2-HDM releases:
+- (V10.0.1) Fixed an issue where upon loading the game, your resources window would be blank.
 - (V10) Fixed a crash that would occur in certain situations when creating a client state.
 - (V10) Fixed a crash related to calculation of nuclear military unit upkeep.
 - (V9) A player who tries and fails to attack a country, because they're fighting a non-offensive war against that country, will receive a chat notification of that fact.
