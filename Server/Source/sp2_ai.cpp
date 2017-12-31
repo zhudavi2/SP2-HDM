@@ -1107,7 +1107,15 @@ void GAI::ExamineBudgetFundings(UINT32 in_iCountryID) const
 	Memory::Fill<REAL32>(l_fImportance,1.f,EBudgetExpenses::ItemCount);
 	
     const GPoliticalParty* const l_pLeaderParty = l_pCountryData->LeaderParty();
-	REAL32 l_fMinimumPourcAllowedToArmy = 0.25f * ((l_pLeaderParty != nullptr) ? l_pLeaderParty->PoliticalIdeology() : 0.5f);
+    REAL32 l_fMinimumPourcAllowedToArmy = 0.25f;
+    if(l_pLeaderParty != nullptr)
+        l_fMinimumPourcAllowedToArmy *= l_pLeaderParty->PoliticalIdeology();
+    else
+    {
+        GDZLOG(EDZLogLevel::Error, l_pCountryData->NameAndIDForLog() + L" has no leading political party");
+        l_fMinimumPourcAllowedToArmy *= 0.5f;
+    }
+
 	if(l_pCountryData->BudgetExpenseUnitUpkeep() /  l_pCountryData->BudgetExpenses() < (REAL64)l_fMinimumPourcAllowedToArmy
 		&& !l_bIsAtWar)
 	{
