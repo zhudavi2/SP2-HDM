@@ -2231,7 +2231,17 @@ void GCountryData::CheckForCivilWar()
                         SP2::GUnitGroup* const l_pGroup = dynamic_cast<SP2::GUnitGroup*>(g_Joshua.UnitManager().UnitGroup(*l_UnitGroupIt));
                         if(l_pGroup->OwnerId() == static_cast<ENTITY_ID>(m_iCountryID))
                         {
-                            if(l_pGroup->Status() != EMilitaryStatus::Attacking)
+                            switch(l_pGroup->Status())
+                            {
+                            case EMilitaryStatus::Attacking:
+                                GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is in battle, won't switch sides");
+                                break;
+
+                            case EMilitaryStatus::InDeployement:
+                                GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is in deployment, won't switch sides");
+                                break;
+
+                            default:
                             {
                                 GDZLOG(EDZLogLevel::Info1, L"Unit group ID " + GString(*l_UnitGroupIt) + L" switches sides");
 
@@ -2251,10 +2261,8 @@ void GCountryData::CheckForCivilWar()
                                 l_UnitManager.RemoveUnitGroup(*l_UnitGroupIt);
 
                                 l_bDirtyUnitGroups = true;
+                                break;
                             }
-                            else
-                            {
-                                GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is in battle, won't switch sides");
                             }
                         }
                     }
