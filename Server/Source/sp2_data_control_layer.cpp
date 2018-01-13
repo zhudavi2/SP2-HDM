@@ -690,8 +690,13 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 															EGovernmentType::Enum in_PreviousGvtType,
 															EGovernmentType::Enum in_NewGvtType)
 {
-	if(in_PreviousGvtType == in_NewGvtType)
-		return true;
+    GDZLOG(EDZLogLevel::Entry, L"in_iCountryID = " + GString(in_iCountryID) + L", in_PreviousGvtType = " + GString(in_PreviousGvtType) + L", in_NewGvtType = " + GString(in_NewGvtType));
+
+    if(in_PreviousGvtType == in_NewGvtType)
+    {
+        GDZLOG(EDZLogLevel::Exit, L"Previous gov't type is same as new gov't type, returning true");
+        return true;
+    }
 
 	GCountryData* l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
 	const vector<GPoliticalParty>& l_vParties = l_pCountryData->PoliticalParty();
@@ -707,8 +712,11 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 		if(l_iNumberDem <= 1)
 		{
 			in_NewGvtType = EGovernmentType::SinglePartyDemocracy;
-			if(in_PreviousGvtType == EGovernmentType::SinglePartyDemocracy)
-				return false;
+            if(in_PreviousGvtType == EGovernmentType::SinglePartyDemocracy)
+            {
+                GDZLOG(EDZLogLevel::Exit, L"Single-party democracy trying to change to multi-party but has only one party, returning false");
+                return false;
+            }
 		}
 		
 	}
@@ -735,7 +743,7 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 
 	if(in_NewGvtType != EGovernmentType::Anarchy)
 	{
-		LogNewAction(L"Country ID: (" + GString(in_iCountryID) + L") changes government type from " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(in_PreviousGvtType)) + L" to " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(in_NewGvtType)) + L".");
+        GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" changes government type from " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(in_PreviousGvtType)) + L" to " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(in_NewGvtType)) + L".");
 
 		vector<INT32> l_vNumbers;
 		vector<INT32> l_vStrings;
@@ -761,15 +769,12 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 		{	
 			l_pCountryData->PoliticalPartyChangeStatus(l_vParties[i].Id(),1);
 		}
-		
-		//Country lose some stability (20%)
-		if(in_PreviousGvtType != EGovernmentType::Anarchy)
-			ChangeCountryStability(in_iCountryID,SP2::c_fStabilityLossGvtType,false);
 
 		//Country will change its political party
-		l_pCountryData->LeadingPoliticalPartyID(l_pCountryData->LeadingPoliticalPartyOfType(in_NewGvtType));
+        const INT32 l_iLeadingPartyId = l_pCountryData->LeadingPoliticalPartyOfType(in_NewGvtType);
+        GDZLOG(EDZLogLevel::Info1, L"Leading political party ID = " + GString(l_iLeadingPartyId));
+		l_pCountryData->LeadingPoliticalPartyID(l_iLeadingPartyId);
 				
-		INT32 l_iLeadingPartyId = l_pCountryData->LeadingPoliticalPartyID();		
 		for(UINT32 i=0; i<l_vParties.size(); i++)
 		{		
 			INT32 l_iCurrentId = l_vParties[i].Id();
@@ -815,7 +820,7 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
 	}
 	else
 	{
-		LogNewAction(L"Country ID: (" + GString(in_iCountryID) + L") has fallen into anarchy.");
+      GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" has fallen into anarchy.");
 
       //Send a news ticker
       {
@@ -838,6 +843,12 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
                                    EHistoryMarkerType::ChangeGovermentType, 
                                    (REAL32) g_ServerDAL.StringIdGvtType(in_NewGvtType) );
 
+    //Country lose some stability (20%) if not transitioning to or from anarchy
+    //Check stability loss after sending chat message, because stability loss could lead to automatic anarchy, and we want the gov't type change messages to be in order
+    if(in_PreviousGvtType != EGovernmentType::Anarchy && in_NewGvtType != EGovernmentType::Anarchy)
+        ChangeCountryStability(in_iCountryID, SP2::c_fStabilityLossGvtType, false);
+
+    GDZLOG(EDZLogLevel::Exit, L"Returning true");
 	return true;
 }
 
@@ -5564,17 +5575,13 @@ void GDataControlLayer::LoseRelationsWarDeclaration(UINT32 in_iCountryDeclaringW
 		l_fChangeOfRelations = l_fRelationsTowardAttacker - l_fRelationsTowardTarget;
 
         const GPoliticalParty* const l_pLeaderParty = l_pObserver->LeaderParty();
-        if(l_pLeaderParty != nullptr)
-        {
-            REAL32 l_fPoliticIdeology = l_pLeaderParty->PoliticalIdeology();
-            if(l_fPoliticIdeology >= 0.5f)
-                l_fChangeOfRelations *= (l_fPoliticIdeology * 2.f);
-            else
-                l_fChangeOfRelations *= (l_fPoliticIdeology + 0.5f);
-        }
+        gassert(l_pLeaderParty != nullptr, l_pObserver->NameAndIDForLog() + L" has invalid leader party " + GString(l_pObserver->LeadingPoliticalPartyID()) + L", government type " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(l_pObserver->GvtType())));
+
+        REAL32 l_fPoliticIdeology = l_pLeaderParty->PoliticalIdeology();
+        if(l_fPoliticIdeology >= 0.5f)
+            l_fChangeOfRelations *= (l_fPoliticIdeology * 2.f);
         else
-            //#91, l_pObserver->LeaderParty() sometimes returns nullptr when in anarchy, sometimes returns valid party
-            GDZLOG(EDZLogLevel::Error, l_pObserver->NameAndIDForLog() + L" has invalid leader party " + GString(l_pObserver->LeadingPoliticalPartyID()) + L", government type " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(l_pObserver->GvtType())));
+            l_fChangeOfRelations *= (l_fPoliticIdeology + 0.5f);
 
 		//Then, we must use the relations between the 2 countries attacking each other
 		l_fChangeOfRelations -= (l_fRelationsAttackerTarget * l_fEconomicStrengthObserver) ;

@@ -28,12 +28,20 @@ SP2::GPoliticEventHandler::~GPoliticEventHandler()
 
 bool SP2::GPoliticEventHandler::HandleUpdateConstitutionalForm(SDK::GGameEventSPtr in_Event)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
+
    //Get the game event and the player from who it's coming     
    SP2::Event::GConstitutionalFormUpdate* l_pConstitutionalFormUpdateEvent = (SP2::Event::GConstitutionalFormUpdate*)in_Event.get();
    
    SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayer(l_pConstitutionalFormUpdateEvent->m_iSource);
    if(!l_pPlayer)
+   {
+      GDZLOG(EDZLogLevel::Error, L"Nonexistent player object for ID " + GString(l_pConstitutionalFormUpdateEvent->m_iSource));
+      GDZLOG(EDZLogLevel::Exit, L"Returning false");
       return false;
+   }
+
+   GDZLOG(EDZLogLevel::Info1, L"l_pConstitutionalFormUpdateEvent->GetData = " + GString(l_pConstitutionalFormUpdateEvent->GetData));
 
    if(!l_pConstitutionalFormUpdateEvent->GetData)
    {
@@ -44,6 +52,7 @@ bool SP2::GPoliticEventHandler::HandleUpdateConstitutionalForm(SDK::GGameEventSP
 
       // TODO : Make sure GvtType is valid
       GCountryData* l_Data = g_ServerDAL.CountryData(l_iCountryId);
+      GDZLOG(EDZLogLevel::Info1, l_Data->NameAndIDForLog());
       
       if(l_iGvtType != l_Data->GvtType())
 		{
@@ -85,6 +94,7 @@ bool SP2::GPoliticEventHandler::HandleUpdateConstitutionalForm(SDK::GGameEventSP
       g_Joshua.RaiseEvent(in_Event);
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 
