@@ -3742,7 +3742,9 @@ bool GDataControlLayer::ChangeCountryStability(ENTITY_ID in_iCountryID, REAL32 i
             l_fStability   > (l_AnarchyConfig.m_fStabilityLowerLimit - l_fBonus))
 	{
         gassert(l_pCountryData->GvtType() == EGovernmentType::Anarchy, l_pCountryData->NameAndIDForLog() + L" isn't in anarchy but is eligible to leave anarchy");
-		ChangeGovernmentType(in_iCountryID, EGovernmentType::Anarchy, l_pCountryData->LeaderParty()->GvtType());
+        const EGovernmentType::Enum l_eLeaderPartyGvtType = l_pCountryData->LeaderParty()->GvtType();
+        if(l_eLeaderPartyGvtType != EGovernmentType::Anarchy)
+		    ChangeGovernmentType(in_iCountryID, EGovernmentType::Anarchy, l_eLeaderPartyGvtType);
 	}	
 
 	g_ServerDAL.CountryData(in_iCountryID)->GvtStability(l_fStability);
