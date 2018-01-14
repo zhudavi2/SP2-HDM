@@ -67,18 +67,28 @@ void GDataControlLayer::IterateCountryControl()
    REAL64 l_fTime = g_Joshua.GameTime();
 
    // Verify each ongoing annexion to see if it is complete
-   hash_map<UINT32, GRegionAnnex>::const_iterator l_It = g_ServerDAL.Annexes().begin();
+   // Make a copy of the ongoing annexations in case one of them gets cancelled during iteration, invalidating the iterators
+   const hash_map<UINT32, GRegionAnnex>& l_mReferenceAnnexations = g_ServerDAL.Annexes();
+   const hash_map<UINT32, GRegionAnnex> l_mAnnexations = l_mReferenceAnnexations;
    vector<UINT32> l_vCompleteAnnex;
-   while(l_It != g_ServerDAL.Annexes().end() )
+   for(auto l_It = l_mAnnexations.cbegin(); l_It != l_mAnnexations.cend(); ++l_It)
    {
-      const GRegionAnnex& l_Annex = l_It->second;
-      if(l_Annex.m_iCompletionTime < l_fTime)
-      {
-         // Annex is complete, update political control
-         ChangeRegionPoliticalControl(l_Annex.m_iAnnexedRegion, l_Annex.m_iAnnexingCountry);
-         l_vCompleteAnnex.push_back(l_Annex.m_iAnnexedRegion);
-      }
-      ++ l_It;
+       const GRegionAnnex& l_Annex = l_It->second;
+       // Check against reference one last time, in case any annexation really was cancelled while we were iterating
+       if(l_mReferenceAnnexations.count(l_It->first) > 0)
+       {
+           if(l_Annex.m_iCompletionTime < l_fTime)
+           {
+               // Annex is complete, update political control
+               ChangeRegionPoliticalControl(l_Annex.m_iAnnexedRegion, l_Annex.m_iAnnexingCountry);
+               l_vCompleteAnnex.push_back(l_Annex.m_iAnnexedRegion);
+           }
+       }
+       else
+       {
+           const GRegionEx* const l_pRegion = g_ServerDAL.GetGRegion(l_Annex.m_iAnnexedRegion);
+           GDZLOG(EDZLogLevel::Warning, g_ServerDAL.CountryData(l_Annex.m_iAnnexingCountry)->NameAndIDForLog() + L"'s annexation of " + l_pRegion->NameForLog() + L" of " + g_ServerDAL.CountryData(l_pRegion->OwnerId())->NameAndIDForLog() + L" was cancelled during annexation iteration");
+       }
    }
 
    // Remove all completed annexion
