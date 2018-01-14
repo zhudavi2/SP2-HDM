@@ -1,4 +1,4 @@
-Human Development Modification (HDM) V10.0.1
+Human Development Modification (HDM) V10.0.2
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -127,6 +127,9 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous SP2-HDM releases:
+- (V10.0.2) Fixed an occasional crash while annexations are occurring in contested regions. (Issue #94)
+- (V10.0.2) During civil war, units in deployment or transit will no longer defect; fixes some related crashes.
+- (V10.0.2) Fixed an occasional crash upon a country leaving anarchy when stability-based anarchy is enabled. (Issue #91)
 - (V10.0.1) Fixed an issue where upon loading the game, your resources window would be blank.
 - (V10) Fixed a crash that would occur in certain situations when creating a client state.
 - (V10) Fixed a crash related to calculation of nuclear military unit upkeep.
@@ -161,12 +164,15 @@ Fixes to SP2 V1.5.1 issues:
 - High government approval and stability now decrease your emigration rate instead of increasing it.
 - A country can no longer (net) export more of a resource than its own production of that resource.
 
+Other notes:
+- Saved games created in SP2 V1.5.1 are not compatible with HDM, and saved games created in HDM are not compatible with SP2 V1.5.1.
+
 Known issues and possible future changes:
 - Please see https://github.com/zhudavi2/SP2-HDM/issues.
 
 SDK notes:
 - The source code is at https://github.com/zhudavi2/SP2-HDM.
-- The includes/RGAPI and lib folders, that come with the SDK, are not on GitHub; you must provide your own. The RGAPI and lib files were not modified in making SP2-HDM.
+- The includes/RGAPI and lib folders, that come with the SDK, are not on GitHub; you must provide your own. The RGAPI and lib files were not modified in making the mod.
 - The "Debug_In_Release" and "Release" build configurations are known to build correctly and produce working DLLs.
 - A Post-Build Event will automatically copy the built DLL to a default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder.
 - The Release DLL is included with each commit for those interested in testing out the latest changes.
@@ -178,6 +184,6 @@ SDK notes:
 Credits:
 - Fenix/memento mori for code suggestions, support, and testing help.
 - awolfska for testing help.
-- BlueS3xy`=;], IceyVVind, Illuminati, Mr Monday, p2, Radu, Slajavck, Tannman, The Patriot, thereversedguy, and ZDisket for suggestions and support.
+- BlueS3xy`=;], IceyVVind, Illuminati, Mr Monday, p2, Paco Jiangxi Dandong, Radu, Slajavck, Tannman, The Patriot, thereversedguy, and ZDisket for suggestions and support.
 - Many more people on the HDM discussion thread and the SP2 Discussion forum.
 - Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.
