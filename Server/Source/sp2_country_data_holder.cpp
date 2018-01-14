@@ -2233,12 +2233,16 @@ void GCountryData::CheckForCivilWar()
                         {
                             switch(l_pGroup->Status())
                             {
-                            case EMilitaryStatus::Attacking:
-                                GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is in battle, won't switch sides");
+                            case EMilitaryStatus::Moving:
+                                GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is moving, won't switch sides");
                                 break;
 
                             case EMilitaryStatus::InDeployement:
                                 GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is in deployment, won't switch sides");
+                                break;
+
+                            case EMilitaryStatus::Attacking:
+                                GDZLOG(EDZLogLevel::Warning, L"Unit group ID " + GString(*l_UnitGroupIt) + L" is in battle, won't switch sides");
                                 break;
 
                             default:
