@@ -505,7 +505,7 @@ bool GDataControlLayer::ChangeRegionPoliticalControl(const UINT32 in_iRegionID,
        }
    }
 
-   // Test if region owner change has destroyed a country
+   // Test if region owner change causes a country to be conquered
    if(g_ServerDAL.CountryPoliticalControl(l_CurrentControl.m_iPolitical).empty() )
    {
       g_ServerDAL.DestroyCountryEntity(l_CurrentControl.m_iPolitical, in_iNewControl);

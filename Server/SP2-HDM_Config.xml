@@ -103,6 +103,11 @@
   2 allows you to change your country name via the Covert Actions New Cell window, as in 1. You may change your player name via the Game Lobby, but only before you enter the game. After you enter the game, you may change your player name via the New Cell window in the same way as country name, but with "PLAYER" and a space before your desired player name, instead of "NAME" and a space. For example, if you type "PLAYER Player One", then your player name will change to "Player One". When you are in the game, your Game Lobby name text box may display your Game Options player name, but your current player name will display correctly in chat.
   Default is 2. -->
   <countryNameChangeMode>2</countryNameChangeMode>
+  
+  <!-- Set to 0 to allow countries without regions to remain in existence.
+  Big-time Conqueror achievement is unaffected.
+  Allowed values are 0 and 1. Default is 1. -->
+  <countryNeedsRegions>1</countryNeedsRegions>
 
   <!-- For dedicated servers, the game autosaves every time this number of
   minutes have passed.

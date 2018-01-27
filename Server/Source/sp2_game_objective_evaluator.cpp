@@ -780,7 +780,7 @@ EObjectiveStatus::Enum GGameObjectiveEvaluator::EvalBeAnnexed(SDK::GPlayer* in_p
    //That objective cant timeout
    
    //Country without region with political control is game over
-   if(g_ServerDAL.CountryPoliticalControl(in_pPlayer->ModID()).empty())
+   if(g_SP2Server->CountryNeedsRegions() && g_ServerDAL.CountryPoliticalControl(in_pPlayer->ModID()).empty())
       return EObjectiveStatus::Reached;
    else
       return EObjectiveStatus::NotReached;

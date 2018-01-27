@@ -166,6 +166,9 @@ namespace SP2
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
       inline bool    ContinueAfterEconomicFailure() const { return m_bContinueAfterEconomicFailure; }
       inline INT32   CountryNameChangeMode() const { return m_iCountryNameChangeMode; }
+
+      bool CountryNeedsRegions() const;
+
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
       inline bool    DisbandAMDSOnOccupy() const { return m_bDisbandAMDSOnOccupy; }
       inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
@@ -314,6 +317,7 @@ namespace SP2
       REAL32 m_fCombatThresholdSquare;
       bool   m_bContinueAfterEconomicFailure;
       INT32  m_iCountryNameChangeMode;
+      bool   m_bCountryNeedsRegions;
       REAL32 m_fDedicatedServerAutosavePeriod;
       bool   m_bDedicatedServerAutosaveToJoshuaFolder;
       bool   m_bDisableNuclearOnOccupy;

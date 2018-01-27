@@ -1698,220 +1698,221 @@ void GDataAccessLayerServer::DestroyCountryEntity(UINT32 in_iCountryID, UINT32 i
 	//Clear Unit production for that country
 	g_ServerDCL.ClearUnitProductionForCountry(in_iCountryID);
 
-   //For every existing arena, check if we are in a fight, 
-   //if so retreat the units so they can be destroyed cleanly
+    const bool l_bNeedsRegions = g_SP2Server->CountryNeedsRegions();
+
+    //Clear the units in deployment
+    g_ServerDCL.UnitMover().ClearDeploymentListForCountry(in_iCountryID, l_bNeedsRegions);
+
+    // remove nuclear missiles of our country
+    vector<GNuclearMissile> l_vEmptyList; l_vEmptyList.clear();
+    m_pCountryData[in_iCountryID].NuclearMissilesSet(ENuclearMissileType::Standard, l_vEmptyList);
+    m_pCountryData[in_iCountryID].NuclearMissilesSet(ENuclearMissileType::OnSubmarines, l_vEmptyList);
+
+   if(l_bNeedsRegions)
    {
-      const vector<SDK::Combat::GArena*>& l_vArenas = g_CombatManager.Arenas();
-      for(UINT32 i = 0 ; i < l_vArenas.size() ; i++)
-      {
-         SP2::GArena*     l_pArena      = (SP2::GArena*)l_vArenas[i];
-         SP2::GArenaInfo* l_pArenaInfo = (SP2::GArenaInfo*)l_pArena->Info();
-         //Check if we are in the fight
-         if(l_pArenaInfo->Actor(in_iCountryID))
-         {
-            // Move the unit just beside
+       //For every existing arena, check if we are in a fight, 
+       //if so retreat the units so they can be destroyed cleanly
+       const vector<SDK::Combat::GArena*>& l_vArenas = g_CombatManager.Arenas();
+       for(UINT32 i = 0 ; i < l_vArenas.size() ; i++)
+       {
+           SP2::GArena*     l_pArena      = (SP2::GArena*)l_vArenas[i];
+           SP2::GArenaInfo* l_pArenaInfo = (SP2::GArenaInfo*)l_pArena->Info();
+           //Check if we are in the fight
+           if(l_pArenaInfo->Actor(in_iCountryID))
+           {
+               // Move the unit just beside
 
-            //retreat the units
-            g_ServerDCL.RetreatCountryFromCombat(l_pArena,in_iCountryID);
-         }
-      }
-   }
+               //retreat the units
+               g_ServerDCL.RetreatCountryFromCombat(l_pArena,in_iCountryID);
+           }
+       }
 
-	//Clear the units in deployment
-	g_ServerDCL.UnitMover().ClearDeploymentListForCountry(in_iCountryID);
+       //Removing all the units for that country
+       const set<UINT32>& l_CountryGroups = g_Joshua.UnitManager().CountryUnitGroups(in_iCountryID);
+       while(l_CountryGroups.size())
+       {
+           //Remove all the units of the group
+           SP2::GUnitGroupEx* l_pGroup = (SP2::GUnitGroupEx*)g_Joshua.UnitManager().UnitGroup(*l_CountryGroups.begin());
+           gassert(l_pGroup,"GDataAccessLayerServer::DestroyCountryEntity(): Trying to remove an invalid unit group");
+           while(l_pGroup->Units().size())
+           {
+               UINT32 l_iUnitID = (*l_pGroup->Units().begin())->Id();
+               if(g_ServerDCL.IsUnitForSale(l_iUnitID))
+                   g_ServerDCL.SellUnit(l_iUnitID);
+               if(g_ServerDCL.UnitMover().IsUnitInTraining(l_iUnitID))
+                   g_ServerDCL.UnitMover().CancelTraining(l_iUnitID);
+               g_Joshua.UnitManager().KillUnit((*l_pGroup->Units().begin())->Id(),false);
+           }
+           g_Joshua.UnitManager().RemoveUnitGroup(*l_CountryGroups.begin());
+       }
 
-   //Removing all the units for that country
-   {
-      const set<UINT32>& l_CountryGroups = g_Joshua.UnitManager().CountryUnitGroups(in_iCountryID);
-      while(l_CountryGroups.size())
-      {        
-         //Remove all the units of the group
-         SP2::GUnitGroupEx* l_pGroup = (SP2::GUnitGroupEx*)g_Joshua.UnitManager().UnitGroup(*l_CountryGroups.begin());			
-			gassert(l_pGroup,"GDataAccessLayerServer::DestroyCountryEntity(): Trying to remove an invalid unit group");
-         while(l_pGroup->Units().size())
-         {
-				UINT32 l_iUnitID = (*l_pGroup->Units().begin())->Id();
-				if(g_ServerDCL.IsUnitForSale(l_iUnitID))
-					g_ServerDCL.SellUnit(l_iUnitID);
-				if(g_ServerDCL.UnitMover().IsUnitInTraining(l_iUnitID))
-					g_ServerDCL.UnitMover().CancelTraining(l_iUnitID);				
-            g_Joshua.UnitManager().KillUnit((*l_pGroup->Units().begin())->Id(),false);
-         }         
-         g_Joshua.UnitManager().RemoveUnitGroup(*l_CountryGroups.begin());
-      }
-   }//end of removing all the units for that country
+       m_pCountryValidityArray[in_iCountryID] = false;
 
-   // remove nuclear missiles of our country
-   vector<GNuclearMissile> l_vEmptyList; l_vEmptyList.clear();
-   m_pCountryData[in_iCountryID].NuclearMissilesSet(ENuclearMissileType::Standard,     l_vEmptyList);
-   m_pCountryData[in_iCountryID].NuclearMissilesSet(ENuclearMissileType::OnSubmarines, l_vEmptyList);
+       m_pCountryData[in_iCountryID].Activated(false);
 
-   m_pCountryValidityArray[in_iCountryID] = false;
-	
-	m_pCountryData[in_iCountryID].Activated(false);
+       //Remove this country from every existing treaty
+       set<UINT32> l_TreatiesToRemove;
+       for(hash_map<UINT32,GTreaty>::iterator l_Itr = m_Treaties.begin();
+           l_Itr != m_Treaties.end();
+           l_Itr++)
+       {
+           l_TreatiesToRemove.insert(l_Itr->first);
+       }
 
-	//Remove this country from every existing treaty
-	set<UINT32> l_TreatiesToRemove;
-	for(hash_map<UINT32,GTreaty>::iterator l_Itr = m_Treaties.begin();
-		 l_Itr != m_Treaties.end();
-		 l_Itr++)
-	{
-		l_TreatiesToRemove.insert(l_Itr->first);		
-	}	
+       for(set<UINT32>::iterator it = l_TreatiesToRemove.begin();
+           it != l_TreatiesToRemove.end(); it++)
+       {
+           if(!m_Treaties[(*it)].SideBCanLeave() && m_Treaties[(*it)].CountrySide(in_iCountryID) == 2)
+           {
+               RemoveTreaty(*it);
+               m_DecisionHistory.erase(*it);
+           }
+           g_ServerDCL.LeaveTreaty(in_iCountryID,*it,true);
+       }
 
-	for(set<UINT32>::iterator it = l_TreatiesToRemove.begin();
-		 it != l_TreatiesToRemove.end(); it++)
-	{
-		if(!m_Treaties[(*it)].SideBCanLeave() && m_Treaties[(*it)].CountrySide(in_iCountryID) == 2)
-		{
-			RemoveTreaty(*it);      
-			m_DecisionHistory.erase(*it);
-		}
-		g_ServerDCL.LeaveTreaty(in_iCountryID,*it,true);
-	}
+       //Remove war status of that country against other countries
+       set<UINT32> l_vCountriesAtWar;
+       IsAtWarWith(in_iCountryID,l_vCountriesAtWar);
+       for(set<UINT32>::const_iterator l_Itr = l_vCountriesAtWar.begin();
+           l_Itr != l_vCountriesAtWar.end();
+           l_Itr++)
+       {
+           RemoveWarStatus(in_iCountryID,*l_Itr);
+       }
 
-	//Remove war status of that country against other countries
-	set<UINT32> l_vCountriesAtWar;
-	IsAtWarWith(in_iCountryID,l_vCountriesAtWar);
-	for(set<UINT32>::const_iterator l_Itr = l_vCountriesAtWar.begin();
-		 l_Itr != l_vCountriesAtWar.end();
-		 l_Itr++)
-	{
-		RemoveWarStatus(in_iCountryID,*l_Itr);	
-	}
+       //Remove the country from current wars
+       set<UINT32> l_WarsToLeave;
+       set<UINT32> l_WarsToChangeOpinion;
+       const hash_map<UINT32,GWar>& l_Wars = g_ServerDAL.CurrentWars();
+       for(hash_map<UINT32,GWar>::const_iterator it = l_Wars.begin();
+           it != l_Wars.end(); it++)
+       {
+           const GWar& l_CurWar = it->second;
+           if(l_CurWar.MasterAttacking() == in_iCountryID ||
+               l_CurWar.MasterDefending() == in_iCountryID)
+           {
+               l_WarsToChangeOpinion.insert(it->first);
+           }
+           else if(l_CurWar.AttackingSide().count(in_iCountryID) == 1 ||
+               l_CurWar.DefendingSide().count(in_iCountryID) == 1)
+           {
+               l_WarsToLeave.insert(it->first);
+           }
+       }
 
-	//Remove the country from current wars
-	set<UINT32> l_WarsToLeave;
-	set<UINT32> l_WarsToChangeOpinion;
-	const hash_map<UINT32,GWar>& l_Wars = g_ServerDAL.CurrentWars();
-	for(hash_map<UINT32,GWar>::const_iterator it = l_Wars.begin();
-		 it != l_Wars.end(); it++)
-	{
-		const GWar& l_CurWar = it->second;
-		if(l_CurWar.MasterAttacking() == in_iCountryID || 
-			l_CurWar.MasterDefending() == in_iCountryID)
-		{
-			l_WarsToChangeOpinion.insert(it->first);			
-		}
-		else if(l_CurWar.AttackingSide().count(in_iCountryID) == 1 ||
-				  l_CurWar.DefendingSide().count(in_iCountryID) == 1)
-		{
-			l_WarsToLeave.insert(it->first);			
-		}
-	}
+       for(set<UINT32>::iterator it = l_WarsToChangeOpinion.begin();
+           it != l_WarsToChangeOpinion.end(); it++)
+       {
+           UINT32 l_iMasterDefending = m_CurrentWars[*it].MasterDefending();
+           UINT32 l_iMasterAttacking = m_CurrentWars[*it].MasterAttacking();
+           g_ServerDCL.ChangeOpinionOnWar(l_iMasterDefending,*it,true);
+           g_ServerDCL.ChangeOpinionOnWar(l_iMasterAttacking,*it,true);
+       }
 
-	for(set<UINT32>::iterator it = l_WarsToChangeOpinion.begin();
-		 it != l_WarsToChangeOpinion.end(); it++)
-	{
-		UINT32 l_iMasterDefending = m_CurrentWars[*it].MasterDefending();
-		UINT32 l_iMasterAttacking = m_CurrentWars[*it].MasterAttacking();
-		g_ServerDCL.ChangeOpinionOnWar(l_iMasterDefending,*it,true);
-		g_ServerDCL.ChangeOpinionOnWar(l_iMasterAttacking,*it,true);
-	}	
+       for(set<UINT32>::iterator it = l_WarsToLeave.begin();
+           it != l_WarsToLeave.end(); it++)
+       {
+           g_ServerDCL.LeaveWar(in_iCountryID, *it);
+       }
 
-	for(set<UINT32>::iterator it = l_WarsToLeave.begin();
-		 it != l_WarsToLeave.end(); it++)
-	{
-		g_ServerDCL.LeaveWar(in_iCountryID, *it);
-	}
-	
-	//Calculate the economic, politic, and militar ranks, without this country
-	CalculateCountryInfo();
+       //Make sure that no covert action cell is found in a deactivated country
+       {
+           //For every country, check its cells and if the cell is in a country that is 
+           //annexed, set its assigned country to the conqueror country id
+           if(in_iConquerorID == 0)
+           {
+               vector<GCovertActionCell>& l_vCells = CountryData(in_iCountryID)->CovertActionCells();
+               while(!l_vCells.empty())
+               {
+                   GCovertActionCell& l_Cell = l_vCells.back();
+                   CountryData(in_iCountryID)->RemoveCovertActionCell(l_Cell);
+               }
+           }
+           else
+           {
+               UINT32 l_iNbCountry = NbCountry();
+               for(UINT32 i = 1 ; i <= l_iNbCountry ; i++)
+               {
+                   GCountryData& l_CountryData = m_pCountryData[i];
+                   vector<GCovertActionCell>& l_vCells = l_CountryData.CovertActionCells();
+                   for(UINT32 j = 0 ; j < l_vCells.size() ; j++)
+                   {
+                       const UINT32 l_iCellID = l_vCells[j].ID();
+                       const GCountryData& l_ConquerorData = m_pCountryData[in_iConquerorID];
 
-   //Make sure that no covert action cell is found in a deactivated country
-   {
-      //For every country, check its cells and if the cell is in a country that is 
-      //annexed, set its assigned country to the conqueror country id
-      if(in_iConquerorID == 0)
-		{
-			vector<GCovertActionCell>& l_vCells = CountryData(in_iCountryID)->CovertActionCells();
-			while(!l_vCells.empty())
-			{
-				GCovertActionCell& l_Cell = l_vCells.back();
-				CountryData(in_iCountryID)->RemoveCovertActionCell(l_Cell);
-			}
-		}
-		else
-		{
-			UINT32 l_iNbCountry = NbCountry();
-			for(UINT32 i = 1 ; i <= l_iNbCountry ; i++)
-			{
-                GCountryData& l_CountryData = m_pCountryData[i];
-				vector<GCovertActionCell>& l_vCells = l_CountryData.CovertActionCells();
-				for(UINT32 j = 0 ; j < l_vCells.size() ; j++)
-				{
-                    const UINT32 l_iCellID = l_vCells[j].ID();
-                    const GCountryData& l_ConquerorData = m_pCountryData[in_iConquerorID];
+                       if(l_vCells[j].AssignedCountry() == in_iCountryID &&
+                           l_vCells[j].ActualState() != ECovertActionsCellState::InTransit)
+                       {
+                           //Cancel missions against conquered country
+                           switch(l_vCells[j].ActualState())
+                           {
+                           case ECovertActionsCellState::PreparingMission:
+                           case ECovertActionsCellState::ReadyToExecute:
+                               GDZLOG(EDZLogLevel::Info1, l_CountryData.NameAndIDForLog() + L" is cancelling a mission by cell " + CovertCellInfoForLog(i, l_iCellID) + L" against " + GString(in_iCountryID) + L" due to target inactivity");
+                               l_vCells[j].CancelAction();
+                               break;
 
-					if(l_vCells[j].AssignedCountry() == in_iCountryID &&
-                       l_vCells[j].ActualState() != ECovertActionsCellState::InTransit)
-					{	
-                        //Cancel missions against conquered country
-                        switch(l_vCells[j].ActualState())
-                        {
-                        case ECovertActionsCellState::PreparingMission:
-                        case ECovertActionsCellState::ReadyToExecute:
-                            GDZLOG(EDZLogLevel::Info1, l_CountryData.NameAndIDForLog() + L" is cancelling a mission by cell " + CovertCellInfoForLog(i, l_iCellID) + L" against " + GString(in_iCountryID) + L" due to target inactivity");
-                            l_vCells[j].CancelAction();
-                            break;
+                           default:
+                               break;
+                           }
 
-                        default:
-                            break;
-                        }
+                           GDZLOG(EDZLogLevel::Info1, l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be reassigned from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity");
 
-                        GDZLOG(EDZLogLevel::Info1, l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be reassigned from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity");
+                           l_vCells[j].AssignedCountry(in_iConquerorID);
+                           l_CountryData.FlagCovertActionsCellsAsDirty();
+                       }
+                       else if(l_vCells[j].NextAssignedCountry() == in_iCountryID)
+                       {
+                           GDZLOG(EDZLogLevel::Info1, l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be redirected from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity");
 
-						l_vCells[j].AssignedCountry(in_iConquerorID);
-                        l_CountryData.FlagCovertActionsCellsAsDirty();
-					}
-                    else if(l_vCells[j].NextAssignedCountry() == in_iCountryID)
-                    {
-                        GDZLOG(EDZLogLevel::Info1, l_CountryData.NameAndIDForLog() + L"'s cell " + CovertCellInfoForLog(i, l_iCellID) + L" will be redirected from " + GString(in_iCountryID) + L" to " + l_ConquerorData.NameAndIDForLog() + L" due to target inactivity");
+                           l_vCells[j].NextAssignedCountry(in_iConquerorID);
+                           l_CountryData.FlagCovertActionsCellsAsDirty();
+                       }
+                   }
 
-                        l_vCells[j].NextAssignedCountry(in_iConquerorID);
-                        l_CountryData.FlagCovertActionsCellsAsDirty();
-                    }
-				}	
+                   //Recalculate national security if conqueror's cells were in the conquered country
+                   if(i == in_iConquerorID)
+                       l_CountryData.NationalSecurity(g_ServerDCL.FindNationalSecurity(i));
+               }
+           }
+       }
 
-                //Recalculate national security if conqueror's cells were in the conquered country
-                if(i == in_iConquerorID)
-                    l_CountryData.NationalSecurity(g_ServerDCL.FindNationalSecurity(i));
-			}
-		}
-   }
+       // Give back military control to their current political control
+       {
+           const set<UINT32>& l_MilitaryControl = CountryMilitaryControl(in_iCountryID);
+           list<UINT32> l_RegionsToGiveBack(l_MilitaryControl.begin(), l_MilitaryControl.end() );
 
-   // Give back military control to their current political control
-   {
-      const set<UINT32>& l_MilitaryControl = CountryMilitaryControl(in_iCountryID); 
-      list<UINT32> l_RegionsToGiveBack(l_MilitaryControl.begin(), l_MilitaryControl.end() );
+           for(list<UINT32>::const_iterator it = l_RegionsToGiveBack.begin();
+               it != l_RegionsToGiveBack.end();++ it)
+           {
+               g_ServerDCL.ChangeRegionMilitaryControl(*it, RegionControl(*it).m_iPolitical, false);
+           }
+       }
 
-      for(list<UINT32>::const_iterator it = l_RegionsToGiveBack.begin();
-          it != l_RegionsToGiveBack.end();++ it)
-      {
-         g_ServerDCL.ChangeRegionMilitaryControl(*it, RegionControl(*it).m_iPolitical, false);
-      }
-   }
-
-   //No longer a client of its master
-   {
-       gassert(m_pCountryData[in_iCountryID].Clients().size() == 0,
+       //No longer a client of its master
+       {
+           gassert(m_pCountryData[in_iCountryID].Clients().size() == 0,
                m_pCountryData[in_iCountryID].NameAndIDForLog() + L" " +
                L"should've had its clients removed when it left its treaties");
 
-       const auto l_Master = m_pCountryData[in_iCountryID].Master();
-       if(l_Master.first != 0)
-           g_ServerDCL.LeaveTreaty(l_Master.first, l_Master.second, true);
-   }
+           const auto l_Master = m_pCountryData[in_iCountryID].Master();
+           if(l_Master.first != 0)
+               g_ServerDCL.LeaveTreaty(l_Master.first, l_Master.second, true);
+       }
 
-   // Prepare a game event to inform all clients of the country "Disapearance"
-   {
-      SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GConquerCountry);
-      SP2::Event::GConquerCountry* l_ConquerEvent = (SP2::Event::GConquerCountry*) (l_Event.get() );
-      l_ConquerEvent->m_iConqeredID = in_iCountryID;
-      l_ConquerEvent->m_iConqueringID = in_iConquerorID;
-      l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
-      l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
-      g_Joshua.RaiseEvent(l_Event);	
+       //Calculate the economic, politic, and militar ranks, without this country
+       CalculateCountryInfo();
+
+       // Prepare a game event to inform all clients of the country being conquered
+       {
+           SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GConquerCountry);
+           SP2::Event::GConquerCountry* l_ConquerEvent = (SP2::Event::GConquerCountry*) (l_Event.get());
+           l_ConquerEvent->m_iConqeredID = in_iCountryID;
+           l_ConquerEvent->m_iConqueringID = in_iConquerorID;
+           l_Event->m_iSource = SDK::Event::ESpecialTargets::Server;
+           l_Event->m_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers;
+           g_Joshua.RaiseEvent(l_Event);
+       }
    }
 
    //test achievement

@@ -1773,18 +1773,6 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 
 	if(!m_CountryData->Activated()) 
 		return false;
-	else
-	{
-		//Check if the countr is really activated
-		const set<UINT32>& l_PoliticalRegions = g_ServerDAL.CountryPoliticalControl(in_iCountryID);
-		const set<UINT32>& l_MilitaryRegions = g_ServerDAL.CountryMilitaryControl(in_iCountryID);
-		if(l_PoliticalRegions.size() == 0 &&
-			l_MilitaryRegions.size() == 0)
-		{
-			g_ServerDAL.DestroyCountryEntity(in_iCountryID,0);
-			return false;
-		}
-	}
 	
     GDZLOG(EDZLogLevel::Info2, m_CountryData->NameAndIDForLog());
 

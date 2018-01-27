@@ -1348,7 +1348,7 @@ void GUnitMover::IterateUnitsInTraining(void)
    }
 }
 
-void GUnitMover::ClearDeploymentListForCountry(UINT32 in_iCountry)
+void GUnitMover::ClearDeploymentListForCountry(const UINT32 in_iCountry, const bool in_bDestroyProductionQueue)
 {
 	list<GUnitGroupInDeployement>* l_pListOfGroupInDeployement = &(m_vGroupsInDeployement[in_iCountry-1] );
 	set<UINT32> l_GroupIDToCancel;
@@ -1365,7 +1365,8 @@ void GUnitMover::ClearDeploymentListForCountry(UINT32 in_iCountry)
 		CancelDeployement( (SP2::GUnitGroup*)g_Joshua.UnitManager().UnitGroup( *it ));
 	}
 
-   m_vProductionQueueGroups[in_iCountry - 1] = NULL;
+    if(in_bDestroyProductionQueue)
+        m_vProductionQueueGroups[in_iCountry - 1] = NULL;
 }
 
 void GUnitMover::IterateGroupsInDeployement()

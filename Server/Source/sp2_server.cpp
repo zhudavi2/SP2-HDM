@@ -2776,6 +2776,11 @@ GAnarchyConfig GServer::AnarchyConfig() const
     return m_AnarchyConfig;
 }
 
+bool GServer::CountryNeedsRegions() const
+{
+    return m_bCountryNeedsRegions;
+}
+
 bool GServer::IncreaseDeathRateForAgingPopulation() const
 {
     return m_bIncreaseDeathRateForAgingPopulation;
@@ -2817,6 +2822,7 @@ void GServer::InitializeDefaultConfig()
     m_fCombatThresholdSquare                 = 0.7f*0.7f;
     m_bContinueAfterEconomicFailure          = false;
     m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
+    m_bCountryNeedsRegions                   = true;
     m_bDedicatedServerAutosaveToJoshuaFolder = false;
     m_fDedicatedServerAutosavePeriod         = 0.f;
     m_bDisableNuclearOnOccupy                = false;
@@ -3013,8 +3019,13 @@ void GServer::LoadSP2HDMConfigXML()
                     }
                     else if(l_sElementName == L"countryNameChangeMode")
                     {
-                        m_iCountryNameChangeMode = l_sElementValue.ToINT32();
+                        m_iCountryNameChangeMode = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"countryNameChangeMode: " + GString(m_iCountryNameChangeMode));
+                    }
+                    else if(l_sElementName == L"countryNeedsRegions")
+                    {
+                        m_bCountryNeedsRegions = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"countryNeedsRegions: " + GString(m_bCountryNeedsRegions));
                     }
                     else if(l_sElementName == L"dedicatedServerAutosavePeriod")
                     {

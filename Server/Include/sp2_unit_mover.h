@@ -404,8 +404,10 @@ namespace SP2
 
   		/*!
 		* Clear the deployment list for that country
+        * @param in_iCountryID: Country
+        * @param in_bDestroyProductionQueue: Destroy production queue as well, for countries that should be completely removed from the game
 		**/
-		void ClearDeploymentListForCountry(UINT32 in_iCountry);
+		void ClearDeploymentListForCountry(UINT32 in_iCountry, bool in_bDestroyProductionQueue);
 
       /*!
        * Try to merge to specified unit with any unit of the same group that share
