@@ -451,7 +451,7 @@ UINT32 GCombatPlanner::FindBestAttackers(ENTITY_ID in_iCountryID, UINT32 in_iReg
 			if(l_pMF == nullptr)
 			{
 				const GRegionEx* l_pRegion = g_ServerDAL.GetGRegion(in_iRegionID);
-				GDZLOG(EDZLogLevel::Error, l_pRegion->Name() + L" should contain or be near point (" + GString(l_Destination.x) + L", " + GString(l_Destination.y) + L") but can't locate Multiface");
+				GDZLOG(EDZLogLevel::Error, l_pRegion->NameForLog() + L" should contain or be near point (" + GString(l_Destination.x) + L", " + GString(l_Destination.y) + L") but can't locate Multiface");
 
 				const GVector2D<REAL32>& l_RegionLocation = l_UnitMover.RegionLocation(in_iRegionID);
 				GDZLOG(EDZLogLevel::Error, L"Region location: " + GString(l_RegionLocation.x) + L", " + GString(l_RegionLocation.y));
