@@ -160,6 +160,8 @@ GUI::EEventStatus::Enum GLoginRGAPIWindow::OnMouseDown(const GEventData & in_Eve
 //! called when the button is released into our menu
 GUI::EEventStatus::Enum GLoginRGAPIWindow::OnMouseClick(const SDK::GUI::GEventData & in_EventData, GUI::GBaseObject * in_pCaller)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_pCaller = " + GDZDebug::FormatPtr(in_pCaller));
+
    if(in_pCaller)
    {
       if(in_EventData.Mouse.Actor.Bits.Left || in_EventData.Mouse.Down.Bits.Left)
@@ -171,12 +173,15 @@ GUI::EEventStatus::Enum GLoginRGAPIWindow::OnMouseClick(const SDK::GUI::GEventDa
 			   m_pCaller->Show();
             Hide();
             
+            GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EEventStatus::Handled));
             return GUI::EEventStatus::Handled;
          }
          if(in_pCaller == m_pObjCancelRegisterBtn)
          {
             m_edtUserName->Text("");
             ShowLoginWindow();
+
+            GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EEventStatus::Handled));
             return GUI::EEventStatus::Handled;
          }
          
@@ -190,13 +195,21 @@ GUI::EEventStatus::Enum GLoginRGAPIWindow::OnMouseClick(const SDK::GUI::GEventDa
             g_ClientDDL.ConnectingWindow()->SetCancelEvent(FSM::EEvents::CancelConnect);
             //Hide();
 
+            //Manually call this to close the Connecting window and open the Join Multiplayer Game window; latter window must be open in order to receive server data
+            //For some reason, doesn't work if called after RGAPILogin and before returning
+            g_SP2Client->OnRGAPILoginCompleted(true);
+
             g_Joshua.Client()->RGAPILogin(m_sUserName, m_sPassword);
+
+            GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EEventStatus::Handled));
             return GUI::EEventStatus::Handled;
          }
 
 		    if(in_pCaller ==  m_pObjRegisterBtn)
 		    {
              ShowRegisterWindow();
+
+             GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EEventStatus::Handled));
              return GUI::EEventStatus::Handled;
           }       
          if(in_pCaller == m_pObjCreateBtn)
@@ -218,16 +231,21 @@ GUI::EEventStatus::Enum GLoginRGAPIWindow::OnMouseClick(const SDK::GUI::GEventDa
                g_ClientDDL.GenericMessageWindowSpawn();
                g_ClientDDL.GenericMessageWindow()->Show( g_ClientDAL.GetString(102376), this );
             }
+
+            GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EEventStatus::Handled));
             return GUI::EEventStatus::Handled;
          }
       }
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EEventStatus::Handled));
    return EEventStatus::Handled;
 }
 
 void GLoginRGAPIWindow::OnLoginCompleted(bool bSuccess)
 {
+   GDZLOG(EDZLogLevel::Entry, L"bSuccess = " + GString(bSuccess));
+
    g_ClientDDL.ConnectingWindowKill();   
    if(!bSuccess)
    {
@@ -248,6 +266,8 @@ void GLoginRGAPIWindow::OnLoginCompleted(bool bSuccess)
       g_ClientDDL.JoinMPGameWindow()->Show();
       g_ClientDCL.JoinMultiplayerGame();
    }   
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GLoginRGAPIWindow::OnRegisterCompleted(bool bSuccess)

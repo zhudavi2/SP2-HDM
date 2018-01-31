@@ -137,6 +137,8 @@ GUI::EEventStatus::Enum GJoinMPGameWindow::OnMouseClick(const GEventData & in_Ev
 
 void GJoinMPGameWindow::Show()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+
    __super::Show();
 
    if(g_ClientDDL.m_bLAN)
@@ -181,6 +183,8 @@ void GJoinMPGameWindow::Show()
       Update(EConnectionType::Internet);
       m_ListsMutex.Unlock();
    }
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 bool GJoinMPGameWindow::OnCreate()

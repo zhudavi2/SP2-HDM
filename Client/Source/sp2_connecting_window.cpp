@@ -38,10 +38,14 @@ bool GConnectingWindow::OnCreate()
 
 void GConnectingWindow::OnShow()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+
    // Select appropriate connection message
    m_fShowTime = g_Joshua.Clock();
 
    m_pConnectLabel->Text(m_sInitialText);
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 GUI::EEventStatus::Enum GConnectingWindow::OnMouseClick(const GEventData & in_EventData, GUI::GBaseObject* in_pCaller)

@@ -1860,9 +1860,15 @@ GJoinMPGameWindow* GDataDisplayLayer::JoinMPGameWindow()
 
 bool GDataDisplayLayer::JoinMPGameWindowSpawn()
 {
-   if (!ObjectSpawn((GUI::GBaseObject**)&m_pJoinMPGameWindow,GJoinMPGameWindow::TypeName, true, true, m_pBackgroundEarth))
-      return false;
+   GDZLOG(EDZLogLevel::Entry, L"");
 
+   if(!ObjectSpawn((GUI::GBaseObject**)&m_pJoinMPGameWindow, GJoinMPGameWindow::TypeName, true, true, m_pBackgroundEarth))
+   {
+       GDZLOG(EDZLogLevel::Exit, L"Returning false");
+       return false;
+   }
+
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;  
 }
 
@@ -2065,11 +2071,19 @@ bool GDataDisplayLayer::ObjectSpawn(GUI::GBaseObject** in_pObject,
                                     bool in_bFocusable,
                                     GUI::GBaseObject* in_pParent)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_pObject = " + GDZDebug::FormatPtr(in_pObject) + L", " +
+          L"in_sType = " + in_sType + L", " +
+          L"in_bVisible = " + GString(in_bVisible) + L", " +
+          L"in_bFocusable = " + GString(in_bFocusable) + L", " +
+          L"in_pParent = " + GDZDebug::FormatPtr(in_pParent));
+    
    //If already exists | displayed   
    if(*in_pObject)
    {
       if(in_bVisible && !(*in_pObject)->Visible())
          (*in_pObject)->Show();
+
+      GDZLOG(EDZLogLevel::Exit, L"Returning true");
       return true;
    }
 
@@ -2081,6 +2095,7 @@ bool GDataDisplayLayer::ObjectSpawn(GUI::GBaseObject** in_pObject,
 #ifdef GOLEM_DEBUG
       g_Joshua.Log(L"Couldn't spawn object : " + in_sType,MSGTYPE_ERROR);
 #endif
+      GDZLOG(EDZLogLevel::Exit, L"Returning false");
       return false;
    }
    else
@@ -2090,6 +2105,7 @@ bool GDataDisplayLayer::ObjectSpawn(GUI::GBaseObject** in_pObject,
 #endif
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 
 }
@@ -3841,7 +3857,12 @@ GConnectingWindow* GDataDisplayLayer::ConnectingWindow()
 
 bool GDataDisplayLayer::ConnectingWindowSpawn()
 {
-   return ObjectSpawn((GUI::GBaseObject**)&m_pConnectingWindow,GConnectingWindow::TypeName,true,true,NULL);
+   GDZLOG(EDZLogLevel::Entry, L"");
+
+   const bool l_bResult = ObjectSpawn((GUI::GBaseObject**)&m_pConnectingWindow, GConnectingWindow::TypeName, true, true, NULL);
+
+   GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(l_bResult));
+   return l_bResult;
 }
 
 bool GDataDisplayLayer::ConnectingWindowKill()

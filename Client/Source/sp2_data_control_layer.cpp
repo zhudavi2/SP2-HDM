@@ -349,7 +349,11 @@ bool GDataControlLayer::StartCampaingSinglePlayerGame()
 **/
 bool GDataControlLayer::JoinMultiplayerGame()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+
    g_SP2Client->m_pStateMachine->SendEvent(FSM::EEvents::JoinMultiplayerBtn);
+
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 

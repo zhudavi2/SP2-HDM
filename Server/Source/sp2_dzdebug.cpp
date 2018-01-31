@@ -31,11 +31,25 @@ bool GDZDebug::m_bLogEnable = false;
 const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 {
     GLogLevelEnabled(L"AI",                    0),
+
+    GLogLevelEnabled(L"Client",                0),
+
     GLogLevelEnabled(L"CombatPlanner",         0),
+
+    GLogLevelEnabled(L"ConnectingWindow",      0),
+
     GLogLevelEnabled(L"CountryData",           0),
     GLogLevelEnabled(L"DataAccessLayerServer", 0),
-    GLogLevelEnabled(L"DataControlLayer",      0),
+    GLogLevelEnabled(L"DataControlLayer",      0), // Client and Server
+
+    GLogLevelEnabled(L"DataDisplayLayer",      0),
+
     GLogLevelEnabled(L"GeneralEventHandler",   0),
+
+    GLogLevelEnabled(L"GenericMessageWindow",  0),
+    GLogLevelEnabled(L"JoinMPGameWindow",      0),
+    GLogLevelEnabled(L"LoginRGAPIWindow",      0),
+
     GLogLevelEnabled(L"PoliticEventHandler",   0),
     GLogLevelEnabled(L"RegionEx",              0),
     GLogLevelEnabled(L"Server",                0),

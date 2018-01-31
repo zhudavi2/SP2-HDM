@@ -75,7 +75,11 @@ void GGenericMessageWindow::Show(GString in_sMessage, GUI::GBaseObject* in_pCall
 
 void GGenericMessageWindow::Hide()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+   
    __super::Hide();
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 

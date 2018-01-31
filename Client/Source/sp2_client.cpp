@@ -419,9 +419,13 @@ void GClient::StopGame()
 
 void GClient::OnRGAPILoginCompleted(bool bSuccess)
 {
+   GDZLOG(EDZLogLevel::Entry, L"bSuccess = " + GString(bSuccess));
+
    GLoginRGAPIWindow * l_Win = g_ClientDDL.GetLoginRGAPIWindow();
    if(l_Win)
       l_Win->OnLoginCompleted(bSuccess);
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GClient::OnRGAPIRegisterCompleted(bool bSuccess)
