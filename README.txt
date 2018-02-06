@@ -1,4 +1,4 @@
-Human Development Modification (HDM) V10.0.2
+Human Development Modification (HDM) V10.1
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -20,6 +20,7 @@ Client state changes:
 - (V8) A country that economically fails, or is conquered, automatically releases its client states.
 
 Political changes:
+- (V10.1) A player can set their country to have no capital. Create a new covert cell with the name, "NOCAPITAL"; a new covert cell won't actually be created when doing this. The Constitutional Form window can be used to reinstate a capital. Thanks to IceyVVind for the suggestion. (Issue #84)
 - (V10) A country's budget spending level has more effect on its approval when unemployment is high.
 - (V10) A country's stability scales with its unemployment rate.
 - (V10) Send a chat message to all players upon the beginning of any annexation, including treaty annexation and civil-war-related annexation.
@@ -73,6 +74,7 @@ AI changes:
 
 Configurable settings:
 - SP2-HDM_Config.xml is the configuration XML file.
+- (V10.1) Control whether countries must have regions in order to continue existing in the game. (Issue #15)
 - (V10) Control whether to limit death rate to 0.2% when a country's LE and over-65 population are high enough to yield a death rate higher than 0.2%.
 - (V10) Control production modifiers per government type. This is the same as the V1.5.1 feature that applies multipliers to resource production based on government type, but the specific multiplier values are now configurable.
 - (V10) Set a stability criterion such that a country with less than the specified stability value would have a chance of immediately falling into anarchy, with that chance also being configurable.
