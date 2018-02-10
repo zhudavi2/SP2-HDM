@@ -171,6 +171,7 @@ Other notes:
 
 Known issues and possible future changes:
 - Please see https://github.com/zhudavi2/SP2-HDM/issues.
+- When starting HDM with the HDM Client.dll, instead of the opening movies playing, you'll get a black screen. This is expected; keep pressing Esc until you reach the SP2 loading screen.
 
 SDK notes:
 - The source code is at https://github.com/zhudavi2/SP2-HDM.
