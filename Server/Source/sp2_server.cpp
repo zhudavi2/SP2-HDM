@@ -2225,6 +2225,8 @@ bool GServer::OnSave(GIBuffer& io_Buffer)
 
 bool GServer::OnLoad(GOBuffer& io_Buffer)
 {
+   GDZLOG(EDZLogLevel::Entry, L"io_Buffer.ActualPtr() = " + GDZDebug::FormatPtr(io_Buffer.ActualPtr()));
+
    g_Joshua.GameSpeed(0);
 
    GString l_SavedDB, l_sServerName, l_sPassword;
@@ -2301,11 +2303,14 @@ bool GServer::OnLoad(GOBuffer& io_Buffer)
 
 	m_DAL.LoadRelationTable();
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 
 bool GServer::OnNew(GDatabase* in_pDatabase)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_pDatabase = " + GDZDebug::FormatPtr(in_pDatabase));
+
    if(!UpdateStaticOnly() )
    {
       g_Joshua.GameSpeed(0);
@@ -2359,6 +2364,7 @@ bool GServer::OnNew(GDatabase* in_pDatabase)
       m_Countries[i] = l_CountryTemp; //Add the country to the list
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 

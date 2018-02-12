@@ -38,6 +38,8 @@ UINT32 FSM::GDisconnected::StartSubState() const
 
 UINT32 FSM::GDisconnected::OnEvent(UINT32 in_iEventID)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_iEventID = " + GString(in_iEventID));
+
    switch(in_iEventID)
    {
    case EEvents::QuitBtn:
@@ -49,6 +51,7 @@ UINT32 FSM::GDisconnected::OnEvent(UINT32 in_iEventID)
 
    case EEvents::StartSinglePlayerBtn:
       g_ClientDCL.ConnectToGame(EGameTypes::SinglePlayer);
+      GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EStates::Connecting));
       return EStates::Connecting;
 
    case EEvents::ScenarioBtn:
@@ -57,10 +60,12 @@ UINT32 FSM::GDisconnected::OnEvent(UINT32 in_iEventID)
 
    case EEvents::HostStartBtn:
       g_ClientDCL.ConnectToGame(EGameTypes::HostMultiPlayer);
+      GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EStates::Connecting));
       return EStates::Connecting;
 
    case EEvents::JoinConnectBtn:
       g_ClientDCL.ConnectToGame(EGameTypes::JoinMultiPlayer);
+      GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(EStates::Connecting));
       return EStates::Connecting;
 
    case EEvents::LoadGame:
@@ -71,7 +76,10 @@ UINT32 FSM::GDisconnected::OnEvent(UINT32 in_iEventID)
       return EStates::Connecting;
    }
 
-   return __super::OnEvent(in_iEventID);
+   const UINT32 l_iResult = __super::OnEvent(in_iEventID);
+
+   GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(l_iResult));
+   return l_iResult;
 }
 
 UINT32 FSM::GInMainMenu::OnEvent(UINT32 in_iEventID)

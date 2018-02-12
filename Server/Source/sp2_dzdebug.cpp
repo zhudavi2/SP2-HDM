@@ -40,9 +40,11 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 
     GLogLevelEnabled(L"CountryData",           0),
     GLogLevelEnabled(L"DataAccessLayerServer", 0),
+
     GLogLevelEnabled(L"DataControlLayer",      0), // Client and Server
 
     GLogLevelEnabled(L"DataDisplayLayer",      0),
+    GLogLevelEnabled(L"Disconnected",          0),
 
     GLogLevelEnabled(L"GeneralEventHandler",   0),
 

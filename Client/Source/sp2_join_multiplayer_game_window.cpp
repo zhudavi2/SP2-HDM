@@ -535,6 +535,8 @@ EEventStatus::Enum GJoinMPGameWindow::OnCustomEvent(UINT32 in_iEventID, const SD
  **/
 bool GJoinMPGameWindow::JoinSelectedServer(GString in_sPassword, bool in_bConfirmed)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_sPassword = " + GString(in_sPassword) + L", in_bConfirmed = " + GString(in_bConfirmed));
+
    GListedServer l_sServer = GetSelectedServer();
    
    sockaddr_in* l_AdressPtr = (sockaddr_in*)&l_sServer.m_ServerAdress;
@@ -574,6 +576,7 @@ bool GJoinMPGameWindow::JoinSelectedServer(GString in_sPassword, bool in_bConfir
       g_ClientDDL.GenericQuestion(l_Question);
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 

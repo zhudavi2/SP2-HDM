@@ -363,22 +363,30 @@ bool GDataControlLayer::JoinMultiplayerGame()
 **/
 void GDataControlLayer::Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sPassword)
 {
+    GDZLOG(EDZLogLevel::Entry, L"in_sIP = " + GString(in_sIP) + L", in_iPort = " + GString(in_iPort) + L", in_sPassword = " + GString(in_sPassword));
+
 	m_sIP = in_sIP;
 	m_iPort = in_iPort;
 	m_sPwd = in_sPassword;
 	m_PublicAndLocalIPs.clear();
 
 	g_SP2Client->m_pStateMachine->SendEvent(FSM::EEvents::JoinConnectBtn);
+
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GDataControlLayer::Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sPassword, const std::vector<std::string>& in_vsIPS)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_sIP = " + GString(in_sIP) + L", in_iPort = " + GString(in_iPort) + L", in_sPassword = " + GString(in_sPassword));
+    
    m_sIP = in_sIP;
    m_iPort = in_iPort;
    m_sPwd = in_sPassword;
    m_PublicAndLocalIPs = in_vsIPS;   
 
    g_SP2Client->m_pStateMachine->SendEvent(FSM::EEvents::JoinConnectBtn);
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 /*!
@@ -1476,6 +1484,8 @@ void GDataControlLayer::EndRequestRelationHistory()
 
 void GDataControlLayer::ConnectToGame(EGameTypes::Enum in_eGameType)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_eGameType = " + GString(in_eGameType));
+
    // Kill server if creating or joining a multiplayer game
    bool l_bForceConnect = false;
    if( (in_eGameType == EGameTypes::HostMultiPlayer) ||
@@ -1533,6 +1543,7 @@ void GDataControlLayer::ConnectToGame(EGameTypes::Enum in_eGameType)
          g_SP2Client->DAL().GameOptions().NuclearAllowed(g_ClientDDL.HostMPGameWindow()->m_bNuclearWarfareEnabled);
       }
 
+      GDZLOG(EDZLogLevel::Info1, L"Setting server password " + GString(m_sPwd));
       g_Joshua.Password(m_sPwd);
 
       // Spawn server if needed
@@ -1550,6 +1561,7 @@ void GDataControlLayer::ConnectToGame(EGameTypes::Enum in_eGameType)
          if(m_bDedicated)
          {
             g_SP2Client->QuitGame();
+            GDZLOG(EDZLogLevel::Exit, L"Returning, dedicated server");
             return;
          }
       }
@@ -1564,6 +1576,8 @@ void GDataControlLayer::ConnectToGame(EGameTypes::Enum in_eGameType)
 		  g_ClientDDL.PopupMessage(L"Couldnt connect to server");			
       }
    }
+
+   GDZLOG(EDZLogLevel::Exit, L"Returning, non-dedicated server");
 }
 
 void GDataControlLayer::InitGame()
