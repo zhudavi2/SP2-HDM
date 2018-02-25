@@ -200,7 +200,6 @@
     <ClCompile Include="Source\sp2_fsm_connecting.cpp" />
     <ClCompile Include="Source\sp2_fsm_disconnected.cpp" />
     <ClCompile Include="Source\sp2_fsm_main.cpp" />
-    <ClCompile Include="Source\sp2_fsm_movies.cpp" />
     <ClCompile Include="Source\sp2_fsm_playing.cpp" />
     <ClCompile Include="Source\sp2_game_lobby_window.cpp" />
     <ClCompile Include="Source\sp2_game_options_window.cpp" />
@@ -344,7 +343,6 @@
     <ClInclude Include="Include\sp2_fsm_connecting.h" />
     <ClInclude Include="Include\sp2_fsm_disconnected.h" />
     <ClInclude Include="Include\sp2_fsm_main.h" />
-    <ClInclude Include="Include\sp2_fsm_movies.h" />
     <ClInclude Include="Include\sp2_fsm_playing.h" />
     <ClInclude Include="Include\sp2_game_lobby_window.h" />
     <ClInclude Include="Include\sp2_game_options_window.h" />

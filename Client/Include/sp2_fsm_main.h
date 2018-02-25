@@ -26,7 +26,6 @@ namespace SP2
          enum Enum
          {
             Init = 1,
-            Movies,
             LoadData,
             DisplayUnofficial,
             Disconnected,
@@ -89,7 +88,7 @@ namespace SP2
             RestartGame,
             StopGame,
             InitError,
-            CancelMovie,
+            CancelMovie, // Used for exiting credits window
             PlayCredits,
 
             Count,   // Must always be the last element
@@ -168,7 +167,6 @@ namespace SP2
       };
 
       // Forward declarations of states with sub FSM
-      class GMovies;
       class GConnecting;
       class GPlaying;
    }

@@ -20,14 +20,12 @@
 #include "../include/sp2_fsm_connecting.h"
 #include "../include/sp2_fsm_disconnected.h"
 #include "../include/sp2_fsm_playing.h"
-#include "../include/sp2_fsm_movies.h"
 
 #include "../include/sp2_generic_message_window.h"
 
 FSM::GMain::GMain()
 {
    AddState(GStateSPtr(new FSM::GInit) );
-   AddState(GStateSPtr(new FSM::GMovies) );
    AddState(GStateSPtr(new FSM::GDisplayUnofficial) );
    AddState(GStateSPtr(new FSM::GLoadData) );
    AddState(GStateSPtr(new FSM::GDisconnected) );
@@ -55,7 +53,7 @@ void FSM::GInit::OnEnter()
 
 UINT32 FSM::GInit::OnIterate()
 {
-   return EStates::Movies;
+   return EStates::LoadData;
 }
 
 UINT32 FSM::GDisplayUnofficial::OnEvent(UINT32 in_iEventID)
