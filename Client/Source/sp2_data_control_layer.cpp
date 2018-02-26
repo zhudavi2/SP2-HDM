@@ -1543,7 +1543,7 @@ void GDataControlLayer::ConnectToGame(EGameTypes::Enum in_eGameType)
          g_SP2Client->DAL().GameOptions().NuclearAllowed(g_ClientDDL.HostMPGameWindow()->m_bNuclearWarfareEnabled);
       }
 
-      GDZLOG(EDZLogLevel::Info1, L"Setting server password " + GString(m_sPwd));
+      GDZLOG(EDZLogLevel::Info1, L"Set Joshua password = " + GString(m_sPwd));
       g_Joshua.Password(m_sPwd);
 
       // Spawn server if needed
