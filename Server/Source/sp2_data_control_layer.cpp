@@ -9331,8 +9331,9 @@ void GDataControlLayer::LiberateRegions(UINT32 in_iCountryLiberating,
 
 void GDataControlLayer::ChangeCountryName(ENTITY_ID in_iCountryID, const GString& in_sNewName)
 {
-    if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::Off &&
-       !in_sNewName.empty())
+    GDZLOG(EDZLogLevel::Entry, L"in_iCountryID = " + GString(in_iCountryID) + L", in_sNewName = " + in_sNewName);
+
+    if(!in_sNewName.empty())
     {
         gassert(in_iCountryID >= 1,"Invalid country ID, name change won't work");
 
@@ -9371,27 +9372,14 @@ void GDataControlLayer::ChangeCountryName(ENTITY_ID in_iCountryID, const GString
             SendCountryList();
         }
     }
-}
 
-void GDataControlLayer::ChangePlayerName(SDK::GPlayer* in_pPlayer, const GString& in_sNewName)
-{
-    if(!in_sNewName.empty() && in_pPlayer->Name() != in_sNewName)
-    {
-        GDZLOG(EDZLogLevel::Info1, L"Player ID " + GString(in_pPlayer->Id()) + L", " +
-               in_pPlayer->Name() + L", is changing name to " + in_sNewName);
-
-        in_pPlayer->Name(in_sNewName);
-
-        //Not sure why GGameClientItf::PlayerName() needs a non-const GString
-        GString l_sNewName(in_sNewName);
-        in_pPlayer->Client()->PlayerName(l_sNewName);
-
-        g_SP2Server->SendPlayersList();
-    }
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GDataControlLayer::SendCountryList(INT32 in_iTarget) const
 {
+    GDZLOG(EDZLogLevel::Entry, L"in_iTarget = " + GDZDebug::FormatHex(in_iTarget));
+
     SDK::GGameEventSPtr l_ReceiveCountryListEvent = CREATE_GAME_EVENT(Event::GReceiveCountryList);
     l_ReceiveCountryListEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
     l_ReceiveCountryListEvent->m_iTarget = in_iTarget;
@@ -9431,6 +9419,8 @@ void GDataControlLayer::SendCountryList(INT32 in_iTarget) const
             g_Joshua.RaiseEvent(l_Event);
         }
     }
+
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClient, UINT32 in_iTreaty, bool in_bLoadingGame)
@@ -9529,8 +9519,7 @@ void GDataControlLayer::MakeClientState(ENTITY_ID in_iMaster, ENTITY_ID in_iClie
     }
 
     //Send country list to update the client state's name (with "client of (name)")
-    if(g_SP2Server->CountryNameChangeMode() != ECountryNameChangeMode::Off)
-        SendCountryList();
+    SendCountryList();
 
     GDZLOG(EDZLogLevel::Exit, L"");
 }

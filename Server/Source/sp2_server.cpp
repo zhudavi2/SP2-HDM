@@ -2827,7 +2827,6 @@ void GServer::InitializeDefaultConfig()
 
     m_fCombatThresholdSquare                 = 0.7f*0.7f;
     m_bContinueAfterEconomicFailure          = false;
-    m_iCountryNameChangeMode                 = ECountryNameChangeMode::PlayerNameViaCovert;
     m_bCountryNeedsRegions                   = true;
     m_bDedicatedServerAutosaveToJoshuaFolder = false;
     m_fDedicatedServerAutosavePeriod         = 0.f;
@@ -3023,11 +3022,6 @@ void GServer::LoadSP2HDMConfigXML()
                         m_bContinueAfterEconomicFailure = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"continueAfterEconomicFailure: " + GString(m_bContinueAfterEconomicFailure));
                     }
-                    else if(l_sElementName == L"countryNameChangeMode")
-                    {
-                        m_iCountryNameChangeMode = (l_sElementValue.ToINT32() != 0);
-                        g_Joshua.Log(L"countryNameChangeMode: " + GString(m_iCountryNameChangeMode));
-                    }
                     else if(l_sElementName == L"countryNeedsRegions")
                     {
                         m_bCountryNeedsRegions = (l_sElementValue.ToINT32() != 0);
@@ -3214,6 +3208,8 @@ void GServer::LoadSP2HDMConfigXML()
                         m_fTributePercent = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"tributePercent: " + GString::FormatNumber(m_fTributePercent, 2));
                     }
+                    else
+                        g_Joshua.Log(L"Unknown HDM config option: " + l_sElementName, MSGTYPE_WARNING);
 	            }
             }
             else

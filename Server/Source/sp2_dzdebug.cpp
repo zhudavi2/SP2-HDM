@@ -45,6 +45,7 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 
     GLogLevelEnabled(L"DataDisplayLayer",      0),
     GLogLevelEnabled(L"Disconnected",          0),
+    GLogLevelEnabled(L"GameLobbyWindow",       0),
 
     GLogLevelEnabled(L"GeneralEventHandler",   0),
 

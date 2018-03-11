@@ -24,16 +24,6 @@ namespace SP2
    class GEconomicEventHandler;
    class GMilitaryEventHandler;
 
-   namespace ECountryNameChangeMode
-   {
-       enum Enum
-       {
-           Off = 0,
-           ViaCovert,
-           PlayerNameViaCovert,
-       };
-   }
-
    namespace EGlobalTaxSpecialType
    {
       enum Enum
@@ -165,7 +155,6 @@ namespace SP2
 
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
       inline bool    ContinueAfterEconomicFailure() const { return m_bContinueAfterEconomicFailure; }
-      inline INT32   CountryNameChangeMode() const { return m_iCountryNameChangeMode; }
 
       bool CountryNeedsRegions() const;
 
@@ -316,7 +305,6 @@ namespace SP2
 
       REAL32 m_fCombatThresholdSquare;
       bool   m_bContinueAfterEconomicFailure;
-      INT32  m_iCountryNameChangeMode;
       bool   m_bCountryNeedsRegions;
       REAL32 m_fDedicatedServerAutosavePeriod;
       bool   m_bDedicatedServerAutosaveToJoshuaFolder;

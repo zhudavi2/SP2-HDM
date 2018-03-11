@@ -1053,3 +1053,24 @@ void GGameLobbyWindow::CleanMessageQueue(void)
    // Clear Player list too
    m_pObjPlayersList->Clear();
 }
+
+void GGameLobbyWindow::OnCountryNameChanged()
+{
+    GDZLOG(EDZLogLevel::Entry, L"");
+
+    m_pObjCountryCbo->SetListBox(g_ClientDDL.CountriesListBox());
+
+    if(Visible())
+    {
+        // Currently, this resets all active players' selected country and country name in players list
+        if(m_pObjPlayerToggleReady->ToggleState())
+        {
+            const GString& l_sCountryName = g_ClientDAL.Country(g_ClientDAL.ControlledCountryID()).Name();
+            m_pObjCountryCbo->Selected_Content(l_sCountryName);
+        }
+
+        OnPlayerListChanged();
+    }
+
+    GDZLOG(EDZLogLevel::Exit, L"");
+}

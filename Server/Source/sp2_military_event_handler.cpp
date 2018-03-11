@@ -270,14 +270,11 @@ void GMilitaryEventHandler::HandleCellCreate(SDK::GGameEventSPtr in_Event)
 
    //Handle name change
    static const GString l_sChangeNamePrefix("NAME ");
-   static const GString l_sChangePlayerNamePrefix(L"PLAYER ");
    static const GString l_sNoCapitalPrefix(L"NOCAPITAL");
 
    const auto& l_sEventName = l_pEvent->m_sName;
    if(l_sEventName.find(l_sChangeNamePrefix) == 0)
        g_ServerDCL.ChangeCountryName(l_iCurPlayerID, l_sEventName.substr(l_sChangeNamePrefix.length()));
-   else if(l_sEventName.find(l_sChangePlayerNamePrefix) == 0)
-       g_ServerDCL.ChangePlayerName(l_pPlayer, l_sEventName.substr(l_sChangePlayerNamePrefix.length()));
    else if(l_sEventName == l_sNoCapitalPrefix)
        g_ServerDCL.ChangeCapitalID(l_pEvent->m_iAssignedCountryID, 0x80000000);
    else

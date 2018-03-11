@@ -266,6 +266,8 @@ bool GDataControlLayer::RequestCountryListToServer()
 
 void GDataControlLayer::ReceiveCountryListFromServer(SP2::Event::GReceiveCountryList* in_pData)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_pData = " + GDZDebug::FormatPtr(in_pData));
+
    g_ClientDAL.NbCountry( (UINT16) in_pData->m_vCountries.size() );
    g_ClientDAL.Countries() = in_pData->m_vCountries;
 
@@ -276,6 +278,7 @@ void GDataControlLayer::ReceiveCountryListFromServer(SP2::Event::GReceiveCountry
    g_ClientDDL.CountriesListBoxFillUp( g_ClientDAL.Countries() );   
 
    //Set the Countries into the mainbar window
+   //Try to update the mainbar listbox with updated country name if applicable. #104
    if(g_ClientDDL.MainBar())
       ((SP2::GComboListBoxLess*)g_ClientDDL.MainBar()->Child(L"cboCountry"))->SetListBox(g_ClientDDL.CountriesListBox()); 
 
@@ -286,9 +289,16 @@ void GDataControlLayer::ReceiveCountryListFromServer(SP2::Event::GReceiveCountry
    if(g_ClientDDL.GameScenarioWindow())
       g_ClientDDL.GameScenarioWindow()->OnEndReceivedCountryData();
 
+   GDZLOG(EDZLogLevel::Info1, L"in_pData->m_iTarget = " + GDZDebug::FormatHex<INT32>(in_pData->m_iTarget));
+
    // Set the countries into the country list of the lobby
    if(g_ClientDDL.GameLobby())
-      g_ClientDDL.GameLobby()->OnEndLoadData();
+   {
+       if(in_pData->m_iTarget == SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers)
+           g_ClientDDL.GameLobby()->OnCountryNameChanged();
+       else
+           g_ClientDDL.GameLobby()->OnEndLoadData();
+   }
 
    if(g_SP2Client->LoadingGame() )
    {
@@ -309,6 +319,8 @@ void GDataControlLayer::ReceiveCountryListFromServer(SP2::Event::GReceiveCountry
                                                          g_SP2Client->CurrentGameType() == EGameTypes::SinglePlayer ? SDK::PLAYER_STATUS_READY : SDK::PLAYER_STATUS_IDLE);
       }
    }
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 Map::GMultifaceView* GDataControlLayer::CountryView()

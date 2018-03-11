@@ -71,6 +71,9 @@ namespace SP2
 
       void AvailableCountries(vector<UINT16> &);
 
+      //! \todo Better handling of country name change. #104
+      void OnCountryNameChanged();
+
 	   //! called when the button is released into our menu
       GUI::EEventStatus::Enum OnChar         (const GEventData &, GBaseObject* Caller = NULL);
       GUI::EEventStatus::Enum OnMouseClick(const GEventData & in_EventData, GUI::GBaseObject *in_pCaller);

@@ -583,9 +583,6 @@ namespace SP2
       //! Helper method to change a country's name
       void ChangeCountryName(ENTITY_ID in_iCountryID, const GString& in_sNewName);
 
-      //! Helper method to change a player's name
-      void ChangePlayerName(SDK::GPlayer* in_pPlayer, const GString& in_sNewName);
-
       //! Send country list to client
       void SendCountryList(INT32 in_iTarget = SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers) const;
 

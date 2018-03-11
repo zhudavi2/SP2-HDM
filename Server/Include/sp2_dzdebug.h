@@ -63,6 +63,9 @@ namespace SP2
         //! Helper for pointer values
         static GString FormatPtr(const void* in_pPtr);
 
+        template<typename T>
+        static GString FormatHex(T in_iInt);
+
     private:
         typedef pair<EDZLogLevel::Enum, GString> GLogLevelNamePair;
         typedef pair<GString, UINT32> GLogLevelEnabled;
@@ -167,6 +170,13 @@ void GDZDebug::Assert(const bool in_bExpr,
 GString GDZDebug::FormatInt(const INT64 in_iInt)
 {
     return GString::FormatNumber(static_cast<REAL64>(in_iInt), L",", L"", L"", L"", 3, 0, false);
+}
+
+template<typename T> GString GDZDebug::FormatHex(const T in_iInt)
+{
+    wstringstream l_StringStream;
+    l_StringStream << L"0x" << hex << setfill(L'0') << setw(sizeof(T) * 2) << uppercase << in_iInt;
+    return l_StringStream.str();
 }
 
 #endif //_GOLEM_SP2_DZDEBUG_H_
