@@ -1031,10 +1031,10 @@ void GBattleOverviewWindow::SelectStrategy(UINT32 in_iStrategyId)
       if(l_pAllyUnit && l_pAllyUnit->Activated() && l_pStrategy->m_vUnitTypeActionID[i])
       {
          if(l_pStrategy->m_vUnitTypeActionID[i] == 1)
-            l_pAllyUnit->Status(GBattleOverviewUnit::UnitStatus::DEFENDING);
+            l_pAllyUnit->Status(GBattleOverviewUnit::DEFENDING);
          else
          if(l_pStrategy->m_vUnitTypeActionID[i] == 2)
-            l_pAllyUnit->Status(GBattleOverviewUnit::UnitStatus::ATTACKING);
+            l_pAllyUnit->Status(GBattleOverviewUnit::ATTACKING);
       }
    }
 }
@@ -1594,7 +1594,7 @@ void GBattleOverviewWindow::SendUnitStatus(bool in_bRetreat)
       l_UpdateStatusEvent->m_iCountryId = g_ClientDAL.ControlledCountryID();
       l_UpdateStatusEvent->m_bRetreat   = in_bRetreat;
       for(UINT32 i=0;i<EUnitType::AircraftCarrier;i++)
-         l_UpdateStatusEvent->m_bAttack[i] = m_BattleScene.GetUnit(i + 1,true)->Status() == SP2::GBattleOverviewUnit::UnitStatus::ATTACKING;
+         l_UpdateStatusEvent->m_bAttack[i] = m_BattleScene.GetUnit(i + 1,true)->Status() == SP2::GBattleOverviewUnit::ATTACKING;
       g_Joshua.RaiseEvent(l_Event);	
    }
 }

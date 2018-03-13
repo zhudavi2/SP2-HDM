@@ -284,8 +284,8 @@ namespace SP2
    struct GDataOptionsWindow
    {
       INT16 m_iColorDepth;
-      INT16 m_iResolutionX;
-      INT16 m_iResolutionY;      
+      INT32 m_iResolutionX;
+      INT32 m_iResolutionY;      
 
       REAL32 m_fMusicVolume;
       REAL32 m_fSoundVolume;

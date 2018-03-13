@@ -21,7 +21,6 @@ namespace SDK
    {
       class GListBox;
       class GComboBox;
-      class GTreeNode;
       class GBaseObject;
       class GManager;
       

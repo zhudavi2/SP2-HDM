@@ -2292,9 +2292,9 @@ void GDataControlLayer::AutoSave(void)
          GString l_sSaveFileName = m_AutoSaveInformation.m_sSaveFileName;
          if(m_AutoSaveInformation.m_bIncrementalSave)
          {
-            wchar_t l_pSaveFileNameNumber[256];
-            swprintf(l_pSaveFileNameNumber,L"%04i",m_AutoSaveInformation.m_iSaveCount);
-            l_sSaveFileName +=l_pSaveFileNameNumber;
+            wstringstream l_StringStream;
+            l_StringStream << setfill(L'0') << setw(4) << m_AutoSaveInformation.m_iSaveCount;
+            l_sSaveFileName += l_StringStream.str();
             m_AutoSaveInformation.m_iSaveCount++;
             m_AutoSaveInformation.m_iSaveCount%=10000;
 
