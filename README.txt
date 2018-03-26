@@ -1,4 +1,4 @@
-Human Development Modification (HDM) V10.1
+Human Development Modification (HDM) V10.2
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
@@ -86,7 +86,6 @@ Configurable settings:
 - (V9) Adjust how much tribute a client state must give as a percentage of GDP. Thanks to Mr Monday for the suggestion.
 - (V9) Enable or disable logging of country bankruptcies.
 - (V8) Enable or disable human-controlled countries from becoming client states. This is in response to some players reporting crashes when a human-controlled country becomes a client state.
-- (V7) Enable or disable country name changing. However, due to SDK limitations, in order to prevent a country name change from affecting player nicknames, player nicknames can only be changed via the covert window once in the game; this is done in the same way as changing a country name, just with "PLAYER" and a space, followed by the desired name, instead of "NAME" and a space, followed by the desired name.
 - (V6) Control whether to disallow a country on the defending side of a war from occupying the home territory of a country on the attacking side, unless the occupying country is also currently in an offensive war against the owning country.
 - (V6) Approximate maximum distance, in degrees of latitude and longitude, that must lie between hostile units in order for them to engage in battle; this negates the tactic of excessively splitting one's military units to make it artificially difficult for hostile units to engage in battle. Thanks to Fenix for the code suggestion.
 - (V6) Control disablement of AMDS research, and disbanding any existing AMDS, when a country becomes fully occupied.
@@ -109,6 +108,7 @@ Configurable settings:
 - (V3) HDI component (LE, MYS, EYS) viewing through the country info window.
 
 Other changes:
+- (V10.2) Intro movies no longer play when starting the game.
 - (V10) Prevent some displayed percentages and rates from going negative, and make such displays more accurate, by exponentially annualizing and de-annualizing growth rates rather than multiplicatively doing so.
 - (V10) If LE is increasing while LE and the percentage of population over 65 are high enough, then the death rate will initially be limited to prevent the percentage of population over 65 from decreasing (increasing LE should lead to aging population), but in the long term, the death rate will rise again (as the over-65 population becomes so high that much of the population is dying of old age).
 - (V10) Upon game start or load, each region will be checked so that its population breakdowns by age, religion, and language are consistent, taking breakdown by age as correct.
@@ -129,6 +129,7 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous SP2-HDM releases:
+- (V10.2) Fixed conflict between country name changes and player name changes. Removed country-name-change-related config option.
 - (V10.0.2) Fixed an occasional crash while annexations are occurring in contested regions. (Issue #94)
 - (V10.0.2) During civil war, units in deployment or transit will no longer defect; fixes some related crashes.
 - (V10.0.2) Fixed an occasional crash upon a country leaving anarchy when stability-based anarchy is enabled. (Issue #91)
@@ -146,6 +147,7 @@ Changes to previous SP2-HDM releases:
 - (V5) Fixed a potential issue in which countries with extremely low revenue wouldn't be able to build or buy non-infantry units.
 
 Fixes to SP2 V1.5.1 issues:
+- (V10.2) Prevent modified clients from connecting to password-protected servers. To secure a non-password-protected server in this way, as a workaround, you could create a password-protected server that mentions its password in its name.
 - (V10) Population growth thematic map is no longer misleading.
 - (V10) Increase covert mission result randomness so that multiple missions wouldn't always all yield the same result if they were all executed around the same game time.
 - (V10) Fixed regions still appearing to be bombarded when bombardment has actually already stopped.
@@ -171,14 +173,14 @@ Other notes:
 
 Known issues and possible future changes:
 - Please see https://github.com/zhudavi2/SP2-HDM/issues.
-- When starting HDM with the HDM Client.dll, instead of the opening movies playing, you'll get a black screen. This is expected; keep pressing Esc until you reach the SP2 loading screen.
 
 SDK notes:
 - The source code is at https://github.com/zhudavi2/SP2-HDM.
 - The includes/RGAPI and lib folders, that come with the SDK, are not on GitHub; you must provide your own. The RGAPI and lib files were not modified in making the mod.
-- The "Debug_In_Release" and "Release" build configurations are known to build correctly and produce working DLLs.
+- The "Debug" and "Release" build configurations are known to build correctly and produce working DLLs.
 - A Post-Build Event will automatically copy the built DLL to a default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder.
-- The Release DLL is included with each commit for those interested in testing out the latest changes.
+- Starting with V10.2, for security, the code to prevent modified clients from connecting to password-protected servers is not available in the public source. I hope to make the full code (excluding the RGAPI and lib folders) available again a later date.
+- The Release Client and Server DLLs are included with each commit for those interested in testing out the latest changes. Starting with V10.2, the included Client DLL contains the code to prevent modified clients from connecting to password-protected servers, so the included Client DLL is not exactly equivalent to any Client DLL built from the public source.
 - Added a new class, GDZDebug, which offers assert and logging logic. Please see https://github.com/zhudavi2/SP2-HDM/wiki/DZDebug.
 - Changed debug console commands: print_relations
 - New debug console commands: build_amds, print_amds, force_occupy, research_nuclear, print_nuclear_research, declare_war_2v2, force_anarchy, set_stability
