@@ -106,7 +106,7 @@ void GCovertActionsNewMissionWindow::UpdateCountryToFrameCbo()
 {
    vector<GCovertActionCell> l_vCells = g_ClientDAL.m_PlayerCountryData.CovertActionCells();
    vector<SP2::GCountry> l_Country = g_ClientDAL.Countries();
-   UINT32 j;
+   UINT32 j = 0;
 
    if(m_pRowCoupDetat)
    {
