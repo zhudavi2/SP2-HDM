@@ -1141,8 +1141,21 @@ bool GDataControlLayer::ChangeResourceTax(ENTITY_ID in_iCountryID, EResources::E
 //! Change resource import desired
 bool GDataControlLayer::ChangeResourceImportDesired(ENTITY_ID in_iCountryID, EResources::Enum in_iResource, REAL64 in_fNewDesired)
 {
-	if(g_ServerDAL.CountryData(in_iCountryID)->ResourceGvtCtrl(in_iResource))
-		g_ServerDAL.CountryData(in_iCountryID)->ResourceImportDesired(in_iResource,in_fNewDesired);
+    GDZLOG(EDZLogLevel::Entry, L"in_iCountryID = " + GString(in_iCountryID) + L", in_iResource = " + GString(in_iResource) + L" (" + g_ServerDAL.GetString(g_ServerDAL.StringIdResource(in_iResource)) + L"), in_fNewDesired = " + GString::FormatNumber(in_fNewDesired, L",", L".", L"$", L"", 3, 2, true));
+
+    GCountryData* const l_pCountryData = g_ServerDAL.CountryData(in_iCountryID);
+    GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog());
+    if(l_pCountryData->ResourceGvtCtrl(in_iResource))
+    {
+        const REAL64 l_fDemand = l_pCountryData->ResourceDemand(in_iResource);
+        GDZLOG(EDZLogLevel::Info1, L"Demand = " + GString::FormatNumber(l_fDemand, L",", L".", L"$", L"", 3, 2, true));
+
+        in_fNewDesired = min(in_fNewDesired, l_fDemand);
+        in_fNewDesired = max(in_fNewDesired, 0.0);
+        l_pCountryData->ResourceImportDesired(in_iResource, in_fNewDesired);
+    }
+
+    GDZLOG(EDZLogLevel::Exit, L"Return true");
 	return true;
 }
 
