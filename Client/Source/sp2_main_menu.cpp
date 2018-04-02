@@ -172,7 +172,7 @@ bool GMainMenu::OnCreate()
    //Display the version number (small lower right corner)
    {
       m_pVersionLbl = CREATE_GUI_OBJECT_STATIC(GUI::GLabel,this,true);
-      m_pVersionLbl->Text(g_Joshua.CurrentMod().m_sName +" V" + g_Joshua.CurrentMod().m_sVersion);
+      m_pVersionLbl->Text(g_SP2Client->m_sModVersion);
       //m_pVersionLbl->Text("SDK Version");
       m_pVersionLbl->FontColorNormal(GColorRGBInt(255,255,255,255));
       m_pVersionLbl->ColorNormal(GColorRGBInt(0,0,0,0));

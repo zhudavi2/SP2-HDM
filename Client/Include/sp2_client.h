@@ -139,6 +139,9 @@ namespace SP2
       bool                       m_bPlayCredits;
       UINT32                     m_iSavedFSMEvent;
 
+      //! Mod name and version to display when queried for version
+      GString m_sModVersion;
+
    protected:
    public:
       GClient();

@@ -86,6 +86,8 @@ GAME_MSG GClient::Initialize()
    // Start the main state machine
    m_pStateMachine->Start(FSM::EStates::Init);   
 
+   m_sModVersion = g_Joshua.CurrentMod().m_sName + L" V" + g_Joshua.CurrentMod().m_sVersion + L" (HDM V10.2)";
+
    return GAME_OK;
 }
 
@@ -102,7 +104,7 @@ GString GClient::ConsoleMainCommandsHandler(const GString & in_Command, const ve
    }
    else if(in_Command == "version")
    {
-      return g_Joshua.CurrentMod().m_sName + " V" + g_Joshua.CurrentMod().m_sVersion;      
+      return m_sModVersion;      
    }
    else if(in_Command == "kick")
    {
