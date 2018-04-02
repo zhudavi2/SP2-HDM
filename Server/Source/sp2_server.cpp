@@ -1509,13 +1509,19 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
            ++l_HumanPlayersIt)
 		{
 			SDK::GPlayer* l_pPlayer = l_HumanPlayersIt->second;
+            gassert(l_pPlayer != nullptr, L"No player for ID " + GString(l_HumanPlayersIt->first));
+
             const ENTITY_ID l_iCountryID = l_pPlayer->ModID();
             if(l_pPlayer->PlayerStatus() == SDK::PLAYER_STATUS_ACTIVE && 
 			   l_iCountryID > 0)
             {
+                const SDK::GGenericNetworkClient* const l_pNetworkClient = dynamic_cast<SDK::GGenericNetworkClient*>(l_pPlayer->Client());
+                const REAL64 l_fPing = l_pNetworkClient->Ping();
+
                 g_Joshua.Log(L"Player ID " + GString(l_pPlayer->Id()) + L": " +
-                             L"Name " + l_pPlayer->Name() + L"; " +
-                             m_DAL.CountryData(l_iCountryID)->NameAndIDForLog());
+                             L"Name " + l_pPlayer->Name() + L", " +
+                             L"country " + m_DAL.CountryData(l_iCountryID)->NameAndIDForLog() + ", " +
+                             L"ping(s) " + GString(l_fPing));
             }
 		}
    }
