@@ -367,6 +367,18 @@ SDK::GAME_MSG GServer::Initialize()
          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
       g_Joshua.RegisterConsoleCommand(
+          L"print_max_players",
+          L"",
+          L"Print maximum number of players in server",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"set_max_players",
+          L"I",
+          L"Set maximum number of players in server",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
           L"print_military_control",
           L"I",
           L"List all regions under military control of country, as well as political and historical claims",
@@ -1524,6 +1536,21 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
                              L"ping(s) " + GString(l_fPing));
             }
 		}
+   }
+   else if(in_sCommand == L"print_max_players")
+   {
+       g_Joshua.Log(L"Maximum number of players in server: " + GString(g_Joshua.MaxPlayers()));
+   }
+   else if(in_sCommand == L"set_max_players")
+   {
+       const INT32 l_iMaxPlayers = in_vArgs.front().ToINT32();
+       if(l_iMaxPlayers > 0)
+       {
+           g_Joshua.Log(L"Setting maximum number of players in server to " + GString(l_iMaxPlayers));
+           g_Joshua.MaxPlayers(l_iMaxPlayers);
+       }
+       else
+           g_Joshua.Log(L"Invalid maximum number of players in server " + GString(l_iMaxPlayers), MSGTYPE_ERROR);
    }
    else if(in_sCommand == L"print_military_control")
    {
