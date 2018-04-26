@@ -1533,7 +1533,7 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
                 g_Joshua.Log(L"Player ID " + GString(l_pPlayer->Id()) + L": " +
                              L"Name " + l_pPlayer->Name() + L", " +
                              L"country " + m_DAL.CountryData(l_iCountryID)->NameAndIDForLog() + ", " +
-                             L"ping(s) " + GString(l_fPing));
+                             L"relative ping " + GString(l_fPing));
             }
 		}
    }
