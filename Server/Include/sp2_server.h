@@ -288,9 +288,9 @@ namespace SP2
       bool           m_bUpdateStaticOnly;
       bool           m_bCleanVariableOnly;		
 
-      //! SP2-HDM configuration
-      void InitializeDefaultConfig();
-      void LoadSP2HDMConfigXML();
+      //! HDM configuration
+      void InitializeDefaultHdmConfig();
+      void LoadHdmConfig();
 
       bool   m_bAllowAIAssumeDebt;
       bool   m_bAllowHumanClientStates;

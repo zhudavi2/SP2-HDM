@@ -254,10 +254,10 @@ SDK::GAME_MSG GServer::Initialize()
 
    {
         // Default values
-        InitializeDefaultConfig();
+        InitializeDefaultHdmConfig();
 
-        // Load the SP2-HDM_Config.xml
-        LoadSP2HDMConfigXML();
+        // Load the HDM config
+        LoadHdmConfig();
    }
 
    // Initialize the DCL (must be done before loading military data, since it uses the unit mover)
@@ -2838,7 +2838,7 @@ bool GServer::ShowHDIComponents() const
 /*!
 * Load default server options.
 */
-void GServer::InitializeDefaultConfig()
+void GServer::InitializeDefaultHdmConfig()
 {
     // Default values
     m_bAllowDefenderAttackAttackerTerritory  = true;
@@ -2909,11 +2909,11 @@ void GServer::InitializeDefaultConfig()
 
 
 /*!
-* Load server options from SP2-HDM_Config.xml.
+* Load server options from HDM config.
 */
-void GServer::LoadSP2HDMConfigXML()
+void GServer::LoadHdmConfig()
 {
-    const GString  c_sConfigXMLFile("SP2-HDM_Config.xml");
+    const GString  c_sConfigXMLFile("hdm_cfg.xml");
 
     GFile          l_XMLFile;
 	
