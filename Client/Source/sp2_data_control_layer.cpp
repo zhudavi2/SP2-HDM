@@ -373,9 +373,9 @@ bool GDataControlLayer::JoinMultiplayerGame()
 * Connect to the selected 
 * @return true if successfull, false otherwise
 **/
-void GDataControlLayer::Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sPassword)
+void GDataControlLayer::Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sModName, const GString& in_sPassword)
 {
-    GDZLOG(EDZLogLevel::Entry, L"in_sIP = " + GString(in_sIP) + L", in_iPort = " + GString(in_iPort) + L", in_sPassword = " + GString(in_sPassword));
+    GDZLOG(EDZLogLevel::Entry, L"in_sIP = " + in_sIP + L", in_iPort = " + GString(in_iPort) + L", in_sModName = " + in_sModName + L", in_sPassword = " + in_sPassword);
 
 	m_sIP = in_sIP;
 	m_iPort = in_iPort;

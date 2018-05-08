@@ -561,7 +561,7 @@ bool GJoinMPGameWindow::JoinSelectedServer(GString in_sPassword, bool in_bConfir
          }
          else
          {
-            g_ClientDCL.Connect(l_sServerAdress,l_sServer.m_iServerPort,in_sPassword);
+            g_ClientDCL.Connect(l_sServerAdress,l_sServer.m_iServerPort,l_sServer.m_sModName,in_sPassword);
          }
       }
    }
