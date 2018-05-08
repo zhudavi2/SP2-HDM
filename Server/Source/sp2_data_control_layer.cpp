@@ -4627,14 +4627,21 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 
 	vector<INT32> l_vStrings;
 
-	switch(l_pTreaty->Type())
-	{
-	case ETreatyType::War:
-		//Side A declares war to side B
-        //Treaty creator is the attacker master, unless the creator isn't a participant.
-		DeclareNewWar(l_vSideA,
-                      (l_pTreaty->CountrySide(l_pTreaty->Creator()) == 1) ? l_pTreaty->Creator() : *(l_vSideA.begin()),
-                      *(l_vSideB.begin()));		
+    switch(l_pTreaty->Type())
+    {
+    case ETreatyType::War:
+        {
+            //Side A declares war to side B
+            //Treaty creator is the attacker master, unless the creator isn't a participant.
+            const ENTITY_ID l_iCreator         = l_pTreaty->Creator();
+            const ENTITY_ID l_iMasterAttacking = (l_pTreaty->CountrySide(l_iCreator) == 1) ? l_iCreator : *(l_vSideA.begin());
+            const ENTITY_ID l_iMasterDefending = *(l_vSideB.begin());
+
+            //Send chat message
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, g_ServerDAL.CountryData(l_iCreator)->Name() + L" sponsored a war between " + g_ServerDAL.CountryData(l_iMasterAttacking)->Name() + L" and " + g_ServerDAL.CountryData(l_iMasterDefending)->Name());
+
+            DeclareNewWar(l_vSideA, l_iMasterAttacking, l_iMasterDefending);
+        }
 		break;
 	case ETreatyType::RequestMilitaryPresenceRemoval:
 		{
