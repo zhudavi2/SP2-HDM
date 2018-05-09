@@ -2919,7 +2919,7 @@ void GServer::InitializeDefaultHdmConfig()
 */
 void GServer::LoadHdmConfig()
 {
-    const GString  c_sConfigXMLFile("hdm_cfg.xml");
+    const GString  c_sConfigXMLFile("hdm_cfg_server.xml");
 
     GFile          l_XMLFile;
 	

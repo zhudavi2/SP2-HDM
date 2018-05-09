@@ -395,7 +395,7 @@
   <ItemGroup>
     <None Include="Behavior.xml" />
     <None Include="ehe_entities.xml" />
-    <None Include="..\hdm_cfg.xml" />
+    <None Include="hdm_cfg_server.xml" />
     <None Include="sp2_cfg_server.xml" />
   </ItemGroup>
   <ItemGroup>

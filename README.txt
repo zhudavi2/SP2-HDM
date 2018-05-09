@@ -73,7 +73,7 @@ AI changes:
 - The number of military units that an AI country builds or buys now depends on how high the country's revenue is.
 
 Configurable settings:
-- hdm_cfg.xml is the configuration XML file.
+- hdm_cfg_server.xml is the configuration XML file for the server side.
 - (V10.1) Control whether countries must have regions in order to continue existing in the game. (Issue #15)
 - (V10) Control whether to limit death rate to 0.2% when a country's LE and over-65 population are high enough to yield a death rate higher than 0.2%.
 - (V10) Control production modifiers per government type. This is the same as the V1.5.1 feature that applies multipliers to resource production based on government type, but the specific multiplier values are now configurable.
