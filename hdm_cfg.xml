@@ -270,4 +270,9 @@
   master in one year, as a percentage of client GDP.
   Minimum value is 0. Default is 8. -->
   <tributePercent>8</tributePercent>
+  
+  <!-- Set to 1 to use new export mechanics, which allows countries that either have a high market share in certain resource sectors, and/or specialize in certain resource sectors, to have advantages in exporting those resources, as long as their GDP per capita values are high.
+  Also forces countries that produce many non-service resources not to export as much of service resources.
+  Allowed values are 0 and 1. Default is 1. -->
+  <useNewExportMechanics>1</useNewExportMechanics>
 </SP2-HDM>

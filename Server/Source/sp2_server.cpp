@@ -2835,6 +2835,11 @@ bool GServer::ShowHDIComponents() const
     return m_bShowHDIComponents;
 }
 
+bool GServer::UseNewExportMechanics() const
+{
+    return m_bUseNewExportMechanics;
+}
+
 /*!
 * Load default server options.
 */
@@ -2905,6 +2910,7 @@ void GServer::InitializeDefaultHdmConfig()
     m_fResourceTaxLimit                   = 1.f;
     m_bShowHDIComponents                  = false;
     m_fTributePercent                     = 0.08f;
+    m_bUseNewExportMechanics              = true;
 }
 
 
@@ -3240,6 +3246,11 @@ void GServer::LoadHdmConfig()
                     {
                         m_fTributePercent = l_sElementValue.ToREAL32() / 100.f;
                         g_Joshua.Log(L"tributePercent: " + GString::FormatNumber(m_fTributePercent, 2));
+                    }
+                    else if(l_sElementName == L"useNewExportMechanics")
+                    {
+                        m_bUseNewExportMechanics = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"useNewExportMechanics: " + GString(m_bUseNewExportMechanics));
                     }
                     else
                         g_Joshua.Log(L"Unknown HDM config option: " + l_sElementName, MSGTYPE_WARNING);

@@ -184,6 +184,8 @@ namespace SP2
 
       inline REAL32  TributePercent() const { return m_fTributePercent; }
 
+      bool UseNewExportMechanics() const;
+
       //! Server message helpers
       inline void    AddPlayerID(INT32 in_iID) { m_PlayerIDs.insert(in_iID); }
       inline bool    HasPlayerIDBeenAdded(INT32 in_iID) { return (m_PlayerIDs.find(in_iID) != m_PlayerIDs.end()); }
@@ -334,6 +336,7 @@ namespace SP2
       REAL32 m_fResourceTaxLimit;
       bool   m_bShowHDIComponents;
       REAL32 m_fTributePercent;
+      bool   m_bUseNewExportMechanics;
 
       //! Server message helper to keep track of players who have joined
       set<INT32> m_PlayerIDs;

@@ -3465,9 +3465,13 @@ void GWorldBehavior::IterateGlobalMarket()
 
 void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, vector<REAL64>& in_vPool)
 {
+    GDZLOG(EDZLogLevel::Entry, L"in_iTreatyID = " + GString(in_iTreatyID) + L", in_bWorldMarket = " + GString(in_bWorldMarket));
 
 	//Fill the economic rank hash map
 	multimap<INT16,GCountryData*> l_EconomicRanks;			
+
+    //Map of relevant countries to iterate over, with additional info for trade calculations
+    map<ENTITY_ID, REAL64> l_mCountryInfo;
 
 	UINT32 l_iNbCountry = (UINT32)g_ServerDAL.NbCountry();
 
@@ -3476,7 +3480,10 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 		for(UINT32 i = 1; i<= l_iNbCountry; i++)
 		{
 			if(g_ServerDAL.CountryIsValid(i))
+            {
 				l_EconomicRanks.insert(make_pair<INT16,GCountryData*>(g_ServerDAL.CountryData(i)->EconomicRank(),g_ServerDAL.CountryData(i)));
+                l_mCountryInfo.insert(make_pair<ENTITY_ID, REAL64>(i, -1.0));
+            }
 		}
 	}
 	else
@@ -3486,8 +3493,48 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 			it != l_pTreaty->MembersSideA(true).end(); it++)
 		{			
 			l_EconomicRanks.insert(make_pair<INT16,GCountryData*>(g_ServerDAL.CountryData(*it)->EconomicRank(),g_ServerDAL.CountryData(*it)));
+            l_mCountryInfo.insert(make_pair<ENTITY_ID, REAL64>(*it, -1.0));
 		}
 	}
+
+    //Values, based on non-service resource balance ratios, to limit service exports
+    for(auto l_It = l_mCountryInfo.begin(); l_It != l_mCountryInfo.end(); ++l_It)
+    {
+        const GCountryData* const l_pCountryData = g_ServerDAL.CountryData(l_It->first);
+        REAL64 l_fNonServiceDemandSatisfaction = 0.0;
+        REAL64 l_fNonServiceDemand = 0.0;
+
+        for(UINT32 r = 0; r <= EResources::Luxury_Commodities; r++)
+        {
+            const EResources::Enum l_eResource = static_cast<EResources::Enum>(r);
+            const REAL64 l_fDemand = l_pCountryData->ResourceDemand(l_eResource);
+            l_fNonServiceDemandSatisfaction += min(l_fDemand, l_pCountryData->ResourceProduction(l_eResource));
+            l_fNonServiceDemand += l_fDemand;
+        }
+
+        l_It->second = 1.0 - min(l_fNonServiceDemandSatisfaction / l_fNonServiceDemand, 1.0);
+        GDZLOG(EDZLogLevel::Info2, l_pCountryData->NameAndIDForLog() + L" non-service balance ratio = " + GString(l_It->second));
+    }
+
+    const bool l_bUseNewExportMechanics = g_SP2Server->UseNewExportMechanics();
+
+    //Export strength rank per resource
+    map<EResources::Enum, multimap<REAL64, GCountryData*, greater<REAL64>>> l_mExportRank;
+
+    for(UINT32 r = 0; r < EResources::ItemCount; r++)
+    {
+        const EResources::Enum l_eResource = static_cast<EResources::Enum>(r);
+        for(auto l_It = l_mCountryInfo.cbegin(); l_It != l_mCountryInfo.cend(); ++l_It)
+        {
+            GCountryData* const l_pCountryData = g_ServerDAL.CountryData(l_It->first);
+            const REAL64 l_fGdpPerCapita = l_pCountryData->GDPPerCapita();
+            const REAL32 l_fGdpPercent = l_pCountryData->ResourceGDP(l_eResource);
+            const REAL32 l_fMarketShare = l_pCountryData->ResourceMarketShare(l_eResource);
+
+            const REAL64 l_fExportStrength = l_bUseNewExportMechanics ? l_fGdpPerCapita * max(l_fGdpPercent, l_fMarketShare) : (l_iNbCountry - l_pCountryData->EconomicRank());
+            l_mExportRank[l_eResource].insert(make_pair<REAL64, GCountryData*>(l_fExportStrength, l_pCountryData));
+        }
+    }
 
 	const bool* l_pTradeEmbargos = g_ServerDAL.TradeEmbargos();
 
@@ -3563,12 +3610,12 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 			
 			l_iResource = (EResources::Enum)k;
 
-			for(multimap<INT16,GCountryData*>::iterator j = l_EconomicRanks.begin();
-				j != l_EconomicRanks.end(); j++)
+			for(auto l_ExporterIt = l_mExportRank[l_iResource].begin(); l_ExporterIt != l_mExportRank[l_iResource].end(); ++l_ExporterIt)
 			{		
-				l_pExporter = j->second;					
+				l_pExporter = l_ExporterIt->second;
+                const ENTITY_ID l_iExporterId = l_pExporter->CountryID();
 
-				if(l_pExporter->CountryID() == l_pImporter->CountryID())
+				if(l_iExporterId == l_iImporterId)
 					continue;								
 
 				//Check if the country is activated, if it's not at war against that other country, and that they have no trade embargos
@@ -3580,10 +3627,20 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 
 				l_fExporterExport = l_pExporter->ResourceExport(l_iResource);
 
+                //Limit service exports
+                const bool l_bServiceResource = l_iResource >= EResources::Construction;
+                const REAL64 l_fExporterDemand = l_pExporter->ResourceDemand(l_iResource);
+                gassert(l_mCountryInfo[l_iExporterId] >= 0.0 && l_mCountryInfo[l_iExporterId] <= 1.0, L"Country info set up incorrectly for " + l_pExporter->NameAndIDForLog());
+                if(l_bUseNewExportMechanics && l_bServiceResource && l_fExporterExport >= l_fExporterDemand * l_mCountryInfo[l_iExporterId])
+                    continue;
+
 				l_fNeededImport = l_pImporter->ResourceImportDesired(l_iResource) - l_fImportersImport;
 
 				if(!l_pImporter->ResourceGvtCtrl(l_iResource) && l_pImporter->ResourceLegal(l_iResource))
 					l_fNeededImport = min(l_fNeededImport,in_vPool[l_pImporter->CountryID()]);
+
+                if(l_bUseNewExportMechanics && l_bServiceResource)
+                    l_fNeededImport = min(l_fNeededImport, (l_fExporterDemand * l_mCountryInfo[l_iExporterId]) - l_fExporterExport);
 
 				if(l_fNeededImport > 0.f)
 				{
@@ -3632,6 +3689,7 @@ void GWorldBehavior::ExecuteMarket(UINT32 in_iTreatyID, bool in_bWorldMarket, ve
 		}				
 	}
 
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GWorldBehavior::IterateIMF(REAL64 in_fGameTime)
