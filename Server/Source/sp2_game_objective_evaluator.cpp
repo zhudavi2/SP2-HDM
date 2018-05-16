@@ -791,17 +791,19 @@ EObjectiveStatus::Enum GGameObjectiveEvaluator::EvalLoseElections(SDK::GPlayer* 
 {
    //Objective has no time out
 
-   //Check if the player country is in the list of country that lost the elections
-   vector<UINT32>::iterator l_It = find(m_vCountryWherePoliticalPartyChanged.begin(),m_vCountryWherePoliticalPartyChanged.end(),in_pPlayer->ModID());
-   if( l_It == m_vCountryWherePoliticalPartyChanged.end())
-   {//Not present in the list, did not lose the elections
-      return EObjectiveStatus::NotReached;
+   EObjectiveStatus::Enum l_eStatus = EObjectiveStatus::NotReached;
+   if(!g_SP2Server->ContinueAfterElectionLoss())
+   {
+       //Check if the player country is in the list of country that lost the elections
+       vector<UINT32>::iterator l_It = find(m_vCountryWherePoliticalPartyChanged.begin(), m_vCountryWherePoliticalPartyChanged.end(), in_pPlayer->ModID());
+       if(l_It != m_vCountryWherePoliticalPartyChanged.end())
+       {//Present in the list, lost the elections
+           m_vCountryWherePoliticalPartyChanged.erase(l_It);
+           l_eStatus = EObjectiveStatus::Reached;
+       }
    }
-   else
-   {//Present in the list, lost the elections
-      m_vCountryWherePoliticalPartyChanged.erase(l_It);
-      return EObjectiveStatus::Reached;
-   }
+
+   return l_eStatus;
 }
 
 

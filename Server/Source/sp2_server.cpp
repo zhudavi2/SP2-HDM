@@ -2815,6 +2815,11 @@ GAnarchyConfig GServer::AnarchyConfig() const
     return m_AnarchyConfig;
 }
 
+bool GServer::ContinueAfterElectionLoss() const
+{
+    return m_bContinueAfterElectionLoss;
+}
+
 bool GServer::CountryNeedsRegions() const
 {
     return m_bCountryNeedsRegions;
@@ -2865,6 +2870,7 @@ void GServer::InitializeDefaultHdmConfig()
 
     m_fCombatThresholdSquare                 = 0.7f*0.7f;
     m_bContinueAfterEconomicFailure          = false;
+    m_bContinueAfterElectionLoss             = false;
     m_bCountryNeedsRegions                   = true;
     m_bDedicatedServerAutosaveToJoshuaFolder = false;
     m_fDedicatedServerAutosavePeriod         = 0.f;
@@ -3060,6 +3066,11 @@ void GServer::LoadHdmConfig()
                     {
                         m_bContinueAfterEconomicFailure = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"continueAfterEconomicFailure: " + GString(m_bContinueAfterEconomicFailure));
+                    }
+                    else if(l_sElementName == L"continueAfterElectionLoss")
+                    {
+                        m_bContinueAfterElectionLoss = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(l_sElementName + L": " + GString(m_bContinueAfterElectionLoss));
                     }
                     else if(l_sElementName == L"countryNeedsRegions")
                     {

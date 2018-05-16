@@ -156,6 +156,7 @@ namespace SP2
       inline REAL32  CombatThresholdSquare() const { return m_fCombatThresholdSquare; }
       inline bool    ContinueAfterEconomicFailure() const { return m_bContinueAfterEconomicFailure; }
 
+      bool ContinueAfterElectionLoss() const;
       bool CountryNeedsRegions() const;
 
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
@@ -307,6 +308,7 @@ namespace SP2
 
       REAL32 m_fCombatThresholdSquare;
       bool   m_bContinueAfterEconomicFailure;
+      bool   m_bContinueAfterElectionLoss;
       bool   m_bCountryNeedsRegions;
       REAL32 m_fDedicatedServerAutosavePeriod;
       bool   m_bDedicatedServerAutosaveToJoshuaFolder;

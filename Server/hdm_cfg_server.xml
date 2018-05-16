@@ -97,6 +97,10 @@
   Allowed values are 0 and 1. Default is 0. -->
   <continueAfterEconomicFailure>0</continueAfterEconomicFailure>
   
+  <!-- Set to 1 to enable a human player to continue playing after they lose an election.
+  Allowed values are 0 and 1. Default is 0. -->
+  <continueAfterElectionLoss>0</continueAfterElectionLoss>
+  
   <!-- Set to 0 to allow countries without regions to remain in existence.
   Big-time Conqueror achievement is unaffected.
   Allowed values are 0 and 1. Default is 1. -->
