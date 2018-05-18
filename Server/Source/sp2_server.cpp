@@ -289,6 +289,13 @@ SDK::GAME_MSG GServer::Initialize()
    // Register server specific console commands
    {
       g_Joshua.RegisterConsoleCommand(
+         L"print_server_name",
+         L"",
+         L"Used to check the name of the server",
+         (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler,
+         this);
+
+      g_Joshua.RegisterConsoleCommand(
          L"name",
          L"S",
          L"Used to change the name of the server",   
@@ -400,6 +407,12 @@ SDK::GAME_MSG GServer::Initialize()
           L"declare_peace",
           L"",
           L"Force all countries to declare peace, ending all wars",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
+      g_Joshua.RegisterConsoleCommand(
+          L"set_password",
+          L"S",
+          L"Set server password",
           (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
    }
@@ -1457,7 +1470,11 @@ void GServer::RegisterActions()
 
 GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const vector<GString>& in_vArgs)
 {
-   if(in_sCommand == L"name")
+   if(in_sCommand == L"print_server_name")
+   {
+      return GString(L"Server name: ") + g_Joshua.ServerName();
+   }
+   else if(in_sCommand == L"name")
    {
       g_Joshua.ServerName(in_vArgs[0] );
       return GString(L"Changed server name to: ") + in_vArgs[0];
@@ -1631,6 +1648,11 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
            m_DCL.ChangeOpinionOnWar(l_War.MasterAttacking(), it->first, true);
            m_DCL.ChangeOpinionOnWar(l_War.MasterDefending(), it->first, true);
        }
+   }
+   else if(in_sCommand == L"set_password")
+   {
+       g_Joshua.Password(in_vArgs[0]);
+       return L"Changed password to: " + in_vArgs[0];
    }
 #ifdef GOLEM_DEBUG
    else if(in_sCommand == L"build")
