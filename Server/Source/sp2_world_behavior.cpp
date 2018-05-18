@@ -1312,7 +1312,7 @@ void GWorldBehavior::Iterate_Birth_Rate_Expected()
     if(l_fLe < c_fMinLifeExpectancy)
     {
         static const REAL32 l_fLeForZeroBr = 10.f;
-        const REAL32 l_fLeScaling = (l_fLe - l_fLeForZeroBr) / l_fLeForZeroBr;
+        const REAL32 l_fLeScaling = (max(l_fLe, l_fLeForZeroBr) - l_fLeForZeroBr) / l_fLeForZeroBr;
         l_fExpected *= l_fLeScaling;
     }
 
