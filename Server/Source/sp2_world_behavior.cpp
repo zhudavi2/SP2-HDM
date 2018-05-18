@@ -1941,6 +1941,23 @@ bool GWorldBehavior::CountryIterate(INT16 in_iCountryID)
 
 	m_CountryData->SynchronizeWithRegions();	
 
+    //Set actual demand closer to expected demand by 50% per year
+    //Outside GCountryData::IterateDemand, as that method could be called multiple times per iteration and doesn't know about iteration frequency
+    for(INT32 i = 0; i < EResources::ItemCount; i++)
+    {
+        EResources::Enum l_eResource = static_cast<EResources::Enum>(i);
+
+        const REAL64 l_fDemand = m_CountryData->ResourceDemand(l_eResource);
+        const REAL64 l_fExpectedDemand = m_CountryData->ExpectedResourceDemand(l_eResource);
+        const REAL64 l_fDifference = l_fDemand - l_fExpectedDemand;
+        gassert(l_fDifference >= 0, L"Non-ideal demand exceeds ideal demand");
+        
+        const REAL32 l_fRate = (l_fDemand > 0.0) ? (ConvertRate(false, (-l_fDifference / 2) / l_fDemand)) : 0.f;
+        gassert(l_fRate <= 0.f, L"Demand is increase towards non-ideal");
+        
+        m_CountryData->SetResourceDemand(l_eResource, l_fDemand * (1.0 + l_fRate));
+    }
+
 	REAL64 l_fNewGDP = m_CountryData->GDPValue();
 	REAL32 l_fNewGDPGrowth = 0.f;
     if(l_fOldGDP > 0.f && m_fFrequency > 0.f)

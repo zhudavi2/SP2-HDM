@@ -158,6 +158,12 @@ namespace SP2
       REAL32 Population1565Growth() const;
       void   Population1565Growth(REAL32 in_fPopulation1565Growth);
 
+      //! Sets effective demand (i.e., after demand modifier) for the specified resource; named SetResourceDemand to avoid name hiding issues
+      void SetResourceDemand(EResources::Enum in_eResource, REAL64 in_fDemand);
+
+      //! Expected effective demand (i.e., after demand modifier) based on PIT and budget
+      REAL64 ExpectedResourceDemand(EResources::Enum in_eResource) const;
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
