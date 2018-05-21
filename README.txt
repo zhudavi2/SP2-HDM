@@ -74,6 +74,8 @@ AI changes:
 
 Configurable settings:
 - hdm_cfg_server.xml is the configuration XML file for the server side.
+- (V10.3) Allow players to play past election losses.
+- (V10.3) Control whether or not to use new economy mechanics, which grants ountries an advantage in exporting a resource if its GDP per capita is high and it has a high market share in the resource, or the resource makes up a large percentage of its GDP. Countries, whose production satisfies their domestic demand for non-service resources, won't be able to export as much of service resources.
 - (V10.1) Control whether countries must have regions in order to continue existing in the game. (Issue #15)
 - (V10) Control whether to limit death rate to 0.2% when a country's LE and over-65 population are high enough to yield a death rate higher than 0.2%.
 - (V10) Control production modifiers per government type. This is the same as the V1.5.1 feature that applies multipliers to resource production based on government type, but the specific multiplier values are now configurable.
@@ -108,6 +110,12 @@ Configurable settings:
 - (V3) HDI component (LE, MYS, EYS) viewing through the country info window.
 
 Other changes:
+- (V10.3) Added a console command, set_password, to set server password. Thanks to IceyVVind for the suggestion. (#127)
+- (V10.3) Added a console command, print_server_name, to log out current server name.
+- (V10.3) Broadcast chat message to all players when a war treaty is created, to allow players to know if someone sponsored a war that they're not participating in. Thanks to Tannman and Alex2142 for the suggestion. (Issue #101)
+- (V10.3) Added a console command, set_max_players, to set the maximum number of players allowed in the server. Thanks to IceyVVind for the suggestion. (Issue #59)
+- (V10.3) Added a console command, print_max_players, to log out the maximum number of players allowed in the server.
+- (V10.3) Display HDM version in main menu.
 - (V10.2) Intro movies no longer play when starting the game.
 - (V10) Prevent some displayed percentages and rates from going negative, and make such displays more accurate, by exponentially annualizing and de-annualizing growth rates rather than multiplicatively doing so.
 - (V10) If LE is increasing while LE and the percentage of population over 65 are high enough, then the death rate will initially be limited to prevent the percentage of population over 65 from decreasing (increasing LE should lead to aging population), but in the long term, the death rate will rise again (as the over-65 population becomes so high that much of the population is dying of old age).
@@ -128,7 +136,11 @@ Other changes:
 - Minimum possible birth and death rates have been lowered slightly.
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
-Changes to previous SP2-HDM releases:
+Changes to previous HDM releases:
+- (V10.3) Fixed unintentional volatility of PIT's and budgets' effects on domestic consumption.
+- (V10.3) Config file renamed from SP2-HDM_Config.xml to hdm_cfg_server.xml.
+- (V10.3) HDM custom client now compatible with non-HDM servers. Thanks to IceyVVind for the suggestion. (Issue #125)
+- (V10.3) print_players now logs out each player's relative ping.
 - (V10.2) Fixed conflict between country name changes and player name changes. Removed country-name-change-related config option.
 - (V10.0.2) Fixed an occasional crash while annexations are occurring in contested regions. (Issue #94)
 - (V10.0.2) During civil war, units in deployment or transit will no longer defect; fixes some related crashes.
@@ -147,6 +159,7 @@ Changes to previous SP2-HDM releases:
 - (V5) Fixed a potential issue in which countries with extremely low revenue wouldn't be able to build or buy non-infantry units.
 
 Fixes to SP2 V1.5.1 issues:
+- (V10.3) Disallow state-controlled economies from importing more than their domestic consumption. Thanks to memento mori for reporting. (Issue #79)
 - (V10.2) Prevent modified clients from connecting to password-protected servers. To secure a non-password-protected server in this way, as a workaround, you could create a password-protected server that mentions its password in its name.
 - (V10) Population growth thematic map is no longer misleading.
 - (V10) Increase covert mission result randomness so that multiple missions wouldn't always all yield the same result if they were all executed around the same game time.
