@@ -1,4 +1,4 @@
-Human Development Modification (HDM) V10.2
+Human Development Modification (HDM) V10.3
 
 Human development changes:
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
