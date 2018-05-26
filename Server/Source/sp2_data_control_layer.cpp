@@ -9648,3 +9648,53 @@ void GDataControlLayer::FixRegionPopulationMismatch(const bool in_bIsReligion, G
             in_Region.LanguageChangePopulation(l_iLargestGroup, l_iNewLargestGroupPop);
     }
 }
+
+bool GDataControlLayer::ForceCovertActionCellTravel(const ENTITY_ID in_iSource, const ENTITY_ID in_iTarget, GCovertActionCell& in_Cell) const
+{
+    GDZLOG(EDZLogLevel::Entry, L"in_iSource = " + GString(in_iSource) + L", in_iTarget" + GString(in_iTarget) + L", in_Cell is " + g_ServerDAL.CovertCellInfoForLog(in_Cell.OwnerID(), in_Cell.ID()));
+
+    const GString l_sCellInfo   = g_ServerDAL.CovertCellInfoForLog(in_Cell.OwnerID(), in_Cell.ID());
+    const GString l_sSourceName = g_ServerDAL.CountryData(in_iSource)->NameAndIDForLog();
+    const GString l_sTargetName = g_ServerDAL.CountryData(in_iTarget)->NameAndIDForLog();
+    
+    GCountryData* const l_pOwnerData = g_ServerDAL.CountryData(in_Cell.OwnerID());
+
+    bool l_bCellModified = false;
+
+    if(in_iSource != in_iTarget)
+    {
+        if(in_Cell.AssignedCountry() == in_iSource)
+        {
+            //Cancel missions
+            switch(in_Cell.ActualState())
+            {
+            case ECovertActionsCellState::PreparingMission:
+            case ECovertActionsCellState::ReadyToExecute:
+                GDZLOG(EDZLogLevel::Info1, L"Cell " + l_sCellInfo + L" cancels its mission against " + l_sSourceName);
+                in_Cell.CancelAction();
+                break;
+
+            default:
+                break;
+            }
+
+            const GString l_sActionDescription = (in_Cell.ActualState() == ECovertActionsCellState::InTransit) ? L"change its transit origin" : L"be reassigned";
+            GDZLOG(EDZLogLevel::Info1, L"Cell " + l_sCellInfo + L" will " + l_sActionDescription + L" from " + l_sSourceName + L" to " + l_sTargetName);
+
+            in_Cell.AssignedCountry(in_iTarget);
+            l_pOwnerData->FlagCovertActionsCellsAsDirty();
+            l_bCellModified = true;
+        }
+        else if(in_Cell.NextAssignedCountry() == in_iSource)
+        {
+            GDZLOG(EDZLogLevel::Info1, L"Cell " + l_sCellInfo + L" will change its destination from " + l_sSourceName + L" to " + l_sTargetName);
+
+            in_Cell.NextAssignedCountry(in_iTarget);
+            l_pOwnerData->FlagCovertActionsCellsAsDirty();
+            l_bCellModified = true;
+        }
+    }
+
+    GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(l_bCellModified));
+    return l_bCellModified;
+}

@@ -161,17 +161,27 @@ namespace SP2
 
       inline bool    DisableNuclearOnOccupy() const { return m_bDisableNuclearOnOccupy; }
       inline bool    DisbandAMDSOnOccupy() const { return m_bDisbandAMDSOnOccupy; }
-      inline REAL32  GlobalTaxLimit() const { return m_fGlobalTaxLimit; }
+
+      //! Maximum global resource tax rate
+      REAL32 GlobalTaxLimit() const;
+      void   GlobalTaxLimit(REAL32 in_fGlobalTaxLimit);
+
       inline INT32   GlobalTaxSpecial(EGlobalTaxSpecialType::Enum in_eGlobalTaxSpecial) { return m_GlobalTaxSpecials.at(in_eGlobalTaxSpecial); }
 
 	  REAL64 GvtTypeProductionModifier(EGovernmentType::Enum in_iGvtType) const;
 
-      inline REAL64  IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const { return m_IncomeTaxLimits.at(in_eGovernmentType); }
+      //! Maximum income tax rate per government type
+      REAL64 IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const;
+      void   IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType, REAL64 in_fIncomeTaxLimit);
 
       bool IncreaseDeathRateForAgingPopulation() const;
 
       inline bool    LogBankruptcies() const { return m_bLogBankruptcies; }
-      inline INT32   MaximumCellsInForeignCountry() const { return m_iMaximumCellsInForeignCountry; }
+
+      //! Maximum number of covert cells each country can have in each foreign country, 0 means no limit
+      INT32 MaximumCellsInForeignCountry() const;
+      void  MaximumCellsInForeignCountry(INT32 in_iMaxCells);
+
       inline GString Message() const { return m_sMessage; }
       inline REAL32  MilitaryUpkeepPercentages(EUnitCategory::Enum in_eUnitCategory, ETrainingLevel::Enum in_eTrainingLevel) const { return m_mMilitaryUpkeepPercentages.at(in_eUnitCategory).at(in_eTrainingLevel); }
       inline bool    NavalRuleEnabled() const { return m_bNavalRuleEnabled; }
@@ -179,7 +189,10 @@ namespace SP2
       inline REAL32  NuclearUpkeepPercentage() const { return m_fNuclearUpkeepPercentage; }
       inline REAL32  OccupiedRegionPercentageForNuclear() const { return m_fOccupiedRegionPercentageForNuclear; }
       inline REAL32  ProductionLossOnAnnex() const { return m_fProductionLossOnAnnex; }
-      inline REAL32  ResourceTaxLimit() const { return m_fResourceTaxLimit; }
+
+      //! Maximum tax rate for any resource
+      REAL32 ResourceTaxLimit() const;
+      void   ResourceTaxLimit(REAL32 in_fResourceTaxLimit);
       
       bool ShowHDIComponents() const;
 

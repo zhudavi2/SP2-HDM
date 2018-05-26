@@ -110,6 +110,7 @@ Configurable settings:
 - (V3) HDI component (LE, MYS, EYS) viewing through the country info window.
 
 Other changes:
+- (V10.4) Added a console command, load_hdm_cfg, to reload the HDM config file in the middle of a game. Thanks to -Jesse- for the suggestion.
 - (V10.3) Added a console command, set_password, to set server password. Thanks to IceyVVind for the suggestion. (#127)
 - (V10.3) Added a console command, print_server_name, to log out current server name.
 - (V10.3) Broadcast chat message to all players when a war treaty is created, to allow players to know if someone sponsored a war that they're not participating in. Thanks to Tannman and Alex2142 for the suggestion. (Issue #101)
@@ -202,6 +203,6 @@ SDK notes:
 Credits:
 - Fenix/memento mori for code suggestions, support, and testing help.
 - awolfska for testing help.
-- BlueS3xy`=;], IceyVVind, Illuminati, Mr Monday, p2, Paco Jiangxi Dandong, Radu, Slajavck, Tannman, The Patriot, thereversedguy, and ZDisket for suggestions and support.
+- BlueS3xy`=;], IceyVVind, Illuminati, -Jesse-, Mr Monday, p2, Paco Jiangxi Dandong, Radu, Slajavck, Tannman, The Patriot, thereversedguy, and ZDisket for suggestions and support.
 - Many more people on the HDM discussion thread and the SP2 Discussion forum.
 - Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.

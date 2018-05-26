@@ -594,6 +594,21 @@ namespace SP2
 
       //! Helper for VerifyRegionPopulationConsistency
       void FixRegionPopulationMismatch(bool in_bByReligion, GRegion& in_Region) const;
+
+      /*!
+      * \brief Force a cell to travel from specified source country to specified target country, cancelling missions or travel if necessary
+      *
+      * If cell is already in source, immediately cancel mission and move to target
+      * If cell is travelling from source, adjust origin of travel to be the target instead
+      * If cell is travelling to source, cancel movement
+      * \todo Possible cleanup. #130
+      *
+      * @param in_iSource: Source country ID
+      * @param in_iTarget: Target country ID
+      * @param in_Cell:    Cell to move
+      * @return true if cell modified, false otherwise
+      **/
+      bool ForceCovertActionCellTravel(ENTITY_ID in_iSource, ENTITY_ID in_iTarget, GCovertActionCell& in_Cell) const;
    };
 };
 

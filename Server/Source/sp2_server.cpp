@@ -415,6 +415,12 @@ SDK::GAME_MSG GServer::Initialize()
           L"Set server password",
           (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
 
+      g_Joshua.RegisterConsoleCommand(
+          L"load_hdm_cfg",
+          L"",
+          L"Load HDM server config file",
+          (CALLBACK_HANDLER_GS_crGS_cvrGS)&GServer::ConsoleServerCommandsHandler, this);
+
    }
 
 
@@ -1654,6 +1660,10 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
        g_Joshua.Password(in_vArgs[0]);
        return L"Changed password to: " + in_vArgs[0];
    }
+   else if(in_sCommand == L"load_hdm_cfg")
+   {
+       LoadHdmConfig();
+   }
 #ifdef GOLEM_DEBUG
    else if(in_sCommand == L"build")
    {
@@ -2847,14 +2857,118 @@ bool GServer::CountryNeedsRegions() const
     return m_bCountryNeedsRegions;
 }
 
+REAL32 GServer::GlobalTaxLimit() const
+{
+    return m_fGlobalTaxLimit;
+}
+
+void GServer::GlobalTaxLimit(const REAL32 in_fGlobalTaxLimit)
+{
+    m_fGlobalTaxLimit = in_fGlobalTaxLimit;
+
+    for(ENTITY_ID i = 1; i <= m_DAL.NbCountry(); i++)
+        m_DCL.ChangeGlobalModTax(i, min(m_DAL.CountryData(i)->GlobalTaxMod(), m_fGlobalTaxLimit));
+}
+
+REAL64 GServer::GvtTypeProductionModifier(const EGovernmentType::Enum in_iGvtType) const
+{
+    return m_mGvtTypeProductionModifiers.at(in_iGvtType);
+}
+
+REAL64 GServer::IncomeTaxLimit(const EGovernmentType::Enum in_eGovernmentType) const
+{
+    return m_IncomeTaxLimits.at(in_eGovernmentType);
+}
+
+void GServer::IncomeTaxLimit(const EGovernmentType::Enum in_eGovernmentType, const REAL64 in_fIncomeTaxLimit)
+{
+    m_IncomeTaxLimits[in_eGovernmentType] = in_fIncomeTaxLimit;
+
+    for(ENTITY_ID i = 1; i <= m_DAL.NbCountry(); i++)
+    {
+        GCountryData* const l_pData = m_DAL.CountryData(i);
+        if(l_pData->GvtType() == in_eGovernmentType)
+        {
+            const REAL64 l_fOldTaxRate = l_pData->PersonalIncomeTax();
+            m_DCL.ChangePersonalIncomeTax(i, l_fOldTaxRate, min(l_fOldTaxRate, m_IncomeTaxLimits[in_eGovernmentType]));
+        }
+    }
+}
+
 bool GServer::IncreaseDeathRateForAgingPopulation() const
 {
     return m_bIncreaseDeathRateForAgingPopulation;
 }
 
-REAL64 GServer::GvtTypeProductionModifier(const EGovernmentType::Enum in_iGvtType) const
+INT32 GServer::MaximumCellsInForeignCountry() const
 {
-	return m_mGvtTypeProductionModifiers.at(in_iGvtType);
+    return m_iMaximumCellsInForeignCountry;
+}
+
+void GServer::MaximumCellsInForeignCountry(const INT32 in_iMaxCells)
+{
+    m_iMaximumCellsInForeignCountry = in_iMaxCells;
+
+    if(m_iMaximumCellsInForeignCountry > 0)
+    {
+        for(ENTITY_ID i = 1; i <= m_DAL.NbCountry(); i++)
+        {
+            GCountryData* const l_pData = m_DAL.CountryData(i);
+
+            vector<GCovertActionCell>& l_vCells = l_pData->CovertActionCells();
+            if(l_vCells.size() <= static_cast<size_t>(m_iMaximumCellsInForeignCountry))
+                continue;
+
+            //\todo Possible cleanup. #130
+            map<ENTITY_ID, INT32> l_mCellCount;
+            for(auto l_It = l_vCells.begin(); l_It < l_vCells.end(); ++l_It)
+            {
+                const ENTITY_ID l_iAssignedCountry     = l_It->AssignedCountry();
+
+                if(l_mCellCount.count(l_iAssignedCountry) == 0)
+                    l_mCellCount[l_iAssignedCountry] = 1;
+                else if(l_mCellCount[l_iAssignedCountry] == m_iMaximumCellsInForeignCountry)
+                    m_DCL.ForceCovertActionCellTravel(l_iAssignedCountry, i, *l_It);
+                else
+                    l_mCellCount[l_iAssignedCountry]++;
+
+                if(l_It->ActualState() == ECovertActionsCellState::InTransit)
+                {
+                    const ENTITY_ID l_iNextAssignedCountry = l_It->NextAssignedCountry();
+
+                    if(l_mCellCount.count(l_iNextAssignedCountry) == 0)
+                        l_mCellCount[l_iNextAssignedCountry] = 1;
+                    else if(l_mCellCount[l_iNextAssignedCountry] == m_iMaximumCellsInForeignCountry)
+                        m_DCL.ForceCovertActionCellTravel(l_iNextAssignedCountry, i, *l_It);
+                    else
+                        l_mCellCount[l_iNextAssignedCountry]++;
+                }
+            }
+
+            l_pData->NationalSecurity(m_DCL.FindNationalSecurity(i));
+        }
+    }
+}
+
+REAL32 GServer::ResourceTaxLimit() const
+{
+    return m_fResourceTaxLimit;
+}
+
+void GServer::ResourceTaxLimit(const REAL32 in_fResourceTaxLimit)
+{
+    m_fResourceTaxLimit = in_fResourceTaxLimit;
+
+    for(ENTITY_ID i = 1; i <= m_DAL.NbCountry(); i++)
+    {
+        GCountryData* const l_pData = m_DAL.CountryData(i);
+
+        for(INT32 j = 0; j < EResources::ItemCount; j++)
+        {
+            const EResources::Enum l_eResource = static_cast<EResources::Enum>(j);
+            l_pData->ResourceTaxes(l_eResource, min(l_pData->ResourceTaxes(l_eResource), m_fResourceTaxLimit));
+        }
+    }
 }
 
 bool GServer::ShowHDIComponents() const
@@ -3121,7 +3235,7 @@ void GServer::LoadHdmConfig()
                     }
                     else if(l_sElementName == L"globalTaxLimit")
 		            {
-                        m_fGlobalTaxLimit = l_sElementValue.ToREAL32() / 100.f;
+                        GlobalTaxLimit(l_sElementValue.ToREAL32() / 100.f);
                         g_Joshua.Log(L"globalTaxLimit: " + GString::FormatNumber(m_fGlobalTaxLimit, 3));
 		            }
                     else if(l_sElementName == L"globalTaxSpecials")
@@ -3166,7 +3280,7 @@ void GServer::LoadHdmConfig()
 
 		                    const GString l_sName = l_GovernmentNode->Data().m_sName;
                             const EGovernmentType::Enum l_eGovernmentType = c_mGvtTypes.at(l_sName);
-                            m_IncomeTaxLimits[l_eGovernmentType] = l_GovernmentNode->Data().m_value.ToREAL64() / 100.0;
+                            IncomeTaxLimit(l_eGovernmentType, l_GovernmentNode->Data().m_value.ToREAL64() / 100.0);
                             g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " + GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }
                     }
@@ -3182,7 +3296,7 @@ void GServer::LoadHdmConfig()
                     }
                     else if(l_sElementName == L"maximumCellsInForeignCountry")
                     {
-                        m_iMaximumCellsInForeignCountry = l_sElementValue.ToINT32();
+                        MaximumCellsInForeignCountry(l_sElementValue.ToINT32());
                         g_Joshua.Log(L"maximumCellsInForeignCountry: " + GString(m_iMaximumCellsInForeignCountry));
                     }
                     else if(l_sElementName == L"message")
@@ -3267,7 +3381,7 @@ void GServer::LoadHdmConfig()
                     }
                     else if(l_sElementName == L"resourceTaxLimit")
                     {
-                        m_fResourceTaxLimit = l_sElementValue.ToREAL32() / 100.f;
+                        ResourceTaxLimit(l_sElementValue.ToREAL32() / 100.f);
                         g_Joshua.Log(L"resourceTaxLimit: " + GString::FormatNumber(m_fResourceTaxLimit, 3));
                     }
                     else if(l_sElementName == L"showHDIComponents")
