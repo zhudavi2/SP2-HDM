@@ -138,6 +138,7 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous HDM releases:
+- (V10.4) Clarified effects of anarchy-related config options.
 - (V10.3) Fixed unintentional volatility of PIT's and budgets' effects on domestic consumption.
 - (V10.3) Config file renamed from SP2-HDM_Config.xml to hdm_cfg_server.xml.
 - (V10.3) HDM custom client now compatible with non-HDM servers. Thanks to IceyVVind for the suggestion. (Issue #125)

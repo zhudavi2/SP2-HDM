@@ -18,19 +18,18 @@
   
   <!-- Anarchy-related options. -->
   <anarchy>
-    <!-- When a country's actual stability drops below stabilityLowerLimit, the 
-    chance of it falling into anarchy automatically will be this %.
+    <!-- When a country's actual stability drops below stabilityLowerLimit, the chance of it falling into anarchy automatically will be this %.
+	This effect is independent from that of expectedStabilityLowerLimit.
     Allowed values are 0-100. Default is 0. -->
     <chanceDueToStability>0</chanceDueToStability>
   
-    <!-- A country will enter Anarchy when its expected (not actual) stability
-    drops to this value.
-    Works best when this is less than stabilityAnarchyUpperLimit.
+    <!-- A country will enter Anarchy when its actual and expected stability both drop to this value.
+    Works best when this is less than expectedStabilityUpperLimit.
     Allowed values are 0-100. Default is 10. -->
     <expectedStabilityLowerLimit>10</expectedStabilityLowerLimit>
   
-    <!-- A country will leave Anarchy when its expected (not actual) stabilty
-    rises to this value.
+    <!-- A country will be eligible to leave Anarchy when its actual and expected stability both rise to this value.
+	The country's actual stability must additionally exceed stabilityLowerLimit to actually leave anarchy.
     Allowed values are 0-100. Default is 20. -->
     <expectedStabilityUpperLimit>20</expectedStabilityUpperLimit>
     
