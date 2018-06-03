@@ -35,6 +35,8 @@ using namespace SDK;
 #include "../includes/common_lib/sp2_constants.h"
 #include "../includes/common_lib/sp2_data_access_layer.h"
 
+#include "../Common/Include/sp2_hdm_event_country_info.h"
+
 using namespace GUI;
 
 #include "include/sp2_client.h"

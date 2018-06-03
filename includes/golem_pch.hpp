@@ -9,6 +9,8 @@
 #include "../includes/common_lib/sp2_constants_str_id.h"
 #include "../includes/common_lib/sp2_common.h"
 
+#include "../Common/Include/sp2_hdm_event_country_info.h"
+
 
 using namespace SP2;
 

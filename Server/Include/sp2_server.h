@@ -193,8 +193,6 @@ namespace SP2
       //! Maximum tax rate for any resource
       REAL32 ResourceTaxLimit() const;
       void   ResourceTaxLimit(REAL32 in_fResourceTaxLimit);
-      
-      bool ShowHDIComponents() const;
 
       inline REAL32  TributePercent() const { return m_fTributePercent; }
 
@@ -349,7 +347,6 @@ namespace SP2
       REAL32 m_fOccupiedRegionPercentageForNuclear;
       REAL32 m_fProductionLossOnAnnex;
       REAL32 m_fResourceTaxLimit;
-      bool   m_bShowHDIComponents;
       REAL32 m_fTributePercent;
       bool   m_bUseNewExportMechanics;
 

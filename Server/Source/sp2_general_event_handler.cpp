@@ -669,52 +669,48 @@ void SP2::GGeneralEventHandler::HandleSetObjectives(SDK::GGameEventSPtr in_Event
 
 void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
 {
-   SP2::Event::GEventCountryInfo* l_pUpdate = (SP2::Event::GEventCountryInfo*)in_Event.get();
+   GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
 
+   SP2::Event::GHDMEventCountryInfo* l_pUpdate = dynamic_cast<SP2::Event::GHDMEventCountryInfo*>(in_Event.get());
+
+   GDZLOG(EDZLogLevel::Info1, L"l_pUpdate->m_iSource = " + GString(l_pUpdate->m_iSource));
    SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayer(l_pUpdate->m_iSource);
-   if(!l_pPlayer)
-      return;
-
-   l_pUpdate->m_iTarget = l_pUpdate->m_iSource;
-   l_pUpdate->m_iSource = SDK::Event::ESpecialTargets::Server;
-
-   GCountryData* l_pData = g_ServerDAL.CountryData(l_pUpdate->m_iCountryID);
-   
-   if(g_SP2Server->ShowHDIComponents())
+   if(l_pPlayer != nullptr)
    {
-       l_pUpdate->m_fArableLand      = l_pData->HumanDevelopment();
-       l_pUpdate->m_fForestLand      = l_pData->LifeExpectancy()         / 100.f;
-       l_pUpdate->m_fParksLand       = l_pData->MeanYearsSchooling()     / 100.f;
-       l_pUpdate->m_fUnusableLand    = l_pData->ExpectedYearsSchooling() / 100.f;
-   }
-   else
-   {
+       l_pUpdate->m_iTarget = l_pUpdate->m_iSource;
+       l_pUpdate->m_iSource = SDK::Event::ESpecialTargets::Server;
+
+       GCountryData* l_pData = g_ServerDAL.CountryData(l_pUpdate->m_iCountryID);
+
        l_pUpdate->m_fArableLand      = l_pData->ArableLandLevel();
        l_pUpdate->m_fForestLand      = l_pData->ForestLandLevel();
        l_pUpdate->m_fParksLand       = l_pData->ParksLandLevel();
        l_pUpdate->m_fUnusableLand    = l_pData->NotUsedLandLevel();
+
+       l_pUpdate->m_iPop15           = l_pData->Pop15();
+       l_pUpdate->m_iPop1565         = l_pData->Pop1565();
+       l_pUpdate->m_iPop65           = l_pData->Pop65();
+
+       l_pUpdate->m_fLandArea        = l_pData->AreaLandTotal();
+       l_pUpdate->m_fWaterArea       = l_pData->AreaWaterTotal();
+       l_pUpdate->m_fTotalArea       = l_pData->AreaTotal();
+
+       l_pUpdate->m_fHumanDev               = l_pData->HumanDevelopment();
+       l_pUpdate->m_fLifeExpectancy         = l_pData->LifeExpectancy();
+       l_pUpdate->m_fMeanYearsSchooling     = l_pData->MeanYearsSchooling();
+       l_pUpdate->m_fExpectedYearsSchooling = l_pData->ExpectedYearsSchooling();
+       l_pUpdate->m_fHumanDevAverage        = g_ServerDCL.AverageHumanDevelopment();
+       l_pUpdate->m_iClimateStid            = l_pData->ClimateNameID();
+
+       l_pUpdate->m_fBirthRate       = l_pData->BirthRate();
+       l_pUpdate->m_fDeathRate       = l_pData->DeathRate();
+       l_pUpdate->m_fInfrastructure  = l_pData->Infrastructure();
+       l_pUpdate->m_fTelecommunications = l_pData->TelecomLevel();
+
+       g_Joshua.RaiseEvent(in_Event);
    }
 
-   l_pUpdate->m_iPop15           = l_pData->Pop15();
-   l_pUpdate->m_iPop1565         = l_pData->Pop1565();
-   l_pUpdate->m_iPop65           = l_pData->Pop65();
-   
-   l_pUpdate->m_fLandArea        = l_pData->AreaLandTotal();
-   l_pUpdate->m_fWaterArea       = l_pData->AreaWaterTotal();
-   l_pUpdate->m_fTotalArea       = l_pData->AreaTotal();
-
-   l_pUpdate->m_fHumanDev        = l_pData->HumanDevelopment();
-   l_pUpdate->m_fHumanDevAverage = g_ServerDCL.AverageHumanDevelopment();
-   l_pUpdate->m_iClimateStid     = l_pData->ClimateNameID();
-
-   l_pUpdate->m_fBirthRate       = l_pData->BirthRate();
-   l_pUpdate->m_fDeathRate       = l_pData->DeathRate();
-   l_pUpdate->m_fInfrastructure  = l_pData->Infrastructure();
-   l_pUpdate->m_fTelecommunications = l_pData->TelecomLevel();
-
-   g_Joshua.RaiseEvent(in_Event);
-
-   return;
+   GDZLOG(EDZLogLevel::Exit, L"Returning");
 }
 
 void SP2::GGeneralEventHandler::HandleChangeAIAggressiveness(SDK::GGameEventSPtr in_Event)
