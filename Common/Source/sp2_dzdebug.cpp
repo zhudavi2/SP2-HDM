@@ -69,6 +69,76 @@ map<GString, UINT32> GDZDebug::m_mLogLevelsEnabled(c_LogLevelsEnabled, c_LogLeve
 
 bool GDZDebug::m_bAssertEnable = m_bLogEnable || false;
 
+bool GDZDebug::LogEnabled()
+{
+    return m_bLogEnable;
+}
+
+void GDZDebug::Log(EDZLogLevel::Enum in_iLogLevel, const GString& in_sMsg, const GString& in_sFunc, INT32 in_iLine)
+{
+    if(m_bLogEnable)
+    {
+        static const wregex l_rModuleNameRegex(L"::G(\\w+)::\\w+$");
+        wsmatch l_vMatches;
+        regex_search(in_sFunc, l_vMatches, l_rModuleNameRegex);
+        const GString l_sModuleName(l_vMatches[1]);
+
+        const auto l_LogLevel = m_mLogLevelsEnabled.find(l_sModuleName);
+        const UINT32 l_iLogLevelsEnabled = c_iDefaultLogLevel | ((l_LogLevel == m_mLogLevelsEnabled.cend()) ? 0 : l_LogLevel->second);
+
+        if((l_iLogLevelsEnabled & in_iLogLevel) != 0)
+        {
+            GString l_sTraceString(L"");
+            switch(in_iLogLevel)
+            {
+            case EDZLogLevel::Entry:
+                l_sTraceString = L">>> ";
+                break;
+
+            case EDZLogLevel::Exit:
+                l_sTraceString = L"<<< ";
+                break;
+
+            default:
+                break;
+            }
+
+            g_Joshua.Log(L"(DZLOG) [" + c_mLogLevelNames.at(in_iLogLevel) + L"] " + l_sModuleName + L" - " + in_sFunc + L" - " + GString(in_iLine) + L": " + l_sTraceString + in_sMsg);
+        }
+    }
+}
+
+bool GDZDebug::AssertEnabled()
+{
+    return m_bAssertEnable;
+}
+
+void GDZDebug::Assert(const bool in_bExpr, const GString& in_sExpr, const GString& in_sMsg, const GString& in_sFunc, const GString& in_sFile, const INT32 in_iLine)
+{
+    if(m_bAssertEnable && !in_bExpr)
+    {
+        //g_Joshua.Log() doesn't log out newlines within a GString for some reason
+        //Need to log out each line separately
+        vector<GString> l_vAssertMsgs;
+        l_vAssertMsgs.push_back(L"----------------------------------------------------------------\n");
+        l_vAssertMsgs.push_back(L"ASSERT FAILED  : " + in_sExpr + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT MESSAGE : " + in_sMsg  + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT FUNCTION: " + in_sFunc + L"\n");
+        l_vAssertMsgs.push_back(L"ASSERT LOCATION: " + in_sFile + L":" + GString(in_iLine) + L"\n");
+        l_vAssertMsgs.push_back(L"----------------------------------------------------------------");
+
+        for(auto l_It = l_vAssertMsgs.cbegin(); l_It < l_vAssertMsgs.cend(); ++l_It)
+            g_Joshua.Log(*l_It);
+
+        abort();
+    }
+}
+
+GString GDZDebug::FormatInt(const INT64 in_iInt)
+{
+    return GString::FormatNumber(static_cast<REAL64>(in_iInt), L",", L"", L"", L"", 3, 0, false);
+}
+
 GString GDZDebug::FormatPtr(const void* const in_pPtr)
 {
     stringstream l_StringStream;

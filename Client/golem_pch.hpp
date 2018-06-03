@@ -29,17 +29,17 @@ using namespace SDK;
 
 #include <deque>
 
-//! \todo Better way to share DZDebug between Client and Server. #63
-#include "../../Server/Include/sp2_dzdebug.h"
 #include "include/sp2_sound.h"
 #include "../includes/common_lib/sp2_constants.h"
 #include "../includes/common_lib/sp2_data_access_layer.h"
-
-#include "../Common/Include/sp2_hdm_event_country_info.h"
 
 using namespace GUI;
 
 #include "include/sp2_client.h"
 #include "include/sp2_base_window.h"
+
+// Place DZDebug here so it can pick up GString and related definitions
+#include "../Common/Include/sp2_dzdebug.h"
+#include "../Common/Include/sp2_hdm_event_country_info.h"
 
 #endif

@@ -161,6 +161,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Source\sp2_dzdebug.cpp" />
     <ClCompile Include="..\Common\Source\sp2_hdm_event_country_info.cpp" />
     <ClCompile Include="Source\sp2_advisor.cpp" />
     <ClCompile Include="Source\sp2_advisor_event_handler.cpp" />
@@ -234,7 +235,6 @@
     <ClCompile Include="Source\sp2_declare_war.cpp" />
     <ClCompile Include="Source\sp2_decrease_status_rel_lang.cpp" />
     <ClCompile Include="Source\sp2_disband_nuke.cpp" />
-    <ClCompile Include="Source\sp2_dzdebug.cpp" />
     <ClCompile Include="Source\sp2_economic_aid.cpp" />
     <ClCompile Include="Source\sp2_economic_embargo.cpp" />
     <ClCompile Include="Source\sp2_economic_partnership.cpp" />
@@ -276,6 +276,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\Include\sp2_dzdebug.h" />
     <ClInclude Include="..\Common\Include\sp2_hdm_event_country_info.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Include\sp2_advisor.h" />
@@ -287,7 +288,6 @@
     <ClInclude Include="Include\sp2_country_data_holder.h" />
     <ClInclude Include="Include\sp2_data_access_layer.h" />
     <ClInclude Include="Include\sp2_data_control_layer.h" />
-    <ClInclude Include="Include\sp2_dzdebug.h" />
     <ClInclude Include="Include\sp2_economic_event_handler.h" />
     <ClInclude Include="Include\sp2_ehe_constants.h" />
     <ClInclude Include="Include\sp2_ehe_plan.h" />
