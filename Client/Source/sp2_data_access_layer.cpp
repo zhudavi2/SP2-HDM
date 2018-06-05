@@ -109,20 +109,15 @@ bool GDataAccessLayerClient::DialogDefinitionFile(GFile& out_File)
 
 bool GDataAccessLayerClient::FetchCountryInfo(INT32 in_iCountryID)
 {
-   GDZLOG(EDZLogLevel::Entry, L"in_iCountryID = " + GString(in_iCountryID));
-
-   GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SP2::Event::GHDMEventCountryInfo);
-   SP2::Event::GHDMEventCountryInfo* l_pUpdateEvent = dynamic_cast<SP2::Event::GHDMEventCountryInfo*>(l_pEvent.get());
+   GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SP2::Event::GEventCountryInfo);
+   SP2::Event::GEventCountryInfo* l_pUpdateEvent = (SP2::Event::GEventCountryInfo*)l_pEvent.get();
 
    l_pUpdateEvent->m_iSource = g_SP2Client->Id();
-   GDZLOG(EDZLogLevel::Info1, L"Client ID = " + GString(g_SP2Client->Id()));
-
    l_pUpdateEvent->m_iTarget = SDK::Event::ESpecialTargets::Server;
    l_pUpdateEvent->m_iCountryID = (INT16)in_iCountryID;
 
    g_Joshua.RaiseEvent(l_pEvent);
 
-   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 

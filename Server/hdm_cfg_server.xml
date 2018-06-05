@@ -259,6 +259,16 @@
   Allowed values are 0-100. Default is 100. -->
   <resourceTaxLimit>100</resourceTaxLimit>
   
+  <!-- Set to 1 if you want the country info window to show HDI, LE, MYS, and EYS
+  instead of arable land, forested land, parkland, and unusable land.
+  If 1, then you may see in your country info window:
+  ARABLE LAND    56.7% (Means the country's HDI is 0.567)
+  FORESTS        89.1% (Means LE 89.1 years)
+  NATIONAL PARKS 1.2% (Means MYS 1.2 years)
+  UNUSABLE       12.3% (Means EYS 12.3 years)
+  Allowed values are 0 and 1. Default is 0. -->
+  <showHDIComponents>0</showHDIComponents>
+  
   <!-- Annual tribute in that a client state would theoretically pay to its
   master in one year, as a percentage of client GDP.
   Minimum value is 0. Default is 8. -->

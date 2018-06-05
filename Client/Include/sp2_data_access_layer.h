@@ -244,9 +244,6 @@ namespace SP2
       REAL32 m_fTotalArea;
 
       REAL32 m_fHumanDev;
-      REAL32 m_fLifeExpectancy;
-      REAL32 m_fMeanYearsSchooling;
-      REAL32 m_fExpectedYearsSchooling;
       REAL32 m_fHumanDevAverage;
 
       INT32  m_iClimateStid;

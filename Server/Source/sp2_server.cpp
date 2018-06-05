@@ -201,7 +201,7 @@ SDK::GAME_MSG GServer::Initialize()
       REGISTER_GAME_EVENT(SP2::Event::GTreatyDetailsTreatyAdd,    &SP2::GPoliticEventHandler::HandleTreatyAdd,     &m_PoliticGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GRequestTreatyConditionsCountries, &SP2::GTreatyEventHandler::HandleConditionsCountries, &m_TreatyGameEventHandler);
 
-      REGISTER_GAME_EVENT(SP2::Event::GHDMEventCountryInfo,       &SP2::GGeneralEventHandler::HandleCountryInfo,    &m_EventHandler);
+      REGISTER_GAME_EVENT(SP2::Event::GEventCountryInfo,          &SP2::GGeneralEventHandler::HandleCountryInfo,    &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellCreation,         &SP2::GMilitaryEventHandler::HandleCellCreate,    &m_MilitaryGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellUpdateStatus,     &SP2::GMilitaryEventHandler::HandleCellUpdate,    &m_MilitaryGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellNewMission,       &SP2::GMilitaryEventHandler::HandleNewMission,    &m_MilitaryGameEventHandler);
@@ -2804,11 +2804,37 @@ void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool i
 
     if(in_bSendAll || l_pCountryData->Dirty())
     {
+        REAL32 l_fArableLandLevel  = 0.f;
+        REAL32 l_fForestLandLevel  = 0.f;
+        REAL32 l_fParksLandLevel   = 0.f;
+        REAL32 l_fNotUsedLandLevel = 0.f;
+
+        if(g_SP2Server->ShowHDIComponents())
+        {
+            l_fArableLandLevel  = l_pCountryData->m_fArableLandLevel;
+            l_fForestLandLevel  = l_pCountryData->m_fForestLandLevel;
+            l_fParksLandLevel   = l_pCountryData->m_fParksLandLevel;
+            l_fNotUsedLandLevel = l_pCountryData->m_fNotUsedLandLevel;
+
+            l_pCountryData->m_fArableLandLevel  = l_pCountryData->m_fHumanDevelopment;
+            l_pCountryData->m_fForestLandLevel  = l_pCountryData->m_fLifeExpectancy         / 100.f;
+            l_pCountryData->m_fParksLandLevel   = l_pCountryData->m_fMeanYearsSchooling     / 100.f;
+            l_pCountryData->m_fNotUsedLandLevel = l_pCountryData->m_fExpectedYearsSchooling / 100.f;
+        }
+
         l_SyncEvt->m_iSource = SDK::Event::ESpecialTargets::Server;
         l_SyncEvt->m_iTarget = in_Player.Id();
         SP2::Event::GSynchronizeCountryData* const l_pEvent = dynamic_cast<SP2::Event::GSynchronizeCountryData*>(l_SyncEvt.get());
         l_pEvent->CountryData(l_pCountryData);
         g_Joshua.RaiseEvent(l_SyncEvt);
+
+        if(g_SP2Server->ShowHDIComponents())
+        {
+            l_pCountryData->m_fArableLandLevel  = l_fArableLandLevel;
+            l_pCountryData->m_fForestLandLevel  = l_fForestLandLevel;
+            l_pCountryData->m_fParksLandLevel   = l_fParksLandLevel;
+            l_pCountryData->m_fNotUsedLandLevel = l_fNotUsedLandLevel;
+        }
 
         l_pCountryData->ClearModifications();
     }
@@ -2945,6 +2971,11 @@ void GServer::ResourceTaxLimit(const REAL32 in_fResourceTaxLimit)
     }
 }
 
+bool GServer::ShowHDIComponents() const
+{
+    return m_bShowHDIComponents;
+}
+
 bool GServer::UseNewExportMechanics() const
 {
     return m_bUseNewExportMechanics;
@@ -3019,6 +3050,7 @@ void GServer::InitializeDefaultHdmConfig()
     m_fNuclearUpkeepPercentage            = 1.f;
     m_fOccupiedRegionPercentageForNuclear = 0.f;
     m_fResourceTaxLimit                   = 1.f;
+    m_bShowHDIComponents                  = false;
     m_fTributePercent                     = 0.08f;
     m_bUseNewExportMechanics              = true;
 }
@@ -3351,6 +3383,11 @@ void GServer::LoadHdmConfig()
                     {
                         ResourceTaxLimit(l_sElementValue.ToREAL32() / 100.f);
                         g_Joshua.Log(L"resourceTaxLimit: " + GString::FormatNumber(m_fResourceTaxLimit, 3));
+                    }
+                    else if(l_sElementName == L"showHDIComponents")
+                    {
+                        m_bShowHDIComponents = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"showHDIComponents: " + GString(m_bShowHDIComponents));
                     }
                     else if(l_sElementName == L"tributePercent")
                     {
