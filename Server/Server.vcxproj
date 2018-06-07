@@ -162,6 +162,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\Source\sp2_dzdebug.cpp" />
+    <ClCompile Include="..\Common\Source\sp2_hdm_event_country_info.cpp" />
     <ClCompile Include="Source\sp2_advisor.cpp" />
     <ClCompile Include="Source\sp2_advisor_event_handler.cpp" />
     <ClCompile Include="Source\sp2_ai.cpp" />
@@ -276,6 +277,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\Include\sp2_dzdebug.h" />
+    <ClInclude Include="..\Common\Include\sp2_hdm_event_country_info.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Include\sp2_advisor.h" />
     <ClInclude Include="Include\sp2_advisor_event_handler.h" />

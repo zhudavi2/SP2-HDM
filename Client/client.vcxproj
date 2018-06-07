@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\Source\sp2_dzdebug.cpp" />
+    <ClCompile Include="..\Common\Source\sp2_hdm_event_country_info.cpp" />
     <ClCompile Include="Source\sp2_adaptive_music_player.cpp" />
     <ClCompile Include="Source\sp2_add_remove_window.cpp" />
     <ClCompile Include="Source\sp2_advisor_advise_window.cpp" />
@@ -290,6 +291,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\Include\sp2_dzdebug.h" />
+    <ClInclude Include="..\Common\Include\sp2_hdm_event_country_info.h" />
     <ClInclude Include="Include\sp2_RGAPI_login.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Include\sp2_adaptive_music_player.h" />
