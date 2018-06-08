@@ -1745,7 +1745,17 @@ bool GDataControlLayer::ChangePersonalIncomeTax(ENTITY_ID in_iCountryID,
 																REAL64 l_fOldPersonalIncomeTax,
 																REAL64 l_fNewPersonalIncomeTax)
 {
-   l_fNewPersonalIncomeTax = min(l_fNewPersonalIncomeTax, g_SP2Server->IncomeTaxLimit(static_cast<EGovernmentType::Enum>(g_ServerDAL.CountryData(in_iCountryID)->GvtType())));
+    const EGovernmentType::Enum l_eGvtType = static_cast<EGovernmentType::Enum>(g_ServerDAL.CountryData(in_iCountryID)->GvtType());
+    const REAL64 l_fGvtTypeIncomeTaxLimit = g_SP2Server->IncomeTaxLimit(l_eGvtType);
+    if(l_fNewPersonalIncomeTax > l_fGvtTypeIncomeTaxLimit)
+    {
+        SDK::GPlayer* const l_pPlayer = g_Joshua.ActivePlayerByModID(in_iCountryID);
+        if(l_pPlayer != nullptr && !l_pPlayer->AIControlled())
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pPlayer->Id(), L"Can't set personal income tax to " + GString::FormatNumber(l_fNewPersonalIncomeTax * 100.0, L"", L".", L"", "%", 3, 1, false) + L" for gov't type " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(l_eGvtType)) + L"; limit is " + GString::FormatNumber(l_fGvtTypeIncomeTaxLimit * 100.0, L"", L".", L"", "%", 3, 1, false));
+
+        l_fNewPersonalIncomeTax = l_fGvtTypeIncomeTaxLimit;
+    }
+
 	if(l_fNewPersonalIncomeTax < SP2::PersonalTaxes_LowerCap)
 		l_fNewPersonalIncomeTax = SP2::PersonalTaxes_LowerCap;
 	else if (l_fNewPersonalIncomeTax > SP2::PersonalTaxes_UpperCap)
