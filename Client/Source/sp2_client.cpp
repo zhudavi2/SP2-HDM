@@ -573,7 +573,7 @@ void GClient::RegisterElements()
 	REGISTER_GAME_EVENT(SP2::Event::GChangeAIAggressiveness,    NULL, NULL);
    REGISTER_GAME_EVENT(SP2::Event::GSetGameObjectives,         &SP2::GGeneralEventHandler::HandleSetGameObjectives,  &m_EventHandler);
    REGISTER_GAME_EVENT(SP2::Event::GStartGameRequest,          NULL, NULL);
-   REGISTER_GAME_EVENT(SP2::Event::GSetPlayerInfo,             NULL, NULL);
+   REGISTER_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo,          NULL, NULL);
    REGISTER_GAME_EVENT(SP2::Event::GGetRegionsCharacteristic,  NULL, NULL);
    REGISTER_GAME_EVENT(SP2::Event::GEconomicHealthUpdate,      &SP2::GEconomicEventHandler::HandleEconomicHealthWindowUpdate, &m_EconomicEventHandler);
    REGISTER_GAME_EVENT(SP2::Event::GResourcesUpdate,           &SP2::GEconomicEventHandler::HandleResourcesWindowUpdate, &m_EconomicEventHandler);

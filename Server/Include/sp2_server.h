@@ -198,9 +198,10 @@ namespace SP2
 
       bool UseNewExportMechanics() const;
 
-      //! Server message helpers
-      inline void    AddPlayerID(INT32 in_iID) { m_PlayerIDs.insert(in_iID); }
-      inline bool    HasPlayerIDBeenAdded(INT32 in_iID) { return (m_PlayerIDs.find(in_iID) != m_PlayerIDs.end()); }
+      //! Player data helpers
+      void AddPlayer(INT32 in_iId, UINT32 in_iPassword);
+      bool PlayerExists(INT32 in_iId) const;
+      UINT32 PlayerPassword(INT32 in_iId) const;
 
    protected:
       //! Trigger load game flag
@@ -350,8 +351,8 @@ namespace SP2
       REAL32 m_fTributePercent;
       bool   m_bUseNewExportMechanics;
 
-      //! Server message helper to keep track of players who have joined
-      set<INT32> m_PlayerIDs;
+      //! Keep track of players who have joined, and other data
+      map<INT32, UINT32> m_mPlayerData;
 
       //! Helper for changing the admin player; returns true if successful
       bool ChangeAdminPlayer(SDK::GPlayer* in_pPlayer);
