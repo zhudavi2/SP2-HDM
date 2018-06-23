@@ -45,6 +45,7 @@ GDataAccessLayerServer::GDataAccessLayerServer()
    m_pDiplomaticArray                   = NULL;
    m_pWeaponTradeEmbargos               = NULL;
    m_pCountryValidityArray              = NULL;
+   m_iCountriesForWorldPeace            = 0;
 
    m_fMilitaryResearchStandardBudget    = -1.f;
    Memory::Set(m_MilitaryResearchTimeInDays,0,c_iMaxResearchLevel);
@@ -942,6 +943,8 @@ void GDataAccessLayerServer::SyncronizeTreaties()
    
 	bool l_bRemovingTreaty = false;   
 
+    m_iCountriesForWorldPeace = 0;
+
 	for(set<UINT32>::iterator it = m_TreatiesToSynchronize.begin();
 		 it != m_TreatiesToSynchronize.end(); it++)
 	{
@@ -1068,7 +1071,21 @@ void GDataAccessLayerServer::SyncronizeTreaties()
       case ETreatyType::Alliance:
          l_bUpdateAlliance = true; 
          // world peace alliance ? (alliance treaty with every countries in it)
-         if(m_Treaties[l_iTreatyID].MembersSideA(false).size() == NbCountry())
+         //World peace
+         //1. Country must exist
+         //2. Country must have political control, military control, and/or military units
+         if(m_iCountriesForWorldPeace == 0)
+         {
+             for(ENTITY_ID i = 1; i <= NbCountry(); i++)
+             {
+                 const bool l_bCountryHasPoliticalControl = g_ServerDAL.CountryPoliticalControl(i).size() > 0;
+                 const bool l_bCountryHasMilitaryControl  = g_ServerDAL.CountryMilitaryControl(i).size()  > 0;
+
+                 const bool l_bRelevantToPeace = m_pCountryData[i].Activated() && (l_bCountryHasPoliticalControl || l_bCountryHasMilitaryControl || m_pCountryData[i].MilitaryStrength() > 0.f);
+                 m_iCountriesForWorldPeace += l_bRelevantToPeace ? 1 : 0;
+             }
+         }
+         if(m_Treaties[l_iTreatyID].MembersSideA(false).size() == m_iCountriesForWorldPeace)
          {
             m_vPossibleWorldPeaceTreatiesID.push_back(l_iTreatyID);
             l_bUpdateWorldPeace = true;
@@ -3750,7 +3767,7 @@ void GDataAccessLayerServer::CheckWorldPeace()
       if(l_pTreaty && l_pTreaty->Type() == ETreatyType::Alliance)
       {
          // did we have found one world peace treaty ? (alliance with every countries in it)
-         if(l_pTreaty->MembersSideA(true).size() == NbCountry())
+         if(l_pTreaty->MembersSideA(true).size() == m_iCountriesForWorldPeace)
          {
             // we got one, get out
             l_bWorldAtPeace = true;
