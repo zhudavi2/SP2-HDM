@@ -1,4 +1,9 @@
 <SP2-HDM>
+  <!-- Set to 1 to force all countries to be active and playable at game start, even countries that don't control any regions.
+  No effect if countryNeedsRegions is 1.
+  Allowed values are 0 and 1. Default is 0. -->
+  <activateAllDatabaseCountries>0</activateAllDatabaseCountries>
+
   <!-- Setting to 0 disallows human-controlled countries to have AI countries
   assume their debts.
   Allowed values are 0 and 1. Default is 1. -->

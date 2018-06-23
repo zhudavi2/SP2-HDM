@@ -2816,6 +2816,11 @@ void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool i
     GDZLOG(EDZLogLevel::Exit, L"");
 }
 
+bool GServer::ActivateAllDatabaseCountries() const
+{
+    return m_bActivateAllDatabaseCountries;
+}
+
 GAnarchyConfig GServer::AnarchyConfig() const
 {
     return m_AnarchyConfig;
@@ -2956,6 +2961,7 @@ bool GServer::UseNewExportMechanics() const
 void GServer::InitializeDefaultHdmConfig()
 {
     // Default values
+    m_bActivateAllDatabaseCountries          = false;
     m_bAllowDefenderAttackAttackerTerritory  = true;
     m_bAllowHumanClientStates                = false;
     m_bAllowAIAssumeDebt                     = true;
@@ -3069,7 +3075,12 @@ void GServer::LoadHdmConfig()
 		            const GString l_sElementName  = objectNode->Data().m_sName;
                     const GString l_sElementValue = objectNode->Data().m_value;
 
-                    if(l_sElementName == L"allowAIAssumeDebt")
+                    if(l_sElementName == L"activateAllDatabaseCountries")
+                    {
+                        m_bActivateAllDatabaseCountries = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"activateAllDatabaseCountries: " + GString(m_bActivateAllDatabaseCountries));
+                    }
+                    else if(l_sElementName == L"allowAIAssumeDebt")
                     {
                         m_bAllowAIAssumeDebt = (l_sElementValue.ToINT32() != 0);
                         g_Joshua.Log(L"allowAIAssumeDebt: " + GString(m_bAllowAIAssumeDebt));
