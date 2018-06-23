@@ -477,10 +477,12 @@ bool GCountryData::FetchCountryData(const ENTITY_ID in_iCountryID)
 	m_fImmigrationLevel = *((REAL32*)l_Table.Row(0)->Cell(46)->Data());
 	m_iNameID = *((INT32*)l_Table.Row(0)->Cell(47)->Data());
     m_fGlobalTaxMod = min( *((REAL32*)l_Table.Row(0)->Cell(48)->Data()), g_SP2Server->GlobalTaxLimit());
-	if(*((char*)l_Table.Row(0)->Cell(49)->Data()) == 'F' )
-		m_bActivated = false;
-	else
-		m_bActivated = true;
+
+    //Always activate if country not marked inactive in database
+    //Also activate if countries can survive without regions, and server is set to activate every country in database
+    //\todo #144 Resolving crash might allow activateAllDatabaseCountries to be removed.
+    m_bActivated = !(*((char*)l_Table.Row(0)->Cell(49)->Data()) == 'F') || (!g_SP2Server->CountryNeedsRegions() && g_SP2Server->ActivateAllDatabaseCountries());
+
 	if(*((char*)l_Table.Row(0)->Cell(50)->Data()) == 'F' )
 		m_pInternalLaws[EInternalLaws::FreedomOfSpeech] = false;
 	else

@@ -142,6 +142,8 @@ namespace SP2
       **/
       void SynchronizePlayerCountryData(SDK::GPlayer& in_Player, bool in_bSendAll) const;
 
+      bool ActivateAllDatabaseCountries() const;
+
       inline bool    AllowAIAssumeDebt() const { return m_bAllowAIAssumeDebt; }
       inline bool    AllowHumanClientStates() const { return m_bAllowHumanClientStates; }
       inline bool    AllowDefenderAttackAttackerTerritory() const { return m_bAllowDefenderAttackAttackerTerritory; }
@@ -308,9 +310,10 @@ namespace SP2
       void InitializeDefaultHdmConfig();
       void LoadHdmConfig();
 
-      bool   m_bAllowAIAssumeDebt;
-      bool   m_bAllowHumanClientStates;
-      bool   m_bAllowDefenderAttackAttackerTerritory;
+      bool m_bActivateAllDatabaseCountries;
+      bool m_bAllowAIAssumeDebt;
+      bool m_bAllowHumanClientStates;
+      bool m_bAllowDefenderAttackAttackerTerritory;
 
       GAnarchyConfig m_AnarchyConfig;
 
