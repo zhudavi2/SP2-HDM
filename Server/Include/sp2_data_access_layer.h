@@ -445,6 +445,9 @@ namespace SP2
 		GDateTime	m_DateOfFirstNuke;
       GDateTime   m_ConfigZeroDate;
 
+      //! Number of countries that are relevant for determining world peace
+      UINT32 m_iCountriesForWorldPeace;
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
