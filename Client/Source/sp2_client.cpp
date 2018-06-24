@@ -608,7 +608,7 @@ void GClient::RegisterElements()
    REGISTER_GAME_EVENT(SP2::Event::GAddUnitDesign,              NULL, NULL);
    REGISTER_GAME_EVENT(SP2::Event::GBattleOverviewUnitActionUpdate, NULL, NULL);
 
-   REGISTER_GAME_EVENT(SP2::Event::GEventCountryInfo, &SP2::GGeneralEventHandler::HandleCountryInfo, &m_EventHandler);
+   REGISTER_GAME_EVENT(SP2::Event::GHdmEventCountryInfo, &SP2::GGeneralEventHandler::HandleCountryInfo, &m_EventHandler);
 
    // Unit Production Event
    REGISTER_GAME_EVENT(SP2::Event::GBuildUnitOrder,NULL,NULL);

@@ -265,11 +265,17 @@ EEventStatus::Enum GCountryInformationWindow::OnCustomEvent(UINT32 in_iEventID, 
 
 bool GCountryInformationWindow::Update()
 {
-   if(g_ClientDAL.ControlledCountryID() == g_ClientDCL.SelectedCountryID())
+   GDZLOG(EDZLogLevel::Entry, L"");
+
+   const ENTITY_ID l_iControlledCountryId = g_ClientDAL.ControlledCountryID();
+   const ENTITY_ID l_iSelectedCountryId   = g_ClientDCL.SelectedCountryID();
+   GDZLOG(EDZLogLevel::Info1, L"Controlled country = " + GString(l_iControlledCountryId) + L", selected country = " + GString(l_iSelectedCountryId));
+
+   if(l_iControlledCountryId == l_iSelectedCountryId)
    {
       GCountryDataClient* l_pData = &g_ClientDAL.m_PlayerCountryData;
       
-      m_pData->m_iCountryID        = g_ClientDAL.ControlledCountryID();
+      m_pData->m_iCountryID        = l_iControlledCountryId;
       m_pData->m_fArableLand       = l_pData->ArableLandLevel();
       m_pData->m_fForestLand       = l_pData->ForestLandLevel();
       m_pData->m_fParksLand        = l_pData->ParksLandLevel();
@@ -284,7 +290,6 @@ bool GCountryInformationWindow::Update()
       m_pData->m_fTotalArea        = l_pData->AreaTotal();
 
       m_pData->m_fHumanDev         = l_pData->HumanDevelopment();
-      m_pData->m_fHumanDevAverage  = l_pData->HumanDevelopmentAvg();
 
       m_pData->m_iClimateStid      = l_pData->ClimateNameID();
 
@@ -329,9 +334,17 @@ bool GCountryInformationWindow::Update()
    m_pObjClimateLbl->Height( m_pObjClimateLbl->Text2D()->Height() );
    m_pObjClimateScr->Initialize(this, 0, max(m_pObjClimateLbl->Height() - m_pObjClimateFrm->Height(), 0), 1, 45, 0 );
 
-   m_pObjCountryLbl->Text( g_ClientDAL.Country(g_ClientDCL.SelectedCountryID()).Name() );
-   ((GUI::GLabel*)m_pObjFrameTitle->Child(L"lblTitle"))->Text(g_ClientDAL.Country(g_ClientDCL.SelectedCountryID()).Name().ToUpper() );
+   const GSString l_sCountryLbl = GString::FormatNumber(m_pData->m_fHumanDev, 3) + L" (LE " + GString::FormatNumber(m_pData->m_fLifeExpectancy, 1) + L", MYS " + GString::FormatNumber(m_pData->m_fMeanYearsSchooling, 1) + L", EYS " + GString::FormatNumber(m_pData->m_fExpectedYearsSchooling, 1) + L")";
+   m_pObjCountryLbl->Text( l_sCountryLbl );
+
+   ((GUI::GLabel*)m_pObjFrameTitle->Child(L"lblTitle"))->Text(g_ClientDAL.Country(l_iSelectedCountryId).Name().ToUpper() );
    m_pObjCountryPic->Width( (INT32)( m_pData->m_fHumanDev * (REAL64)m_pObjCountryLbl->Width() ) );
+
+   GUI::GLabel* const l_pObjWorldLbl = dynamic_cast<GUI::GLabel*>(m_pObjInnerFrm->Child(L"frmHumanDevelopment")->Child(L"frmInner")->Child(L"lblWorld"));
+   static const INT32 c_sWorldAverageStringId = 101022;
+   l_pObjWorldLbl->Text(g_ClientDAL.GetString(c_sWorldAverageStringId) + L" (" + GString::FormatNumber(m_pData->m_fHumanDevAverage, 3) + L")");
+   l_pObjWorldLbl->Width( m_pObjCountryLbl->Width() );
+
    m_pObjWorldPic->Width( (INT32)( m_pData->m_fHumanDevAverage * (REAL64)m_pObjCountryLbl->Width() ) );
 
    // Update country content
@@ -536,5 +549,6 @@ bool GCountryInformationWindow::Update()
       }
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }

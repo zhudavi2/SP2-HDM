@@ -1115,10 +1115,12 @@ void SP2::GGeneralEventHandler::HandleHistoryMarkers(SDK::GGameEventSPtr in_Even
 
 void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
+
    if(g_SP2Client->CurrentFSMState() != FSM::EStates::Playing)
       return;
 
-   SP2::Event::GEventCountryInfo* l_pUpdate = (SP2::Event::GEventCountryInfo*)in_Event.get();
+   SP2::Event::GHdmEventCountryInfo* l_pUpdate = dynamic_cast<SP2::Event::GHdmEventCountryInfo*>(in_Event.get());
 
    g_ClientDAL.m_DataCountryInformationWindow.m_iCountryID           = l_pUpdate->m_iCountryID;
    g_ClientDAL.m_DataCountryInformationWindow.m_fArableLand          = l_pUpdate->m_fArableLand;
@@ -1134,8 +1136,11 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
    g_ClientDAL.m_DataCountryInformationWindow.m_fWaterArea           = l_pUpdate->m_fWaterArea;
    g_ClientDAL.m_DataCountryInformationWindow.m_fTotalArea           = l_pUpdate->m_fTotalArea;
 
-   g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDev            = l_pUpdate->m_fHumanDev;
-   g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDevAverage     = l_pUpdate->m_fHumanDevAverage;
+   g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDev               = l_pUpdate->m_fHumanDev;
+   g_ClientDAL.m_DataCountryInformationWindow.m_fLifeExpectancy         = l_pUpdate->m_fLifeExpectancy;
+   g_ClientDAL.m_DataCountryInformationWindow.m_fMeanYearsSchooling     = l_pUpdate->m_fMeanYearsSchooling;
+   g_ClientDAL.m_DataCountryInformationWindow.m_fExpectedYearsSchooling = l_pUpdate->m_fExpectedYearsSchooling;
+   g_ClientDAL.m_DataCountryInformationWindow.m_fHumanDevAverage        = l_pUpdate->m_fHumanDevAverage;
 
    g_ClientDAL.m_DataCountryInformationWindow.m_iClimateStid         = l_pUpdate->m_iClimateStid;
 
@@ -1149,6 +1154,8 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
        (g_ClientDCL.SelectedCountryID() == l_pUpdate->m_iCountryID) 
      )
       g_ClientDDL.CountryInformationWindow()->Update();
+
+   GDZLOG(EDZLogLevel::Exit, L"Returning");
 }
 
 void SP2::GGeneralEventHandler::HandleRelationsCountries(SDK::GGameEventSPtr in_Event)

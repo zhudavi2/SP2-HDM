@@ -1,6 +1,7 @@
 Human Development Modification (HDM) V10.4
 
 Human development changes:
+- (V10.5) LE, MYS, and EYS, as well as the numerical value of the world's average HDI, are now displayed in the country info window directly.
 - (V1) If a country takes over part of another country, and the two countries have different LE, MYS, and/or EYS values, then the enlarged country's LE, MYS, and/or EYS will be affected according to the now-smaller country's LE, MYS, and/or EYS.
 - Human development, or human development index (HDI), is now dependent on 4 stats: Life expectancy (in years; LE), mean years of schooling (MYS), expected years of schooling (EYS), and GNI per capita. This is to match the United Nations Development Programme's method of calculating human development, but with a $60,000 maximum GNI per capita for the mod's purposes. Also for the mod's purposes, GDP and GNI are treated as the same thing.
 - LE, MYS, and EYS increase and decrease depending on your country's stability and budgetary spending.
@@ -107,7 +108,6 @@ Configurable settings:
 - (V3) Toggle Naval Rule.
 - (V3) Percentage of regions occupied in order to be able to use nuclear weapons.
 - (V3) Resource tax limit.
-- (V3) HDI component (LE, MYS, EYS) viewing through the country info window.
 
 Other changes:
 - (V10.4) Added a console command, load_hdm_cfg, to reload the HDM config file in the middle of a game. Thanks to -Jesse- for the suggestion.
@@ -138,6 +138,7 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous HDM releases:
+- (V10.5) Removed config option to show HDI components (LE, MYS, EYS) via the land usage percentages in the country info window, as it is now displayed alongside the green HDI bar in the same window.
 - (V10.4) Clarified effects of anarchy-related config options.
 - (V10.3) Fixed unintentional volatility of PIT's and budgets' effects on domestic consumption.
 - (V10.3) Config file renamed from SP2-HDM_Config.xml to hdm_cfg_server.xml.
