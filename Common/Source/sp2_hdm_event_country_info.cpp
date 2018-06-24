@@ -11,15 +11,15 @@
 
 #include "golem_pch.hpp"
 
-SDK::GGameEventSPtr SP2::Event::GHDMEventCountryInfo::New()
+SDK::GGameEventSPtr SP2::Event::GHdmEventCountryInfo::New()
 {
     GDZLOG(EDZLogLevel::Entry, L"");
-    SDK::GGameEventSPtr l_Event = SDK::GGameEventSPtr(new GHDMEventCountryInfo());
+    SDK::GGameEventSPtr l_Event = SDK::GGameEventSPtr(new GHdmEventCountryInfo());
     GDZLOG(EDZLogLevel::Exit, L"Returning " + GDZDebug::FormatPtr(l_Event.get()));
     return l_Event;
 }
 
-bool SP2::Event::GHDMEventCountryInfo::Serialize(GIBuffer& io_Buffer) const
+bool SP2::Event::GHdmEventCountryInfo::Serialize(GIBuffer& io_Buffer) const
 {
     GDZLOG(EDZLogLevel::Entry, L"io_Buffer.Size() = " + GString(io_Buffer.Size()));
 
@@ -38,7 +38,7 @@ bool SP2::Event::GHDMEventCountryInfo::Serialize(GIBuffer& io_Buffer) const
     return l_bReturn;
 }
 
-bool SP2::Event::GHDMEventCountryInfo::Unserialize(GOBuffer& io_Buffer)
+bool SP2::Event::GHdmEventCountryInfo::Unserialize(GOBuffer& io_Buffer)
 {
     GDZLOG(EDZLogLevel::Entry, L"io_Buffer.Remaining() = " + GString(io_Buffer.Remaining()));
 

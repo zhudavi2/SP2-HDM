@@ -201,7 +201,7 @@ SDK::GAME_MSG GServer::Initialize()
       REGISTER_GAME_EVENT(SP2::Event::GTreatyDetailsTreatyAdd,    &SP2::GPoliticEventHandler::HandleTreatyAdd,     &m_PoliticGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GRequestTreatyConditionsCountries, &SP2::GTreatyEventHandler::HandleConditionsCountries, &m_TreatyGameEventHandler);
 
-      REGISTER_GAME_EVENT(SP2::Event::GHDMEventCountryInfo,       &SP2::GGeneralEventHandler::HandleCountryInfo,    &m_EventHandler);
+      REGISTER_GAME_EVENT(SP2::Event::GHdmEventCountryInfo,       &SP2::GGeneralEventHandler::HandleCountryInfo,    &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellCreation,         &SP2::GMilitaryEventHandler::HandleCellCreate,    &m_MilitaryGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellUpdateStatus,     &SP2::GMilitaryEventHandler::HandleCellUpdate,    &m_MilitaryGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellNewMission,       &SP2::GMilitaryEventHandler::HandleNewMission,    &m_MilitaryGameEventHandler);

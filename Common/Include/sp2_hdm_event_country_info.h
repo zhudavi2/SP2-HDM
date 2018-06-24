@@ -15,7 +15,7 @@ namespace SP2
 {
     namespace Event
     {
-        class GHDMEventCountryInfo : public SP2::Event::GEventCountryInfo
+        class GHdmEventCountryInfo : public SP2::Event::GEventCountryInfo
         {
             friend class GClient;
             friend class GServer;

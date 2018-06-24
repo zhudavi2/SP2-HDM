@@ -1120,7 +1120,7 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
    if(g_SP2Client->CurrentFSMState() != FSM::EStates::Playing)
       return;
 
-   SP2::Event::GHDMEventCountryInfo* l_pUpdate = dynamic_cast<SP2::Event::GHDMEventCountryInfo*>(in_Event.get());
+   SP2::Event::GHdmEventCountryInfo* l_pUpdate = dynamic_cast<SP2::Event::GHdmEventCountryInfo*>(in_Event.get());
 
    g_ClientDAL.m_DataCountryInformationWindow.m_iCountryID           = l_pUpdate->m_iCountryID;
    g_ClientDAL.m_DataCountryInformationWindow.m_fArableLand          = l_pUpdate->m_fArableLand;

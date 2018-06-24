@@ -682,7 +682,7 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
 {
    GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
 
-   SP2::Event::GHDMEventCountryInfo* l_pUpdate = dynamic_cast<SP2::Event::GHDMEventCountryInfo*>(in_Event.get());
+   SP2::Event::GHdmEventCountryInfo* l_pUpdate = dynamic_cast<SP2::Event::GHdmEventCountryInfo*>(in_Event.get());
 
    GDZLOG(EDZLogLevel::Info1, L"l_pUpdate->m_iSource = " + GString(l_pUpdate->m_iSource));
    SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayer(l_pUpdate->m_iSource);

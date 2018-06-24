@@ -40,7 +40,8 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
 
     GLogLevelEnabled(L"CountryData",           0),
 
-    GLogLevelEnabled(L"DataAccessLayerClient", 0),
+    GLogLevelEnabled(L"CountryInformationWindow", 0),
+    GLogLevelEnabled(L"DataAccessLayerClient",    0),
 
     GLogLevelEnabled(L"DataAccessLayerServer", 0),
 
@@ -50,11 +51,11 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
     GLogLevelEnabled(L"Disconnected",          0),
     GLogLevelEnabled(L"GameLobbyWindow",       0),
 
-    GLogLevelEnabled(L"GeneralEventHandler",   0),
+    GLogLevelEnabled(L"GeneralEventHandler",   0), // Client and Server
 
     GLogLevelEnabled(L"GenericMessageWindow",  0),
 	
-    GLogLevelEnabled(L"HDMEventCountryInfo",   0),
+    GLogLevelEnabled(L"HdmEventCountryInfo",   0),
 	GLogLevelEnabled(L"HdmSetPlayerInfo",      0),
 	
     GLogLevelEnabled(L"JoinMPGameWindow",      0),
