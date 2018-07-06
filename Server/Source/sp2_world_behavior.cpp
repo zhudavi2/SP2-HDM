@@ -948,6 +948,11 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
 	const REAL64* l_pMarketDemand = g_ServerDAL.MarketDemand();
 	const REAL64* l_pResourceBonus = g_ServerDAL.CountryEconomicPartnership(m_CountryData->CountryID());
 
+    const GString l_sCountryName   = m_CountryData->NameAndIDForLog();
+    const REAL64  l_fIncomeTaxRate = m_CountryData->PersonalIncomeTax();
+    const REAL64  l_fIncomeTaxMod  = g_SP2Server->IncomeTaxRateAffectsGrowth() ? max((-2.5 * l_fIncomeTaxRate) + 2.0, 1.0) : 1.0;
+    GDZLOG(EDZLogLevel::Info1, l_sCountryName + L": PIT rate = " + GString::FormatNumber(l_fIncomeTaxRate * 100.0, L"", L".", L"", L"%", 3, 1, false) + L", PIT mod = " + GString(l_fIncomeTaxMod));
+
 	REAL64 l_fProductionBonusChildLabour = 1.f;
 	if(m_CountryData->InternalLaw(EInternalLaws::ChildLabor))
 		l_fProductionBonusChildLabour = SP2::c_fProductionBonusChildLabour;
@@ -975,7 +980,8 @@ bool GWorldBehavior::Iterate_Production(GRegion* in_pRegion)
 		{
 			REAL64 l_fTaxLevel = (REAL64)(m_CountryData->ResourceTaxes((EResources::Enum)i) + m_CountryData->GlobalTaxMod());
 			REAL64 l_fTaxMod = 0.15 * pow(l_fTaxLevel - 2.25, 2) - 0.009375;
-			REAL64 l_fProductionGrowth = SP2::c_pResourcesYearlyGain[i] * (m_CountryData->EconomicHealth() * 2.f) * l_fTaxMod * l_fBudgetModifier;
+            const REAL64 l_fIncomeTaxMod = g_SP2Server->IncomeTaxRateAffectsGrowth() ? max((-2.5 * m_CountryData->PersonalIncomeTax()) + 2.0, 1.0) : 1.0;
+			REAL64 l_fProductionGrowth = SP2::c_pResourcesYearlyGain[i] * (m_CountryData->EconomicHealth() * 2.f) * l_fTaxMod * l_fIncomeTaxMod * l_fBudgetModifier;
 
 			gassert(!_isnan(l_fProductionGrowth),"Production growth is NAN");
 

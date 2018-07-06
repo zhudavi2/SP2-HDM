@@ -176,6 +176,8 @@ namespace SP2
       REAL64 IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType) const;
       void   IncomeTaxLimit(EGovernmentType::Enum in_eGovernmentType, REAL64 in_fIncomeTaxLimit);
 
+      bool IncomeTaxRateAffectsGrowth() const;
+
       bool IncreaseDeathRateForAgingPopulation() const;
 
       inline bool    LogBankruptcies() const { return m_bLogBankruptcies; }
@@ -337,6 +339,7 @@ namespace SP2
 	  map<EGovernmentType::Enum, REAL64> m_mGvtTypeProductionModifiers;
       map<EGovernmentType::Enum, REAL64> m_IncomeTaxLimits;
 
+      bool    m_bIncomeTaxRateAffectsGrowth;
       bool    m_bIncreaseDeathRateForAgingPopulation;
       bool    m_bLogBankruptcies;
       INT32   m_iMaximumCellsInForeignCountry;

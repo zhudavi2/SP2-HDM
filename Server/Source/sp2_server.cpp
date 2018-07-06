@@ -2874,6 +2874,11 @@ void GServer::IncomeTaxLimit(const EGovernmentType::Enum in_eGovernmentType, con
     }
 }
 
+bool GServer::IncomeTaxRateAffectsGrowth() const
+{
+    return m_bIncomeTaxRateAffectsGrowth;
+}
+
 bool GServer::IncreaseDeathRateForAgingPopulation() const
 {
     return m_bIncreaseDeathRateForAgingPopulation;
@@ -3002,6 +3007,7 @@ void GServer::InitializeDefaultHdmConfig()
 		m_IncomeTaxLimits[l_eGvtType] = PersonalTaxes_UpperCap;
 	}
 
+    m_bIncomeTaxRateAffectsGrowth          = false;
     m_bIncreaseDeathRateForAgingPopulation = true;
     m_bLogBankruptcies                     = false;
     m_iMaximumCellsInForeignCountry        = 0;
@@ -3262,6 +3268,11 @@ void GServer::LoadHdmConfig()
                             IncomeTaxLimit(l_eGovernmentType, l_GovernmentNode->Data().m_value.ToREAL64() / 100.0);
                             g_Joshua.Log(L"incomeTaxLimit[" + l_sName + L"]: " + GString::FormatNumber(m_IncomeTaxLimits[l_eGovernmentType], 3));
                         }
+                    }
+                    else if(l_sElementName == L"incomeTaxRateAffectsGrowth")
+                    {
+                        m_bIncomeTaxRateAffectsGrowth = (l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"incomeTaxRateAffectsGrowth: " + GString(m_bIncomeTaxRateAffectsGrowth));
                     }
                     else if(l_sElementName == L"increaseDeathRateForAgingPopulation")
                     {
