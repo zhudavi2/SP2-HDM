@@ -1,4 +1,4 @@
-Human Development Modification (HDM) V10.4
+Human Development Modification (HDM) V10.5
 
 Human development changes:
 - (V10.5) LE, MYS, and EYS, as well as the numerical value of the world's average HDI, are now displayed in the country info window directly.
@@ -48,6 +48,7 @@ Military changes:
 - A country's covert mission will have a higher chance of succeeding if it has other active cells in the target country.
 
 Economic changes:
+- (V10.5) Send a chat message to any player who tries to raise their country's personal income tax rate higher than their government type allows. Thanks to memento mori [mp3] for the suggestion. (Issue #106)
 - (V10) A country whose economy fails will experience an unemployment surge.
 - (V10) 0% economic health can lead to 100% unemployment.
 - (V10) Base unemployment rate partially on growth of GDP and 15-65 population.
@@ -75,6 +76,8 @@ AI changes:
 
 Configurable settings:
 - hdm_cfg_server.xml is the configuration XML file for the server side.
+- (V10.5) Option to allow GDP growth to increase as personal income tax rate decreases. Thanks to Erövraren for the overall suggestion for an option to increase GDP growth. (Issue #139)
+- (V10.5) Option to activate all database countries upon game start. (Issue #119)
 - (V10.3) Allow players to play past election losses.
 - (V10.3) Control whether or not to use new economy mechanics, which grants ountries an advantage in exporting a resource if its GDP per capita is high and it has a high market share in the resource, or the resource makes up a large percentage of its GDP. Countries, whose production satisfies their domestic demand for non-service resources, won't be able to export as much of service resources.
 - (V10.1) Control whether countries must have regions in order to continue existing in the game. (Issue #15)
@@ -110,6 +113,7 @@ Configurable settings:
 - (V3) Resource tax limit.
 
 Other changes:
+- (V10.5) Big-time Friend achievement now achievable as long as all still-existing countries are in the same alliance. For games with countryNeedsRegions option set to 1, such an alliance must include all countries that have political and/or military control of at least one region, and/or have military units. (Issue #98)
 - (V10.4) Added a console command, load_hdm_cfg, to reload the HDM config file in the middle of a game. Thanks to -Jesse- for the suggestion.
 - (V10.3) Added a console command, set_password, to set server password. Thanks to IceyVVind for the suggestion. (#127)
 - (V10.3) Added a console command, print_server_name, to log out current server name.
@@ -205,6 +209,6 @@ SDK notes:
 Credits:
 - Fenix/memento mori for code suggestions, support, and testing help.
 - awolfska for testing help.
-- BlueS3xy`=;], IceyVVind, Illuminati, -Jesse-, Mr Monday, p2, Paco Jiangxi Dandong, Radu, Slajavck, Tannman, The Patriot, thereversedguy, and ZDisket for suggestions and support.
+- BlueS3xy`=;], Erövraren, IceyVVind, Illuminati, -Jesse-, Mr Monday, p2, Paco Jiangxi Dandong, Radu, Slajavck, Tannman, The Patriot, thereversedguy, and ZDisket for suggestions and support.
 - Many more people on the HDM discussion thread and the SP2 Discussion forum.
 - Jean-René Couture and GolemLabs for releasing the SP2 SDK and supporting the SP2 community.

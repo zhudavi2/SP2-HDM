@@ -86,7 +86,7 @@ GAME_MSG GClient::Initialize()
    // Start the main state machine
    m_pStateMachine->Start(FSM::EStates::Init);   
 
-   m_sModVersion = g_Joshua.CurrentMod().m_sName + L" V" + g_Joshua.CurrentMod().m_sVersion + L" (HDM V10.4)";
+   m_sModVersion = g_Joshua.CurrentMod().m_sName + L" V" + g_Joshua.CurrentMod().m_sVersion + L" (HDM V10.5)";
 
    return GAME_OK;
 }
