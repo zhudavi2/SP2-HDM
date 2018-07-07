@@ -691,6 +691,8 @@ bool GDataAccessLayerServer::LoadRegions()
  **/
 bool GDataAccessLayerServer::LoadCountryData()
 {
+    GDZLOG(EDZLogLevel::Entry, L"");
+
 	SAFE_DELETE_ARRAY(m_pCountryData)
 	INT16 l_iNumberCountry = NbCountry();
 	m_pCountryData = new GCountryData[l_iNumberCountry+1];
@@ -742,6 +744,7 @@ bool GDataAccessLayerServer::LoadCountryData()
 	g_ServerDCL.CalculateMarketAvailability();	
 	CalculateExpectedRelations();
 
+    GDZLOG(EDZLogLevel::Exit, L"");
 	return true;
 }
 
@@ -3166,6 +3169,8 @@ bool GDataAccessLayerServer::OnLoad(GOBuffer& io_Buffer)
 
    // Load country validity
    io_Buffer.pop( (INT8*) m_pCountryValidityArray, (NbCountry() + 1) * sizeof(bool) );
+   if(!g_SP2Server->CountryNeedsRegions() && g_SP2Server->ActivateAllDatabaseCountries())
+       Memory::Set(m_pCountryValidityArray, true, NbCountry() + 1);
 
    // Update region & country control
    m_vRegionControl.clear();

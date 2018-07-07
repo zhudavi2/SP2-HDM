@@ -1222,7 +1222,27 @@ bool GCountryData::CommitCountryData(IndexedData::GWriter& in_StringTable, vecto
 
 GResearchInformation::GResearchInformation()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
+
+   //Base class members
+   m_fBudgetGround  = 0.0;
+   m_fBudgetAir     = 0.0;
+   m_fBudgetNaval   = 0.0;
+   m_fBudgetNuclear = 0.0;
+
+   for(INT32 i = EUnitCategory::Ground; i < EUnitCategory::ItemCount; i++)
+   {
+       for(INT32 j = EUnitDesignCharacteristics::GunRange; j < EUnitDesignCharacteristics::ItemCount; j++)
+       {
+           m_fBudget[i][j]    = 0.0;
+           m_fMaxValues[i][j] = 0.f;
+       }
+   }
+
+   //Child class members
    m_fLastCheckClock = 0;
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 GResearchInformation::~GResearchInformation()
 {}
@@ -2254,12 +2274,17 @@ void GCountryData::CheckForCivilWar()
 
 bool GCountryData::OnSave(GIBuffer& io_Buffer)
 {
+   GDZLOG(EDZLogLevel::Entry, L"io_Buffer.Size() = " + GString(io_Buffer.Size()));
+
+   GDZLOG(EDZLogLevel::Info1, L"m_iCountryID = " + GString(m_iCountryID));
    io_Buffer << m_iCountryID;
 
    // If country is conquered, only save that it is actualy conquered
+   gassert(m_bActivated || !g_SP2Server->CountryNeedsRegions(), L"Country not activated when it should be");
    io_Buffer << (UINT8) (m_bActivated ? 1 : 0);
    if(!m_bActivated)
    {
+      GDZLOG(EDZLogLevel::Exit, L"Returning true");
       return true;
    }
 
@@ -2499,20 +2524,43 @@ bool GCountryData::OnSave(GIBuffer& io_Buffer)
       }
    }
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 
 bool GCountryData::OnLoad(GOBuffer& io_Buffer)
 {
+   GDZLOG(EDZLogLevel::Entry, L"io_Buffer.Remaining() = " + GString(io_Buffer.Remaining()));
+
    io_Buffer >> m_iCountryID;
+   GDZLOG(EDZLogLevel::Info1, L"m_iCountryID = " + GString(m_iCountryID));
 
    UINT8 l_iBooleanVal;
 
    // If country is conquered, only load this info
    io_Buffer >> l_iBooleanVal;
    m_bActivated = (l_iBooleanVal == 1);
+   GDZLOG(EDZLogLevel::Info1, L"m_bActivated from save file = " + GString(m_bActivated));
    if(!m_bActivated)
    {
+      if(!g_SP2Server->CountryNeedsRegions() && g_SP2Server->ActivateAllDatabaseCountries())
+      {
+          GTable l_Table;
+          const DB::EError l_eError = g_ServerDAL.DBGetCountryList(l_Table);
+          if(l_eError == DB_NO_ERROR)
+          {
+              INT32 l_iNameId = 0;
+              l_Table.Row(m_iCountryID - 1)->Cell(1)->GetData(l_iNameId);
+              GDZLOG(EDZLogLevel::Info1, L"l_iNameId = " + GString(l_iNameId));
+              m_sName = g_ServerDAL.GetString(l_iNameId);
+
+              GDZLOG(EDZLogLevel::Warning, L"Activating " + NameAndIDForLog() + L" based on config");
+              m_bActivated = true;
+          }
+          else
+              GDZLOG(EDZLogLevel::Error, L"Couldn't get database table, error " + GString(l_eError) + L" ; leaving country ID " + GString(m_iCountryID) + L" inactive");
+      }
+      GDZLOG(EDZLogLevel::Exit, L"Returning true");
       return true;
    }
 
@@ -2788,6 +2836,7 @@ bool GCountryData::OnLoad(GOBuffer& io_Buffer)
    m_Master = pair<ENTITY_ID, UINT32>(0, 0);
    m_mClients.clear();
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 
