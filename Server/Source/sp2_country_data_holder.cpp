@@ -2545,20 +2545,16 @@ bool GCountryData::OnLoad(GOBuffer& io_Buffer)
    {
       if(!g_SP2Server->CountryNeedsRegions() && g_SP2Server->ActivateAllDatabaseCountries())
       {
-          GTable l_Table;
-          const DB::EError l_eError = g_ServerDAL.DBGetCountryList(l_Table);
-          if(l_eError == DB_NO_ERROR)
+          if(FetchCountryData(m_iCountryID))
           {
-              INT32 l_iNameId = 0;
-              l_Table.Row(m_iCountryID - 1)->Cell(1)->GetData(l_iNameId);
-              GDZLOG(EDZLogLevel::Info1, L"l_iNameId = " + GString(l_iNameId));
-              m_sName = g_ServerDAL.GetString(l_iNameId);
-
-              GDZLOG(EDZLogLevel::Warning, L"Activating " + NameAndIDForLog() + L" based on config");
-              m_bActivated = true;
+              gassert(m_bActivated, NameAndIDForLog() + L" wasn't activated properly");
+              GDZLOG(EDZLogLevel::Warning, L"Activated " + NameAndIDForLog() + L" based on config");
           }
           else
-              GDZLOG(EDZLogLevel::Error, L"Couldn't get database table, error " + GString(l_eError) + L" ; leaving country ID " + GString(m_iCountryID) + L" inactive");
+          {
+              GDZLOG(EDZLogLevel::Error, L"Couldn't fetch country data for country ID " + GString(m_iCountryID));
+              m_bActivated = false;
+          }
       }
       GDZLOG(EDZLogLevel::Exit, L"Returning true");
       return true;
