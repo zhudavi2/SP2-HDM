@@ -20,11 +20,6 @@
 
 namespace SP2
 {
-
-// Foward Declaration
-   class Event::GSetPlayerInfo;
-
-
 /*!
  * Handles most of the general events for the Server
  **/
@@ -64,7 +59,7 @@ public:
    void HandleRelationHistoryFetch(SDK::GGameEventSPtr in_Event);
    void HandleGetCountryParties(SDK::GGameEventSPtr in_Event);
 
-   void HandleSetGouvernementType(Event::GSetPlayerInfo *in_pPlayerInfo);
+   void HandleSetGouvernementType(Event::GHdmSetPlayerInfo *in_pPlayerInfo);
 
    void HandleResetGame(SDK::GGameEventSPtr in_Event);
    void HandleNewGame(SDK::GGameEventSPtr in_Event);

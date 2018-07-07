@@ -134,7 +134,7 @@ SDK::GAME_MSG GServer::Initialize()
       REGISTER_GAME_EVENT(SP2::Event::GStartGameRequest,          &SP2::GGeneralEventHandler::HandleStartGameRequest,          &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GSendAvailableCountries,    &SP2::GGeneralEventHandler::HandleRequestAvailableCountries, &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetRegionsCharacteristic,  &SP2::GGeneralEventHandler::HandleGetRegionCharacteristic,   &m_EventHandler);
-      REGISTER_GAME_EVENT(SP2::Event::GSetPlayerInfo,             &SP2::GGeneralEventHandler::HandleSetPlayerInfo,             &m_EventHandler);
+      REGISTER_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo,          &SP2::GGeneralEventHandler::HandleSetPlayerInfo,             &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetPlayersList,            &SP2::GGeneralEventHandler::HandleGetPlayersList,            &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetCountryRanks,           &SP2::GGeneralEventHandler::HandleGetCountryRanks,           &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetCountriesRanks,         &SP2::GGeneralEventHandler::HandleGetCountriesRanks,         &m_EventHandler);
@@ -950,7 +950,7 @@ void GServer::OnPlayerDisconnect(SDK::GPlayer* in_pPlayer)
       g_ServerDAL.CountryData(in_pPlayer->ModID())->RemoveAdvisor();
 
    // a player as left
-   m_PlayerIDs.erase(in_pPlayer->Id());
+   m_mPlayerData.erase(in_pPlayer->Id());
    InformPlayerLeft(in_pPlayer);
 
    // A new player list was generated, send it
@@ -3402,4 +3402,29 @@ void GServer::LoadHdmConfig()
     {
         g_Joshua.Log(SP2::ERROR_CANT_FIND_FILE + c_sConfigXMLFile,MSGTYPE_WARNING);
     }
+}
+
+void GServer::AddPlayer(const INT32 in_iId, const UINT32 in_iPassword)
+{
+    GDZLOG(EDZLogLevel::Entry, L"in_iId = " + GString(in_iId) + L", in_iPassword = " + GDZDebug::FormatHex(in_iPassword));
+
+    if(m_mPlayerData.find(in_iId) == m_mPlayerData.cend())
+    {
+        m_mPlayerData[in_iId] = in_iPassword;
+        GDZLOG(EDZLogLevel::Info1, L"Player successfully added");
+    }
+    else
+        GDZLOG(EDZLogLevel::Error, L"Player already added with password " + GString(m_mPlayerData[in_iId]));
+    
+    GDZLOG(EDZLogLevel::Exit, L"");
+}
+
+bool GServer::PlayerExists(const INT32 in_iId) const
+{
+    return m_mPlayerData.find(in_iId) != m_mPlayerData.cend();
+}
+
+UINT32 GServer::PlayerPassword(const INT32 in_iId) const
+{
+    return m_mPlayerData.at(in_iId);
 }

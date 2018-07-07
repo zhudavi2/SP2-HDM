@@ -56,6 +56,7 @@ const GDZDebug::GLogLevelEnabled GDZDebug::c_LogLevelsEnabled[] =
     GLogLevelEnabled(L"GenericMessageWindow",  0),
 	
     GLogLevelEnabled(L"HdmEventCountryInfo",   0),
+	GLogLevelEnabled(L"HdmSetPlayerInfo",      0),
 
     GLogLevelEnabled(L"JoinMPGameWindow",      0),
     GLogLevelEnabled(L"LoginRGAPIWindow",      0),
