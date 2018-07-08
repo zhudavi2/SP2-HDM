@@ -60,8 +60,7 @@
 using namespace SDK::Event;
 
 GDataControlLayer::GDataControlLayer(GDALInterface* in_pDAL) : GDCLInterface(in_pDAL)
-, m_ClientAdvisor(),
-m_iPassword(0)
+, m_ClientAdvisor()
 {
    GDZLOG(EDZLogLevel::Entry, L"in_pDAL = " + GDZDebug::FormatPtr(in_pDAL));
 
@@ -94,11 +93,6 @@ m_iPassword(0)
    m_AutoSaveInformation.m_iSaveCount        = 0;
 
    m_iEscapeKeyId = 0;
-
-   Random::GQuick l_Rand;
-   l_Rand.Seed(time(nullptr) & 0xFFFFFFFF);
-   m_iPassword = l_Rand.Random();
-   GDZLOG(EDZLogLevel::Info1, L"m_iPassword = " + GDZDebug::FormatHex(m_iPassword));
    
    Memory::Clear(m_iRefusedMovCount, SP2::ERefusedMoveReason::Count);
 
@@ -1023,7 +1017,7 @@ bool GDataControlLayer::SystemSendPlayerInformationToServer(UINT32              
    l_pPlayerInfo->m_PlayerInfo.CountryID     = in_iControlledCountryID;
    l_pPlayerInfo->m_PlayerInfo.PartyID       = in_iPartyID;
    
-   l_pPlayerInfo->m_iPassword = m_iPassword;
+   l_pPlayerInfo->m_iPassword = g_SP2Client->m_iInternalPasswordToServer;
 
    g_Joshua.RaiseEvent(l_Event);
 

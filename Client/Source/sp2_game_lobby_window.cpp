@@ -285,7 +285,7 @@ void GGameLobbyWindow::SendPlayerInfo(void)
       l_pPlayerInfo->m_PlayerInfo.PlayerStatus  = SDK::PLAYER_STATUS_ACTIVE;
    }
 
-   l_pPlayerInfo->m_iPassword = g_ClientDCL.m_iPassword;
+   l_pPlayerInfo->m_iPassword = g_SP2Client->InternalPasswordToServer();
 
    // Fire event
    g_Joshua.RaiseEvent(l_Event);      

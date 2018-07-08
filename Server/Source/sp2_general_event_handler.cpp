@@ -431,7 +431,7 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
     }
     else
     {
-        const UINT32 l_iExpectedPassword = g_SP2Server->PlayerPassword(l_player->Id());
+        const UINT32 l_iExpectedPassword = g_SP2Server->InternalPasswordFromPlayer(l_player->Id());
 
         if(l_iExpectedPassword != l_pSetPlayerInfo->m_iPassword)
         {

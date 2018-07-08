@@ -205,7 +205,7 @@ namespace SP2
       //! Player data helpers
       void AddPlayer(INT32 in_iId, UINT32 in_iPassword);
       bool PlayerExists(INT32 in_iId) const;
-      UINT32 PlayerPassword(INT32 in_iId) const;
+      UINT32 InternalPasswordFromPlayer(INT32 in_iId) const;
 
    protected:
       //! Trigger load game flag
@@ -358,7 +358,12 @@ namespace SP2
       bool   m_bUseNewExportMechanics;
 
       //! Keep track of players who have joined, and other data
-      map<INT32, UINT32> m_mPlayerData;
+      struct GPlayerData
+      {
+          UINT32 m_iInternalPasswordFromClient;
+          UINT32 m_iInternalPasswordToClient;
+      };
+      map<INT32, GPlayerData> m_mPlayerData;
 
       //! Helper for changing the admin player; returns true if successful
       bool ChangeAdminPlayer(SDK::GPlayer* in_pPlayer);

@@ -149,8 +149,6 @@ namespace SP2
 
       UINT32 m_iEscapeKeyId;
 
-      UINT32 m_iPassword;
-
    protected:
       // All the following methods should be called by state objects only
       friend FSM::GConnecting;

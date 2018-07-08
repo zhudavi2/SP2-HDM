@@ -52,7 +52,9 @@ m_bLoadingGame(false),
 m_bCheckForEngineConnection(true),
 m_bLimitFPS(false),
 m_bPlayCredits(false),
-m_iSavedFSMEvent(0)
+m_iSavedFSMEvent(0),
+m_iInternalPasswordToServer(0),
+m_iInternalPasswordFromServer(0)
 {
 }
 
@@ -87,6 +89,11 @@ GAME_MSG GClient::Initialize()
    m_pStateMachine->Start(FSM::EStates::Init);   
 
    m_sModVersion = g_Joshua.CurrentMod().m_sName + L" V" + g_Joshua.CurrentMod().m_sVersion + L" (HDM V10.5)";
+
+   Random::GQuick l_Rand;
+   l_Rand.Seed(time(nullptr) & 0xFFFFFFFF);
+   m_iInternalPasswordToServer = l_Rand.Random();
+   GDZLOG(EDZLogLevel::Info1, L"m_iInternalPasswordToServer = " + GDZDebug::FormatHex(m_iInternalPasswordToServer));
 
    return GAME_OK;
 }
@@ -573,7 +580,7 @@ void GClient::RegisterElements()
 	REGISTER_GAME_EVENT(SP2::Event::GChangeAIAggressiveness,    NULL, NULL);
    REGISTER_GAME_EVENT(SP2::Event::GSetGameObjectives,         &SP2::GGeneralEventHandler::HandleSetGameObjectives,  &m_EventHandler);
    REGISTER_GAME_EVENT(SP2::Event::GStartGameRequest,          NULL, NULL);
-   REGISTER_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo,          NULL, NULL);
+   REGISTER_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo,          &SP2::GGeneralEventHandler::HandleSetPlayerInfo, &m_EventHandler);
    REGISTER_GAME_EVENT(SP2::Event::GGetRegionsCharacteristic,  NULL, NULL);
    REGISTER_GAME_EVENT(SP2::Event::GEconomicHealthUpdate,      &SP2::GEconomicEventHandler::HandleEconomicHealthWindowUpdate, &m_EconomicEventHandler);
    REGISTER_GAME_EVENT(SP2::Event::GResourcesUpdate,           &SP2::GEconomicEventHandler::HandleResourcesWindowUpdate, &m_EconomicEventHandler);
@@ -744,4 +751,14 @@ void GClient::ContinueCurrentGame()
    m_bPlayCredits = false;
    m_pStateMachine->SendEvent(m_iSavedFSMEvent);
    m_iSavedFSMEvent = 0;
+}
+
+UINT32 GClient::InternalPasswordToServer() const
+{
+    return m_iInternalPasswordToServer;
+}
+
+void GClient::InternalPasswordFromServer(const UINT32 in_iPassword)
+{
+    m_iInternalPasswordFromServer = in_iPassword;
 }

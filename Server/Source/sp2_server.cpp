@@ -3410,11 +3410,28 @@ void GServer::AddPlayer(const INT32 in_iId, const UINT32 in_iPassword)
 
     if(m_mPlayerData.find(in_iId) == m_mPlayerData.cend())
     {
-        m_mPlayerData[in_iId] = in_iPassword;
+        m_mPlayerData[in_iId].m_iInternalPasswordFromClient = in_iPassword;
         GDZLOG(EDZLogLevel::Info1, L"Player successfully added");
+
+        SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
+        GDZLOG(EDZLogLevel::Info1, L"l_pEvent = " + GDZDebug::FormatPtr(l_pEvent.get()));
+
+        l_pEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
+        l_pEvent->m_iTarget = in_iId;
+
+        SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_pEvent.get());
+
+        Random::GQuick l_Rand;
+        l_Rand.Seed(time(nullptr) & 0xFFFFFFFF);
+        m_mPlayerData[in_iId].m_iInternalPasswordToClient = l_Rand.Random();
+        GDZLOG(EDZLogLevel::Info1, L"Internal password to client = " + GDZDebug::FormatHex(m_mPlayerData[in_iId].m_iInternalPasswordToClient));
+
+        l_pPlayerInfo->m_iPassword = m_mPlayerData[in_iId].m_iInternalPasswordToClient;
+
+        g_Joshua.RaiseEvent(l_pEvent);
     }
     else
-        GDZLOG(EDZLogLevel::Error, L"Player already added with password " + GString(m_mPlayerData[in_iId]));
+        GDZLOG(EDZLogLevel::Error, L"Player already added with password " + GDZDebug::FormatHex(m_mPlayerData[in_iId].m_iInternalPasswordFromClient));
     
     GDZLOG(EDZLogLevel::Exit, L"");
 }
@@ -3424,7 +3441,7 @@ bool GServer::PlayerExists(const INT32 in_iId) const
     return m_mPlayerData.find(in_iId) != m_mPlayerData.cend();
 }
 
-UINT32 GServer::PlayerPassword(const INT32 in_iId) const
+UINT32 GServer::InternalPasswordFromPlayer(const INT32 in_iId) const
 {
-    return m_mPlayerData.at(in_iId);
+    return m_mPlayerData.at(in_iId).m_iInternalPasswordFromClient;
 }
