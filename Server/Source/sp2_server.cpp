@@ -2737,7 +2737,7 @@ void GServer::NewGame()
 void GServer::InformPlayerJoined(SDK::GPlayer* in_pPlayer)
 {
    const UINT32 c_StrIdPlayerJoined = 102304;
-   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerJoined));
+   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerJoined), true);
 }
 
 /*!
@@ -2746,7 +2746,7 @@ void GServer::InformPlayerJoined(SDK::GPlayer* in_pPlayer)
 void GServer::InformPlayerLeft(SDK::GPlayer* in_pPlayer)
 {
    const UINT32 c_StrIdPlayerLeft = 102305;
-   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerLeft));
+   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerLeft), true);
 }
 
 
@@ -2763,8 +2763,10 @@ void GServer::AIAggressiveness(REAL32 in_fAIAggressiveness)
 		
 }
 
-void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, const GString& in_sMessage) const
+void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, const GString& in_sMessage, const bool in_bPrivate) const
 {
+    GDZLOG(EDZLogLevel::Entry, L"in_iSource = " + GDZDebug::FormatHex(in_iSource) + L", in_iTarget = " + GDZDebug::FormatHex(in_iTarget) + L", in_sMessage + " + in_sMessage + ", in_bPrivate = " + GString(in_bPrivate));
+
     SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
 
     // reinterpret_cast, CREATE_GAME_EVENT doesn't "actually" create a GChatEvent object for some reason
@@ -2778,6 +2780,8 @@ void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, co
     l_pEvent->m_iTarget = in_iTarget;
 
     g_Joshua.RaiseEvent(l_pEvent);
+
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool in_bSendAll) const

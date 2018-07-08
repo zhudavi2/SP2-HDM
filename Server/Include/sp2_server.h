@@ -133,7 +133,7 @@ namespace SP2
 		REAL32 AIAggressiveness();
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
-      void SendChatMessage(INT32 in_iSource, INT32 in_iTarget, const GString& in_sMessage) const;
+      void SendChatMessage(INT32 in_iSource, INT32 in_iTarget, const GString& in_sMessage, bool in_bPrivate) const;
 
       /*!
       * Helper method to synchronize a player's own country data with client

@@ -425,7 +425,7 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
         // If player just joined, send server message through chat
         const GString l_sMessage = g_SP2Server->Message();
         if(!l_sMessage.empty())
-            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_player->Id(), l_sMessage);
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_player->Id(), l_sMessage, true);
 
         g_SP2Server->AddPlayer(l_player->Id(), l_pSetPlayerInfo->m_iPassword);
     }
