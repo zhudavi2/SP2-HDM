@@ -2737,7 +2737,7 @@ void GServer::NewGame()
 void GServer::InformPlayerJoined(SDK::GPlayer* in_pPlayer)
 {
    const UINT32 c_StrIdPlayerJoined = 102304;
-   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerJoined), true);
+   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerJoined), true);
 }
 
 /*!
