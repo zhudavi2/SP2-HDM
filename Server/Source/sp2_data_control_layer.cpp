@@ -847,7 +847,7 @@ bool GDataControlLayer::ChangeGovernmentType(ENTITY_ID in_iCountryID,
       l_pCountryData->CheckForCivilWar();
 	}
 
-    g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage, true);
+    g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
 
    g_ServerDAL.AddHistoricalMarker(in_iCountryID, 
                                    EHistoryMarkerType::ChangeGovermentType, 
@@ -1751,7 +1751,7 @@ bool GDataControlLayer::ChangePersonalIncomeTax(ENTITY_ID in_iCountryID,
     {
         SDK::GPlayer* const l_pPlayer = g_Joshua.ActivePlayerByModID(in_iCountryID);
         if(l_pPlayer != nullptr && !l_pPlayer->AIControlled())
-            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pPlayer->Id(), L"Can't set personal income tax to " + GString::FormatNumber(l_fNewPersonalIncomeTax * 100.0, L"", L".", L"", "%", 3, 1, false) + L" for gov't type " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(l_eGvtType)) + L"; limit is " + GString::FormatNumber(l_fGvtTypeIncomeTaxLimit * 100.0, L"", L".", L"", "%", 3, 1, false), true);
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pPlayer->Id(), L"Can't set personal income tax to " + GString::FormatNumber(l_fNewPersonalIncomeTax * 100.0, L"", L".", L"", "%", 3, 1, false) + L" for gov't type " + g_ServerDAL.GetString(g_ServerDAL.StringIdGvtType(l_eGvtType)) + L"; limit is " + GString::FormatNumber(l_fGvtTypeIncomeTaxLimit * 100.0, L"", L".", L"", "%", 3, 1, false));
 
         l_fNewPersonalIncomeTax = l_fGvtTypeIncomeTaxLimit;
     }
@@ -2176,7 +2176,7 @@ bool GDataControlLayer::DeclareWar(ENTITY_ID in_iAttackingCountry, ENTITY_ID in_
         const GString l_sDeclarerName = g_ServerDAL.CountryData(in_bOffensiveWar ? in_iAttackingCountry : in_iDefendingCountry)->Name();
         const GString l_sReceiverName = g_ServerDAL.CountryData(in_bOffensiveWar ? in_iDefendingCountry : in_iAttackingCountry)->Name();
 
-        g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sDeclarerName + L" is now at war with " + l_sReceiverName, true);
+        g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sDeclarerName + L" is now at war with " + l_sReceiverName);
     }
 
 	//Calculate the total of enemies this country has
@@ -4169,7 +4169,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
     if(g_ServerDAL.CountryData(in_iCountryCreator)->GvtType() == EGovernmentType::Anarchy)
     {
         if(l_bCreatorIsHuman)
-            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), L"Can't create treaty " + in_sName + L" in anarchy", true);
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), L"Can't create treaty " + in_sName + L" in anarchy");
 
         return 0;
     }
@@ -4179,7 +4179,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
     if(l_iCreatorMaster != 0)
     {
         if(l_bCreatorIsHuman)
-            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), L"Can't create treaty " + in_sName + L" as a client of " + g_ServerDAL.CountryData(l_iCreatorMaster)->Name(), true);
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), L"Can't create treaty " + in_sName + L" as a client of " + g_ServerDAL.CountryData(l_iCreatorMaster)->Name());
 
         return 0;
     }
@@ -4188,7 +4188,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
     if(in_iType == ETreatyType::Alliance && in_pConditions[ETreatyConditions::RelationsNotAtWar] == EConditionStatus::NoLimit)
     {
         if(l_bCreatorIsHuman)
-            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), L"Can't create alliance treaty " + in_sName + L" without not-at-war condition", true);
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), L"Can't create alliance treaty " + in_sName + L" without not-at-war condition");
 
         return 0;
     }
@@ -4210,7 +4210,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
         if(!l_pClientData->EligibleToBeClientOf(l_iMasterID))
         {
             if(l_bCreatorIsHuman)
-                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), l_pClientData->Name() + L" is ineligible to be a client of " + l_pMasterData->Name(), true);
+                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), l_pClientData->Name() + L" is ineligible to be a client of " + l_pMasterData->Name());
 
             return 0;
         }
@@ -4220,7 +4220,7 @@ UINT32 GDataControlLayer::CreateNewTreaty(ENTITY_ID in_iCountryCreator,
             gassert(l_pClientData->Master().second != 0, l_pMasterData->NameAndIDForLog() + L"-" + l_pClientData->NameAndIDForLog() + L" doesn't have a valid treaty");
 
             if(l_bCreatorIsHuman)
-                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), l_pClientData->Name() + L" is already a client of " + l_pMasterData->Name(), true);
+                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pCreatorPlayer->Id(), l_pClientData->Name() + L" is already a client of " + l_pMasterData->Name());
 
             return 0;
         }
@@ -4648,7 +4648,7 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
             const ENTITY_ID l_iMasterDefending = *(l_vSideB.begin());
 
             //Send chat message
-            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, g_ServerDAL.CountryData(l_iCreator)->Name() + L" sponsored a war between " + g_ServerDAL.CountryData(l_iMasterAttacking)->Name() + L" and " + g_ServerDAL.CountryData(l_iMasterDefending)->Name(), true);
+            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, g_ServerDAL.CountryData(l_iCreator)->Name() + L" sponsored a war between " + g_ServerDAL.CountryData(l_iMasterAttacking)->Name() + L" and " + g_ServerDAL.CountryData(l_iMasterDefending)->Name());
 
             DeclareNewWar(l_vSideA, l_iMasterAttacking, l_iMasterDefending);
         }
@@ -4717,7 +4717,7 @@ void GDataControlLayer::ExecuteTreaty(UINT32 in_iTreatyID)
 				SendNews(l_News);
 
                 const GString l_sChatMessage = g_ServerDAL.CountryData(l_iMilitaryControl)->Name() + L" has begun annexing regions from " + g_ServerDAL.CountryData(l_iPoliticControl)->Name();
-                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage, true);
+                g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
 			}			
 		}
 		break;
@@ -7209,7 +7209,7 @@ bool GDataControlLayer::ExecuteMission(GCovertActionCell& in_Cell)
                 const bool l_bOwnerIsHuman = l_pOwnerPlayer != nullptr && !l_pOwnerPlayer->AIControlled();
 
                 if(l_bOwnerIsHuman)
-                    g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pOwnerPlayer->Id(), g_ServerDAL.CountryData(l_iCountryTarget)->Name() + L" uncovered the true attacker behind the mission of cell " + in_Cell.Name(), true);
+                    g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_pOwnerPlayer->Id(), g_ServerDAL.CountryData(l_iCountryTarget)->Name() + L" uncovered the true attacker behind the mission of cell " + in_Cell.Name());
 
 				l_iCountryBeingFramed = l_iCellOwnerID;				
 			}

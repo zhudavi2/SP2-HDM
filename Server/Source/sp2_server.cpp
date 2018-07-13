@@ -134,7 +134,7 @@ SDK::GAME_MSG GServer::Initialize()
       REGISTER_GAME_EVENT(SP2::Event::GStartGameRequest,          &SP2::GGeneralEventHandler::HandleStartGameRequest,          &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GSendAvailableCountries,    &SP2::GGeneralEventHandler::HandleRequestAvailableCountries, &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetRegionsCharacteristic,  &SP2::GGeneralEventHandler::HandleGetRegionCharacteristic,   &m_EventHandler);
-      REGISTER_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo,          &SP2::GGeneralEventHandler::HandleSetPlayerInfo,             &m_EventHandler);
+      REGISTER_GAME_EVENT(SP2::Event::GSetPlayerInfo,             &SP2::GGeneralEventHandler::HandleSetPlayerInfo,             &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetPlayersList,            &SP2::GGeneralEventHandler::HandleGetPlayersList,            &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetCountryRanks,           &SP2::GGeneralEventHandler::HandleGetCountryRanks,           &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetCountriesRanks,         &SP2::GGeneralEventHandler::HandleGetCountriesRanks,         &m_EventHandler);
@@ -950,7 +950,7 @@ void GServer::OnPlayerDisconnect(SDK::GPlayer* in_pPlayer)
       g_ServerDAL.CountryData(in_pPlayer->ModID())->RemoveAdvisor();
 
    // a player as left
-   m_mPlayerData.erase(in_pPlayer->Id());
+   m_PlayerIDs.erase(in_pPlayer->Id());
    InformPlayerLeft(in_pPlayer);
 
    // A new player list was generated, send it
@@ -2737,7 +2737,7 @@ void GServer::NewGame()
 void GServer::InformPlayerJoined(SDK::GPlayer* in_pPlayer)
 {
    const UINT32 c_StrIdPlayerJoined = 102304;
-   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerJoined), true);
+   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerJoined));
 }
 
 /*!
@@ -2746,7 +2746,7 @@ void GServer::InformPlayerJoined(SDK::GPlayer* in_pPlayer)
 void GServer::InformPlayerLeft(SDK::GPlayer* in_pPlayer)
 {
    const UINT32 c_StrIdPlayerLeft = 102305;
-   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerLeft), true);
+   g_SP2Server->SendChatMessage(in_pPlayer->Id(), SDK::Event::ESpecialTargets::BroadcastHumanPlayers, g_ServerDAL.GetString(c_StrIdPlayerLeft));
 }
 
 
@@ -2763,10 +2763,8 @@ void GServer::AIAggressiveness(REAL32 in_fAIAggressiveness)
 		
 }
 
-void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, const GString& in_sMessage, const bool in_bPrivate) const
+void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, const GString& in_sMessage) const
 {
-    GDZLOG(EDZLogLevel::Entry, L"in_iSource = " + GDZDebug::FormatHex(in_iSource) + L", in_iTarget = " + GDZDebug::FormatHex(in_iTarget) + L", in_sMessage + " + in_sMessage + ", in_bPrivate = " + GString(in_bPrivate));
-
     SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SDK::Event::GChatEvent);
 
     // reinterpret_cast, CREATE_GAME_EVENT doesn't "actually" create a GChatEvent object for some reason
@@ -2780,8 +2778,6 @@ void GServer::SendChatMessage(const INT32 in_iSource, const INT32 in_iTarget, co
     l_pEvent->m_iTarget = in_iTarget;
 
     g_Joshua.RaiseEvent(l_pEvent);
-
-    GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 void GServer::SynchronizePlayerCountryData(SDK::GPlayer& in_Player, const bool in_bSendAll) const
@@ -3406,46 +3402,4 @@ void GServer::LoadHdmConfig()
     {
         g_Joshua.Log(SP2::ERROR_CANT_FIND_FILE + c_sConfigXMLFile,MSGTYPE_WARNING);
     }
-}
-
-void GServer::AddPlayer(const INT32 in_iId, const UINT32 in_iPassword)
-{
-    GDZLOG(EDZLogLevel::Entry, L"in_iId = " + GString(in_iId) + L", in_iPassword = " + GDZDebug::FormatHex(in_iPassword));
-
-    if(m_mPlayerData.find(in_iId) == m_mPlayerData.cend())
-    {
-        m_mPlayerData[in_iId].m_iInternalPasswordFromClient = in_iPassword;
-        GDZLOG(EDZLogLevel::Info1, L"Player successfully added");
-
-        SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
-        GDZLOG(EDZLogLevel::Info1, L"l_pEvent = " + GDZDebug::FormatPtr(l_pEvent.get()));
-
-        l_pEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
-        l_pEvent->m_iTarget = in_iId;
-
-        SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_pEvent.get());
-
-        Random::GQuick l_Rand;
-        l_Rand.Seed(time(nullptr) & 0xFFFFFFFF);
-        m_mPlayerData[in_iId].m_iInternalPasswordToClient = l_Rand.Random();
-        GDZLOG(EDZLogLevel::Info1, L"Internal password to client = " + GDZDebug::FormatHex(m_mPlayerData[in_iId].m_iInternalPasswordToClient));
-
-        l_pPlayerInfo->m_iPassword = m_mPlayerData[in_iId].m_iInternalPasswordToClient;
-
-        g_Joshua.RaiseEvent(l_pEvent);
-    }
-    else
-        GDZLOG(EDZLogLevel::Error, L"Player already added with password " + GDZDebug::FormatHex(m_mPlayerData[in_iId].m_iInternalPasswordFromClient));
-    
-    GDZLOG(EDZLogLevel::Exit, L"");
-}
-
-bool GServer::PlayerExists(const INT32 in_iId) const
-{
-    return m_mPlayerData.find(in_iId) != m_mPlayerData.cend();
-}
-
-UINT32 GServer::InternalPasswordFromPlayer(const INT32 in_iId) const
-{
-    return m_mPlayerData.at(in_iId).m_iInternalPasswordFromClient;
 }

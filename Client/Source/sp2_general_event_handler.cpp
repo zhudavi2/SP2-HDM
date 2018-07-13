@@ -1263,20 +1263,3 @@ void SP2::GGeneralEventHandler::HandleSetGameObjectives(SDK::GGameEventSPtr in_E
 
 
 }
-
-void SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event)
-{
-    GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
-
-    const GHdmSetPlayerInfo* const l_pSetPlayerInfo = dynamic_cast<GHdmSetPlayerInfo*>(in_Event.get());
-
-    if(l_pSetPlayerInfo != nullptr && l_pSetPlayerInfo->m_iSource == SDK::Event::ESpecialTargets::Server && l_pSetPlayerInfo->m_iTarget == g_Joshua.Client()->Id())
-    {
-        GDZLOG(EDZLogLevel::Info1, L"Setting internal password from server = " + GDZDebug::FormatHex(l_pSetPlayerInfo->m_iPassword));
-        g_SP2Client->InternalPasswordFromServer(l_pSetPlayerInfo->m_iPassword);
-    }
-    else
-        GDZLOG(EDZLogLevel::Warning, L"Invalid GHdmSetPlayerInfo event");
-
-    GDZLOG(EDZLogLevel::Exit, L"");
-}

@@ -133,7 +133,7 @@ namespace SP2
 		REAL32 AIAggressiveness();
 		void AIAggressiveness(REAL32 in_fAIAggressiveness);
 
-      void SendChatMessage(INT32 in_iSource, INT32 in_iTarget, const GString& in_sMessage, bool in_bPrivate) const;
+      void SendChatMessage(INT32 in_iSource, INT32 in_iTarget, const GString& in_sMessage) const;
 
       /*!
       * Helper method to synchronize a player's own country data with client
@@ -202,10 +202,9 @@ namespace SP2
 
       bool UseNewExportMechanics() const;
 
-      //! Player data helpers
-      void AddPlayer(INT32 in_iId, UINT32 in_iPassword);
-      bool PlayerExists(INT32 in_iId) const;
-      UINT32 InternalPasswordFromPlayer(INT32 in_iId) const;
+      //! Server message helpers
+      inline void    AddPlayerID(INT32 in_iID) { m_PlayerIDs.insert(in_iID); }
+      inline bool    HasPlayerIDBeenAdded(INT32 in_iID) { return (m_PlayerIDs.find(in_iID) != m_PlayerIDs.end()); }
 
    protected:
       //! Trigger load game flag
@@ -357,13 +356,8 @@ namespace SP2
       REAL32 m_fTributePercent;
       bool   m_bUseNewExportMechanics;
 
-      //! Keep track of players who have joined, and other data
-      struct GPlayerData
-      {
-          UINT32 m_iInternalPasswordFromClient;
-          UINT32 m_iInternalPasswordToClient;
-      };
-      map<INT32, GPlayerData> m_mPlayerData;
+      //! Server message helper to keep track of players who have joined
+      set<INT32> m_PlayerIDs;
 
       //! Helper for changing the admin player; returns true if successful
       bool ChangeAdminPlayer(SDK::GPlayer* in_pPlayer);

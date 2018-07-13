@@ -2263,7 +2263,7 @@ void GCountryData::CheckForCivilWar()
                 if(l_bAnnexRegions)
                 {
                     const GString l_sChatMessage = GString(L"Rebels have begun annexing regions from ") + m_sName;
-                    g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage, true);
+                    g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, SDK::Event::ESpecialTargets::BroadcastActiveHumanPlayers, l_sChatMessage);
                 }
             }
         }

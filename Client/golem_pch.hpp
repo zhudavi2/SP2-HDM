@@ -41,6 +41,5 @@ using namespace GUI;
 // Place DZDebug here so it can pick up GString and related definitions
 #include "../Common/Include/sp2_dzdebug.h"
 #include "../Common/Include/sp2_hdm_event_country_info.h"
-#include "../Common/Include/sp2_hdm_set_player_info.h"
 
 #endif

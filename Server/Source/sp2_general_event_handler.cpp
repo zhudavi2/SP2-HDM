@@ -313,9 +313,9 @@ bool SP2::GGeneralEventHandler::HandleGetRegionCharacteristic(SDK::GGameEventSPt
    return true;
 }
 
-void SP2::GGeneralEventHandler::HandleSetGouvernementType(GHdmSetPlayerInfo *in_pPlayerInfo)
+void SP2::GGeneralEventHandler::HandleSetGouvernementType(GSetPlayerInfo *in_pPlayerInfo)
 {
-   GHdmSetPlayerInfo * l_pSetPlayerInfo = in_pPlayerInfo;
+   GSetPlayerInfo * l_pSetPlayerInfo = in_pPlayerInfo;
    gassert(l_pSetPlayerInfo,"Invalid Player info pointer");
 
    SDK::GPlayer * l_player = g_Joshua.HumanPlayer(l_pSetPlayerInfo->m_PlayerInfo.ClientID);
@@ -413,33 +413,11 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
 {
    GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
 
-   GHdmSetPlayerInfo *l_pSetPlayerInfo = dynamic_cast<GHdmSetPlayerInfo *>(in_Event.get());
+   GSetPlayerInfo *l_pSetPlayerInfo = (GSetPlayerInfo *)in_Event.get();
 
    SDK::GPlayer * l_player = g_Joshua.HumanPlayer(l_pSetPlayerInfo->m_PlayerInfo.ClientID);
 
 	gassert(l_player,"GGeneralEventHandler::HandleSetPlayerInfo(): Player should not be NULL");
-
-    // Register player
-    if(!g_SP2Server->PlayerExists(l_player->Id()))
-    {
-        // If player just joined, send server message through chat
-        const GString l_sMessage = g_SP2Server->Message();
-        if(!l_sMessage.empty())
-            g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_player->Id(), l_sMessage, true);
-
-        g_SP2Server->AddPlayer(l_player->Id(), l_pSetPlayerInfo->m_iPassword);
-    }
-    else
-    {
-        const UINT32 l_iExpectedPassword = g_SP2Server->InternalPasswordFromPlayer(l_player->Id());
-
-        if(l_iExpectedPassword != l_pSetPlayerInfo->m_iPassword)
-        {
-            GDZLOG(EDZLogLevel::Error, L"Expected password " + GDZDebug::FormatHex(l_iExpectedPassword) + L" doesn't match received password " + GDZDebug::FormatHex(l_pSetPlayerInfo->m_iPassword));
-            GDZLOG(EDZLogLevel::Exit, L"Returning false");
-            return false;
-        }
-    }
 
 	bool l_bNameChanged = false;
 
@@ -472,6 +450,17 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
          l_pSetPlayerInfo->m_PlayerInfo.CountryID = 0;
          l_pSetPlayerInfo->m_PlayerInfo.PlayerStatus = SDK::PLAYER_STATUS_IDLE;
       }
+   }
+
+   // Player just joined, send server message through chat
+   // Detect by observing that the player hasn't selected a country and hasn't changed their name
+   if(!g_SP2Server->HasPlayerIDBeenAdded(l_player->Id()))
+   {
+       const GString l_sMessage = g_SP2Server->Message();
+       if(!l_sMessage.empty())
+           g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_player->Id(), l_sMessage);
+
+       g_SP2Server->AddPlayerID(l_player->Id());
    }
 
    // Set Player Selected Country

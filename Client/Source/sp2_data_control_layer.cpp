@@ -62,8 +62,6 @@ using namespace SDK::Event;
 GDataControlLayer::GDataControlLayer(GDALInterface* in_pDAL) : GDCLInterface(in_pDAL)
 , m_ClientAdvisor()
 {
-   GDZLOG(EDZLogLevel::Entry, L"in_pDAL = " + GDZDebug::FormatPtr(in_pDAL));
-
    m_sSelectedCountryFlagPath = L"";
    m_iSelectedCountryID       = 0;
    m_bStartTimeSet            = false;
@@ -95,8 +93,6 @@ GDataControlLayer::GDataControlLayer(GDALInterface* in_pDAL) : GDCLInterface(in_
    m_iEscapeKeyId = 0;
    
    Memory::Clear(m_iRefusedMovCount, SP2::ERefusedMoveReason::Count);
-
-   GDZLOG(EDZLogLevel::Exit, L"Returning " + GDZDebug::FormatPtr(this));
 }
 
 GDataControlLayer::~GDataControlLayer()
@@ -996,19 +992,14 @@ bool GDataControlLayer::SystemSendPlayerInformationToServer(UINT32              
                                                             SDK::GEPlayerStatus  in_ePlayerStatus,
                                                             INT32                in_iPartyID)
 {
-   GDZLOG(EDZLogLevel::Entry, L"in_iControlledCountryID = " + GString(in_iControlledCountryID) + L", in_sPlayerName = " + in_sPlayerName + L", in_ePlayerStatus = " + GString(in_ePlayerStatus) + L", in_iPartyID = " + GString(in_iPartyID));
-
    g_ClientDAL.ControlledCountryID((INT16)in_iControlledCountryID);
 
-   SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
-   GDZLOG(EDZLogLevel::Info1, L"l_Event = " + GDZDebug::FormatPtr(l_Event));
-
-   GDZLOG(EDZLogLevel::Info1, L"g_Joshua.Client()->Id() = " + GString(g_Joshua.Client()->Id()));
+   SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GSetPlayerInfo);
    l_Event->m_iSource  = g_Joshua.Client()->Id();
    l_Event->m_iTarget= SDK::Event::ESpecialTargets::Server;
 
    // Get Event structure
-   SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_Event.get());
+   SP2::Event::GSetPlayerInfo* l_pPlayerInfo = (SP2::Event::GSetPlayerInfo*)l_Event.get();
 
    // Get Client ID
    l_pPlayerInfo->m_PlayerInfo.ClientID      = g_Joshua.Client()->Id();
@@ -1016,12 +1007,7 @@ bool GDataControlLayer::SystemSendPlayerInformationToServer(UINT32              
    l_pPlayerInfo->m_PlayerInfo.PlayerStatus  = in_ePlayerStatus;
    l_pPlayerInfo->m_PlayerInfo.CountryID     = in_iControlledCountryID;
    l_pPlayerInfo->m_PlayerInfo.PartyID       = in_iPartyID;
-   
-   l_pPlayerInfo->m_iPassword = g_SP2Client->m_iInternalPasswordToServer;
-
    g_Joshua.RaiseEvent(l_Event);
-
-   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 

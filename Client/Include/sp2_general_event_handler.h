@@ -110,9 +110,6 @@ namespace SP2
       void HandleLoadComplete(SDK::GGameEventSPtr in_Event);
       void HandleSaveComplete(SDK::GGameEventSPtr in_Event);
 
-      //! Handle server registering its password
-      void HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event);
-
    protected:
    private:
 		GString ReplaceNextPattern(GString in_sSentence, GString in_ReplacingString, GString in_sPattern) const;

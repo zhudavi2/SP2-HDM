@@ -142,9 +142,6 @@ namespace SP2
       //! Mod name and version to display when queried for version
       GString m_sModVersion;
 
-      UINT32 m_iInternalPasswordToServer;
-      UINT32 m_iInternalPasswordFromServer;
-
    protected:
    public:
       GClient();
@@ -234,10 +231,6 @@ namespace SP2
 
       void ContinueCurrentGame(UINT32 in_iFSMEvent);
       void ContinueCurrentGame();
-
-      UINT32 InternalPasswordToServer() const;
-
-      void InternalPasswordFromServer(UINT32 in_iPassword);
 
    }; //end of class GClient
 

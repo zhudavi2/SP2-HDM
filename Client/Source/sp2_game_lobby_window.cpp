@@ -233,25 +233,21 @@ void GGameLobbyWindow::RequestGameStart(void)
  
 void GGameLobbyWindow::SendPlayerInfo(void)
 {
-   GDZLOG(EDZLogLevel::Entry, L"");
-
    // Create event
-   SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
+   SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GSetPlayerInfo);
    l_Event->m_iSource  = g_Joshua.Client()->Id();
    l_Event->m_iTarget= SDK::Event::ESpecialTargets::Server;
 
    // Get Event structure
-   SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_Event.get());
+   SP2::Event::GSetPlayerInfo* l_pPlayerInfo = (SP2::Event::GSetPlayerInfo*)l_Event.get();
 
    // Gather Player Info to be sent
    // Get Client ID
    l_pPlayerInfo->m_PlayerInfo.ClientID = g_Joshua.Client()->Id();
-   GDZLOG(EDZLogLevel::Info1, L"Client ID = " + GString(l_pPlayerInfo->m_PlayerInfo.ClientID));
 
    // Get Selected Country
    GString l_sSelectedCountry = m_pObjCountryCbo->Selected_Content();
-   GDZLOG(EDZLogLevel::Info1, L"Selected country = " + l_sSelectedCountry);
-   if(l_sSelectedCountry != g_ClientDAL.GetString(EStrId::SelectACountry) && m_pObjCountryCbo->SelectedRow() != nullptr)
+   if(l_sSelectedCountry != g_ClientDAL.GetString(EStrId::SelectACountry))
    {
       const GCountry& l_country = g_ClientDAL.Country(l_sSelectedCountry);
       l_pPlayerInfo->m_PlayerInfo.CountryID  = l_country.Id();
@@ -265,7 +261,6 @@ void GGameLobbyWindow::SendPlayerInfo(void)
 
    // Get Name 
    l_pPlayerInfo->m_PlayerInfo.PlayerName = m_pObjPlayerNameEditBox->Text();
-   GDZLOG(EDZLogLevel::Info1, L"Player name = " + GString(l_pPlayerInfo->m_PlayerInfo.PlayerName));
 
    // Get Ready state only if we are not active
    //\TODO (JMERCIER)This should be handled differently... we should received our status once everything is set...
@@ -285,12 +280,9 @@ void GGameLobbyWindow::SendPlayerInfo(void)
       l_pPlayerInfo->m_PlayerInfo.PlayerStatus  = SDK::PLAYER_STATUS_ACTIVE;
    }
 
-   l_pPlayerInfo->m_iPassword = g_SP2Client->InternalPasswordToServer();
-
    // Fire event
    g_Joshua.RaiseEvent(l_Event);      
 
-   GDZLOG(EDZLogLevel::Exit, L"Returning");
 }
 
 GUI::EEventStatus::Enum GGameLobbyWindow::OnCustomEvent(UINT32 in_EventId, const GUI::GEventData & in_EventData, GBaseObject* in_pCaller)
