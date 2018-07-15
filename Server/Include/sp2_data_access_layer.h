@@ -343,6 +343,8 @@ namespace SP2
       //! Helper method to get war info
       GString WarInfoForLog(UINT32 in_iWarID, bool in_bLogAllParticipants) const;
 
+      const multimap<INT16, GCountryData*>& ExportRanks(EResources::Enum in_eResource) const;
+
    private:
       //-----------------------------------------------
       //  Military data loading functions
@@ -447,6 +449,9 @@ namespace SP2
 
       //! Number of countries that are relevant for determining world peace
       UINT32 m_iCountriesForWorldPeace;
+      
+      //! For each resource, ranking of countries by export strength in that resource
+      map<EResources::Enum, multimap<INT16, GCountryData*>> m_mExportRanks;
 
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);

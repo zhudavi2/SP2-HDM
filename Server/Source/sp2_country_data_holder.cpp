@@ -26,6 +26,8 @@ GCountryData::GCountryData() : GCountryDataItf()
    m_pResearchInformation = new GResearchInformation();
 
    m_fPopulationGrowth = 0.f;
+   
+   m_fNonServiceBalanceRatio = 0.0;
 
    //Unused
    m_fGDPValueBase     = 0.f;
@@ -176,6 +178,9 @@ void GCountryData::SynchronizeWithRegions()
 		}		
 	}
 
+    //Update m_iPopulation here; IterateDemand uses it
+    m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
+
 	IterateDemand();
 	
 	//Cap exports based on production, and calculate the new desired import and exports
@@ -200,8 +205,6 @@ void GCountryData::SynchronizeWithRegions()
         else
             m_pResourceExportDesired[j] = min(m_pResourceExportDesired[j], m_pResourceProduction[j]*m_fResourceProductionModifier);
 	}
-
-	m_iPopulation = m_iPop15 + m_iPop1565 + m_iPop65;
 
     if(m_fAreaLandTotal != 0.0f)
     {
@@ -3033,4 +3036,14 @@ REAL64 GCountryData::ExpectedResourceDemand(const EResources::Enum in_eResource)
     const REAL64 l_fExpectedDemand = l_fDemand * l_fDemandMultiplier;
     GDZLOG(EDZLogLevel::Exit, L"Returning " + GString::FormatNumber(l_fExpectedDemand, L",", L".", L"$", L"", 3, 2, true));
     return l_fExpectedDemand;
+}
+
+REAL64 GCountryData::NonServiceBalanceRatio() const
+{
+    return m_fNonServiceBalanceRatio;
+}
+
+void GCountryData::NonServiceBalanceRatio(const REAL64 in_fRatio)
+{
+    m_fNonServiceBalanceRatio = in_fRatio;
 }
