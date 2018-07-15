@@ -164,6 +164,9 @@ namespace SP2
       //! Expected effective demand (i.e., after demand modifier) based on PIT and budget
       REAL64 ExpectedResourceDemand(EResources::Enum in_eResource) const;
 
+      REAL64 NonServiceBalanceRatio() const;
+      void   NonServiceBalanceRatio(REAL64 in_fRatio);
+
       // GGameDataNode implementation
       virtual bool OnSave(GIBuffer& io_Buffer);
       virtual bool OnLoad(GOBuffer& io_Buffer);
@@ -203,6 +206,9 @@ namespace SP2
 
         REAL32 m_fPopulationGrowth;
         REAL32 m_fPopulation1565Growth;
+
+        //! Non-service resource value domestically produced, over non-service resource domestic demand, to a maximum of 1.0
+        REAL64 m_fNonServiceBalanceRatio;
 
       static const UINT8 c_iResourceGvtControled = 1;
       static const UINT8 c_iResourceLegal = 2;

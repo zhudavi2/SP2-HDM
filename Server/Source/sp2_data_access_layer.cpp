@@ -84,10 +84,25 @@ GDatabase* GDataAccessLayerServer::LoadDatabase(const GString &in_sDBFilename)
 
 void GDataAccessLayerServer::CalculateCountryInfo()
 {
+   GDZLOG(EDZLogLevel::Entry, L"");
 
    multimap<REAL32,INT32> l_mPoliticRank;
    multimap<REAL32,INT32> l_mEconomicRank;
-	multimap<REAL32,INT32> l_mMilitaryRank;	
+	multimap<REAL32,INT32> l_mMilitaryRank;
+
+    const bool l_bUseNewExportMechanics = g_SP2Server->UseNewExportMechanics();
+
+    //For each resource, the sorted "export strengths" of all countries
+    map<EResources::Enum, multimap<REAL64, ENTITY_ID>> l_mExportRank;
+
+    if(l_bUseNewExportMechanics)
+    {
+        for(INT32 r = 0; r < EResources::ItemCount; r++)
+        {
+            const EResources::Enum l_eResource = static_cast<EResources::Enum>(r);
+            l_mExportRank[l_eResource];
+        }
+    }
 
    //For each country 
    for(UINT32 i = 0 ; i < (UINT32)NbCountry() ; i++)
@@ -100,6 +115,15 @@ void GDataAccessLayerServer::CalculateCountryInfo()
 			l_mPoliticRank.insert(l_Value);
 			l_mEconomicRank.insert(l_Value);
 			l_mMilitaryRank.insert(l_Value);
+
+            if(l_bUseNewExportMechanics)
+            {
+                for(auto l_It = l_mExportRank.begin(); l_It != l_mExportRank.end(); ++l_It)
+                    l_It->second.insert(l_Value);
+
+                l_pCountryData->NonServiceBalanceRatio(0.0);
+            }
+
 			continue;
 		}
 			
@@ -127,6 +151,41 @@ void GDataAccessLayerServer::CalculateCountryInfo()
          multimap<REAL32,INT32>::value_type l_Value3(l_fTotalUnitsValue, i + 1);
          l_mMilitaryRank.insert(l_Value3);
 		}
+
+        if(l_bUseNewExportMechanics)
+        {
+            //Export rank
+            for(auto l_It = l_mExportRank.begin(); l_It != l_mExportRank.end(); ++l_It)
+            {
+                const EResources::Enum l_eResource = l_It->first;
+
+                const REAL64 l_fGdpPerCapita = l_pCountryData->GDPPerCapita();
+                const REAL32 l_fGdpPercent = l_pCountryData->ResourceGDP(l_eResource);
+                const REAL32 l_fMarketShare = l_pCountryData->ResourceMarketShare(l_eResource);
+
+                const REAL64 l_fExportStrength = l_fGdpPerCapita * max(l_fGdpPercent, l_fMarketShare);
+                const multimap<REAL64, ENTITY_ID>::value_type l_Value(l_fExportStrength, i + 1);
+                l_mExportRank[l_eResource].insert(l_Value);
+            }
+
+            //Non-service balance ratios
+            {
+                REAL64 l_fNonServiceDemandSatisfaction = 0.0;
+                REAL64 l_fNonServiceDemand = 0.0;
+
+                for(INT32 r = 0; r <= EResources::Luxury_Commodities; r++)
+                {
+                    const EResources::Enum l_eResource = static_cast<EResources::Enum>(r);
+                    const REAL64 l_fDemand = l_pCountryData->ResourceDemand(l_eResource);
+                    l_fNonServiceDemandSatisfaction += min(l_fDemand, l_pCountryData->ResourceProduction(l_eResource));
+                    l_fNonServiceDemand += l_fDemand;
+                }
+
+                const REAL64 l_fNonServiceBalanceRatio = min(l_fNonServiceDemandSatisfaction / l_fNonServiceDemand, 1.0);
+                GDZLOG(EDZLogLevel::Info1, l_pCountryData->NameAndIDForLog() + L" non-service balance ratio = " + GString(l_fNonServiceBalanceRatio));
+                l_pCountryData->NonServiceBalanceRatio(l_fNonServiceBalanceRatio);
+            }
+        }
    }
 
 
@@ -158,7 +217,28 @@ void GDataAccessLayerServer::CalculateCountryInfo()
          it3++;
          l_iRank--;
       }
+
+      if(l_bUseNewExportMechanics)
+      {
+          for(auto l_ResourceIt = l_mExportRank.cbegin(); l_ResourceIt != l_mExportRank.cend(); ++l_ResourceIt)
+          {
+              const multimap<REAL64, ENTITY_ID>& l_mExportRankForResource = l_ResourceIt->second;
+
+              const EResources::Enum l_eResource = static_cast<EResources::Enum>(l_ResourceIt->first);
+              m_mExportRanks[l_eResource].clear();
+
+              l_iRank = NbCountry();
+              for(auto l_CountryIt = l_mExportRankForResource.cbegin(); l_CountryIt != l_mExportRankForResource.cend(); ++l_CountryIt)
+              {
+                  m_mExportRanks[l_eResource].insert(make_pair<INT16, GCountryData*>(l_iRank, CountryData(l_CountryIt->second)));
+                  GDZLOG(EDZLogLevel::Info1, CountryData(l_CountryIt->second)->NameAndIDForLog() + L" " + g_ServerDAL.GetString(g_ServerDAL.StringIdResource(l_eResource)) + L" export rank = " + GString(l_iRank));
+                  l_iRank--;
+              }
+          }
+      }
    }
+
+   GDZLOG(EDZLogLevel::Exit, L"");
 }
 
 
@@ -3485,6 +3565,8 @@ void GDataAccessLayerServer::CalculateExpectedRelations()
 
 bool GDataAccessLayerServer::OnNew(GDatabase* in_pDatabase)
 {
+   GDZLOG(EDZLogLevel::Entry, L"in_pDatabase = " + GDZDebug::FormatPtr(in_pDatabase));
+
    IF_RETURN(!UpdateCitiesInfo(), false);
 	IF_RETURN(!LoadRegions(), false);
 
@@ -3523,6 +3605,7 @@ bool GDataAccessLayerServer::OnNew(GDatabase* in_pDatabase)
       l_StringIds[5]->RowCount() == 0)
 	{
 		g_Joshua.Log(L"QUERY ERROR - Invalid query when trying to access religion_name from Religion Table.");
+        GDZLOG(EDZLogLevel::Exit, L"Returning false");
 		return false;
 	}
 	
@@ -3623,6 +3706,7 @@ bool GDataAccessLayerServer::OnNew(GDatabase* in_pDatabase)
 		m_vCountryUnitValues[i].m_iDirtyFlag = 1;
 	g_ServerDAL.UpdateCountryUnitAndMissilesValues();
 
+   GDZLOG(EDZLogLevel::Exit, L"Returning true");
    return true;
 }
 
@@ -3919,4 +4003,9 @@ GString GDataAccessLayerServer::WarInfoForLog(const UINT32 in_iWarID, const bool
     } while(false);
 
     return l_sWarInfo;
+}
+
+const multimap<INT16, GCountryData*>& GDataAccessLayerServer::ExportRanks(const EResources::Enum in_eResource) const
+{
+    return m_mExportRanks.at(in_eResource);
 }
