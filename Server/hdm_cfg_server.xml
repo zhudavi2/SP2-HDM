@@ -268,6 +268,10 @@
   Allowed values are 0-100. Default is 100. -->
   <resourceTaxLimit>100</resourceTaxLimit>
   
+  <!-- Set to 1 to only allow secured clients to join a multiplayer server.
+  Allowed values are 0 and 1. Default is 1. -->
+  <secureMode>1</secureMode>
+  
   <!-- Annual tribute in that a client state would theoretically pay to its
   master in one year, as a percentage of client GDP.
   Minimum value is 0. Default is 8. -->

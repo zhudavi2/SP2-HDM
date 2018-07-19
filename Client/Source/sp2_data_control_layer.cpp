@@ -373,9 +373,9 @@ bool GDataControlLayer::JoinMultiplayerGame()
 * Connect to the selected 
 * @return true if successfull, false otherwise
 **/
-void GDataControlLayer::Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sModName, const GString& in_sPassword)
+void GDataControlLayer::Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sPassword)
 {
-    GDZLOG(EDZLogLevel::Entry, L"in_sIP = " + in_sIP + L", in_iPort = " + GString(in_iPort) + L", in_sModName = " + in_sModName + L", in_sPassword = " + in_sPassword);
+    GDZLOG(EDZLogLevel::Entry, L"in_sIP = " + in_sIP + L", in_iPort = " + GString(in_iPort) + L", in_sPassword = " + in_sPassword);
 
 	m_sIP = in_sIP;
 	m_iPort = in_iPort;
@@ -1555,7 +1555,8 @@ void GDataControlLayer::ConnectToGame(EGameTypes::Enum in_eGameType)
          g_SP2Client->DAL().GameOptions().NuclearAllowed(g_ClientDDL.HostMPGameWindow()->m_bNuclearWarfareEnabled);
       }
 
-      GDZLOG(EDZLogLevel::Info1, L"Set Joshua password = " + GString(m_sPwd));
+      GDZLOG(EDZLogLevel::Info1, L"Password = " + m_sPwd);
+
       g_Joshua.Password(m_sPwd);
 
       // Spawn server if needed
@@ -2790,4 +2791,34 @@ void GDataControlLayer::RequestUsedUnit(void)
 
    // Fire event
    g_Joshua.RaiseEvent(l_pEvent);	
+}
+
+bool GDataControlLayer::SecureMode()
+{
+    GDZLOG(EDZLogLevel::Entry, L"");
+
+    bool l_bSecure = true;
+
+    do
+    {
+        GFile l_HdmClientConfig;
+        if(!g_Joshua.FileManager()->File(L"hdm_cfg_client.xml", l_HdmClientConfig))
+            break;
+
+        GXMLParser l_Parser;
+        GTree<GXMLNode>* const m_pHdmClientConfigRoot = l_Parser.Parse(l_HdmClientConfig);
+        if(m_pHdmClientConfigRoot == nullptr)
+            break;
+
+        CXML_Util l_Util;
+        const CTreeXMLNode* const l_pSecureModeRoot = l_Util.Search_Const_Node(m_pHdmClientConfigRoot->Root(), L"secureMode", L"", nullptr, 0);
+        if(l_pSecureModeRoot == nullptr)
+            break;
+
+        l_bSecure = l_pSecureModeRoot->Data().m_value.ToINT32() != 0;
+
+    } while(false);
+
+    GDZLOG(EDZLogLevel::Exit, L"Returning " + GString(l_bSecure));
+    return l_bSecure;
 }

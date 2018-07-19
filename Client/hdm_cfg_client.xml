@@ -1,0 +1,5 @@
+<SP2-HDM>
+  <!-- Set to 1 to be able to join a secured server. Set to 0 to join a non-secure server.
+  Allowed values are 0 and 1. Default is 1. -->
+  <secureMode>1</secureMode>
+</SP2-HDM>

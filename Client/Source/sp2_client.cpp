@@ -97,7 +97,7 @@ GString GClient::ConsoleMainCommandsHandler(const GString & in_Command, const ve
    {
       int port = in_Params[1].ToINT32();
       g_Joshua.Log(L"Trying to connect to " + in_Params[0] + " port " + GString(port ? port : c_iServerDefaultPort) + "...");
-      this->DCL().Connect(in_Params[0], port ? port : c_iServerDefaultPort, L"", L"");
+      this->DCL().Connect(in_Params[0], port ? port : c_iServerDefaultPort, L"");
       ChangeGameType(EGameTypes::JoinMultiPlayer);
       m_pStateMachine->SendEvent(FSM::EEvents::ConnectAtStartup);
       return L"";

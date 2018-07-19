@@ -253,6 +253,8 @@ SDK::GAME_MSG GServer::Initialize()
    IF_RETURN_LOG(!m_WorldBehavior.LoadConfigFile(L"behavior.xml", L""),SDK::GAME_INIT_ERROR,"Couldnt load behavior file");
 
    {
+        m_sPlaintextPassword = g_Joshua.Password();
+
         // Default values
         InitializeDefaultHdmConfig();
 
@@ -1657,7 +1659,7 @@ GString GServer::ConsoleServerCommandsHandler(const GString & in_sCommand, const
    }
    else if(in_sCommand == L"set_password")
    {
-       g_Joshua.Password(in_vArgs[0]);
+       SetPassword(in_vArgs[0]);
        return L"Changed password to: " + in_vArgs[0];
    }
    else if(in_sCommand == L"load_hdm_cfg")
@@ -2273,7 +2275,7 @@ bool GServer::OnSave(GIBuffer& io_Buffer)
              << g_Joshua.GameTime()
              << g_Joshua.ServerName()
              << g_Joshua.MaxPlayers()
-             << g_Joshua.Password()
+             << m_sPlaintextPassword
              << g_Joshua.Private()
              << g_Joshua.MinPing();
 
@@ -2313,7 +2315,9 @@ bool GServer::OnLoad(GOBuffer& io_Buffer)
    g_Joshua.GameTime(l_fGameTime);
    g_Joshua.ServerName(l_sServerName);
    g_Joshua.MaxPlayers(l_iMaxPlayers);
-   g_Joshua.Password(l_sPassword);
+
+   SetPassword(l_sPassword);
+
    g_Joshua.Private(l_bPrivate);
    g_Joshua.MinPing(l_iMinPing);
 
@@ -2955,6 +2959,16 @@ void GServer::ResourceTaxLimit(const REAL32 in_fResourceTaxLimit)
     }
 }
 
+void GServer::SecureMode(const bool in_bSecureMode)
+{
+    GDZLOG(EDZLogLevel::Entry, L"in_bSecureMode = " + GString(in_bSecureMode));
+
+    m_bSecureMode = in_bSecureMode;
+    SetPassword(m_sPlaintextPassword);
+
+    GDZLOG(EDZLogLevel::Exit, "");
+}
+
 bool GServer::UseNewExportMechanics() const
 {
     return m_bUseNewExportMechanics;
@@ -3031,6 +3045,9 @@ void GServer::InitializeDefaultHdmConfig()
     m_fNuclearUpkeepPercentage            = 1.f;
     m_fOccupiedRegionPercentageForNuclear = 0.f;
     m_fResourceTaxLimit                   = 1.f;
+    
+    SecureMode(true);
+
     m_fTributePercent                     = 0.08f;
     m_bUseNewExportMechanics              = true;
 }
@@ -3374,6 +3391,11 @@ void GServer::LoadHdmConfig()
                         ResourceTaxLimit(l_sElementValue.ToREAL32() / 100.f);
                         g_Joshua.Log(L"resourceTaxLimit: " + GString::FormatNumber(m_fResourceTaxLimit, 3));
                     }
+                    else if(l_sElementName == L"secureMode")
+                    {
+                        SecureMode(l_sElementValue.ToINT32() != 0);
+                        g_Joshua.Log(L"secureMode: " + GString(m_bSecureMode));
+                    }
                     else if(l_sElementName == L"tributePercent")
                     {
                         m_fTributePercent = l_sElementValue.ToREAL32() / 100.f;
@@ -3402,4 +3424,14 @@ void GServer::LoadHdmConfig()
     {
         g_Joshua.Log(SP2::ERROR_CANT_FIND_FILE + c_sConfigXMLFile,MSGTYPE_WARNING);
     }
+}
+
+void GServer::SetPassword(const GString& in_sPlaintextPassword)
+{
+    GDZLOG(EDZLogLevel::Entry, L"in_sPlaintextPassword = " + in_sPlaintextPassword);
+
+    m_sPlaintextPassword = in_sPlaintextPassword;
+    g_Joshua.Password(m_sPlaintextPassword);
+
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
