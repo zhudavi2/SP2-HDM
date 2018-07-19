@@ -354,6 +354,7 @@ namespace SP2
       REAL32 m_fOccupiedRegionPercentageForNuclear;
       REAL32 m_fProductionLossOnAnnex;
       REAL32 m_fResourceTaxLimit;
+      bool   m_bSecureMode;
       REAL32 m_fTributePercent;
       bool   m_bUseNewExportMechanics;
 
@@ -367,6 +368,12 @@ namespace SP2
 
       //! Helper for changing the admin player; returns true if successful
       bool ChangeAdminPlayer(SDK::GPlayer* in_pPlayer);
+
+      void SecureMode(bool in_bSecureMode);
+
+      GString m_sPlaintextPassword;
+
+      void SetPassword(const GString& in_sPlaintextPassword);
    };
 
 }

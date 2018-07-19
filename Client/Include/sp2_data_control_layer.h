@@ -149,6 +149,8 @@ namespace SP2
 
       UINT32 m_iEscapeKeyId;
 
+      bool SecureMode();
+
    protected:
       // All the following methods should be called by state objects only
       friend FSM::GConnecting;
@@ -252,7 +254,7 @@ namespace SP2
       bool JoinMultiplayerGame();
 
       //! Connect to a server
-	  void Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sModName, const GString& in_sPassword);
+	  void Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sPassword);
       void Connect(const GString& in_sIP, UINT32 in_iPort, const GString& in_sPassword, const std::vector<std::string>& in_vsIPS);
 
       //! Switch to the Playing State
