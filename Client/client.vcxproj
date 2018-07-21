@@ -432,6 +432,7 @@
     <ClInclude Include="golem_pch.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="hdm_cfg_client.xml" />
     <None Include="sp2_cfg_client.xml" />
   </ItemGroup>
   <ItemGroup>
