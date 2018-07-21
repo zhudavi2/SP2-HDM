@@ -1,4 +1,8 @@
-Human Development Modification (HDM) V10.5
+Human Development Modification (HDM) V10.6
+
+Installation options:
+- Manual installation: Back up your existing MODS/<mod folder>/Client.dll and Server.dll, and overwrite them with the Client.dll and Server.dll included in the zip file; then copy the hdm_cfg_server.xml and hdm_cfg_client.xml to the same folder as the Client.dll and Server.dll. (You can tune various game parameters in the hdm_cfg files.)
+- Automatic installation: Run the included installer .exe.
 
 Human development changes:
 - (V10.5) LE, MYS, and EYS, as well as the numerical value of the world's average HDI, are now displayed in the country info window directly.
@@ -75,7 +79,8 @@ AI changes:
 - The number of military units that an AI country builds or buys now depends on how high the country's revenue is.
 
 Configurable settings:
-- hdm_cfg_server.xml is the configuration XML file for the server side.
+- hdm_cfg_server.xml is the configuration XML file for the server side. hdm_cfg_client.xml is the configuration XML file for the client side.
+- (V10.6) Option to enable or disable secure mode on both server and client sides. Enabling secure mode on the server side, along with password protection for the server, will allow only secure-mode HDM clients to join the server. Disabling secure mode on the server side will allow any client, that has the ability to join a SP2 V1.5.1 server, to join the non-secure-mode HDM server. As of V10.6, it is recommended that all HDM servers be set to secure mode with password protection.
 - (V10.5) Option to allow GDP growth to increase as personal income tax rate decreases. Thanks to Erövraren for the overall suggestion for an option to increase GDP growth. (Issue #139)
 - (V10.5) Option to activate all database countries upon game start. (Issue #119)
 - (V10.3) Allow players to play past election losses.
@@ -142,6 +147,7 @@ Other changes:
 - When starting a new game, some statistics of each country will be logged out to the console. Something to look at while waiting for the game to load :)
 
 Changes to previous HDM releases:
+- (V10.6) Performance improvement for new export mechanics.
 - (V10.5) Removed config option to show HDI components (LE, MYS, EYS) via the land usage percentages in the country info window, as it is now displayed alongside the green HDI bar in the same window.
 - (V10.4) Clarified effects of anarchy-related config options.
 - (V10.3) Fixed unintentional volatility of PIT's and budgets' effects on domestic consumption.
@@ -194,16 +200,17 @@ Other notes:
 Known issues and possible future changes:
 - Please see https://github.com/zhudavi2/SP2-HDM/issues.
 
-SDK notes:
+Source notes:
 - The source code is at https://github.com/zhudavi2/SP2-HDM.
 - The includes/RGAPI and lib folders, that come with the SDK, are not on GitHub; you must provide your own. The RGAPI and lib files were not modified in making the mod.
 - The "Debug" and "Release" build configurations are known to build correctly and produce working DLLs.
-- A Post-Build Event will automatically copy the built DLL to a default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder.
+- A Post-Build Event will automatically copy the built DLL to the default SP2 mod folder location. You may disable the step, or change it to point to your own desired folder.
 - Starting with V10.2, for security, the code to prevent modified clients from connecting to password-protected servers is not available in the public source. I hope to make the full code (excluding the RGAPI and lib folders) available again a later date.
 - The Release Client and Server DLLs are included with each commit for those interested in testing out the latest changes. Starting with V10.2, the included Client DLL contains the code to prevent modified clients from connecting to password-protected servers, so the included Client DLL is not exactly equivalent to any Client DLL built from the public source.
 - Added a new class, GDZDebug, which offers assert and logging logic. Please see https://github.com/zhudavi2/SP2-HDM/wiki/DZDebug.
 - Changed debug console commands: print_relations
 - New debug console commands: build_amds, print_amds, force_occupy, research_nuclear, print_nuclear_research, declare_war_2v2, force_anarchy, set_stability
+- An Inno Setup 5 Unicode script, for building the HDM installer, is included.
 - Please credit the below people and entities, and me, if you release your own work that's based on this mod. Thanks!
 
 Credits:
