@@ -75,6 +75,7 @@
       <DisableSpecificWarnings>4996;4189;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>.;../includes/common_lib;../includes/RGAPI/core;../includes/RGAPI/external/zlib;../includes/RGAPI/public;../includes/SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Ginger_SDK.lib;unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -126,8 +127,9 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;4127</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>.;../includes/common_lib;../includes/RGAPI/core;../includes/RGAPI/external/zlib;../includes/RGAPI/public;../includes/SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Ginger_SDK.lib;unicows.lib;%(AdditionalDependencies)</AdditionalDependencies>

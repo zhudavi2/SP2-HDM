@@ -65,7 +65,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..\includes\SDK;..\includes\common_lib;.\BaseClasses\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;CLIENT_EXPORTS;INCLUDE_DATABASE;SP2_CLIENT;GOLEM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -76,6 +76,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4127;4996</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Ginger_SDK.lib;unicows.lib;STRMBASE.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -121,6 +122,7 @@
       <PrecompiledHeaderFile>golem_pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4127;4189;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Ginger_SDK.lib;unicows.lib;STRMBASE.lib;%(AdditionalDependencies)</AdditionalDependencies>
