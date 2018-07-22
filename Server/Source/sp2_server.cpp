@@ -134,6 +134,7 @@ SDK::GAME_MSG GServer::Initialize()
       REGISTER_GAME_EVENT(SP2::Event::GStartGameRequest,          &SP2::GGeneralEventHandler::HandleStartGameRequest,          &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GSendAvailableCountries,    &SP2::GGeneralEventHandler::HandleRequestAvailableCountries, &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetRegionsCharacteristic,  &SP2::GGeneralEventHandler::HandleGetRegionCharacteristic,   &m_EventHandler);
+      REGISTER_GAME_EVENT(SP2::Event::GSetPlayerInfo,             &SP2::GGeneralEventHandler::HandleSetPlayerInfo,             &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo,          &SP2::GGeneralEventHandler::HandleSetPlayerInfo,             &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetPlayersList,            &SP2::GGeneralEventHandler::HandleGetPlayersList,            &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GGetCountryRanks,           &SP2::GGeneralEventHandler::HandleGetCountryRanks,           &m_EventHandler);
@@ -201,6 +202,7 @@ SDK::GAME_MSG GServer::Initialize()
       REGISTER_GAME_EVENT(SP2::Event::GTreatyDetailsTreatyAdd,    &SP2::GPoliticEventHandler::HandleTreatyAdd,     &m_PoliticGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GRequestTreatyConditionsCountries, &SP2::GTreatyEventHandler::HandleConditionsCountries, &m_TreatyGameEventHandler);
 
+      REGISTER_GAME_EVENT(SP2::Event::GEventCountryInfo,          &SP2::GGeneralEventHandler::HandleCountryInfo,    &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GHdmEventCountryInfo,       &SP2::GGeneralEventHandler::HandleCountryInfo,    &m_EventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellCreation,         &SP2::GMilitaryEventHandler::HandleCellCreate,    &m_MilitaryGameEventHandler);
       REGISTER_GAME_EVENT(SP2::Event::GEventCellUpdateStatus,     &SP2::GMilitaryEventHandler::HandleCellUpdate,    &m_MilitaryGameEventHandler);
@@ -2963,11 +2965,25 @@ void GServer::ResourceTaxLimit(const REAL32 in_fResourceTaxLimit)
     }
 }
 
+bool GServer::SecureEventMode() const
+{
+    return m_mSecurity.at(ESecurityType::Event);
+}
+
+void GServer::SecureEventMode(const bool in_bSecureEventMode)
+{
+    GDZLOG(EDZLogLevel::Entry, L"in_bSecureEventMode = " + GString(in_bSecureEventMode));
+
+    m_mSecurity[ESecurityType::Event] = in_bSecureEventMode;
+
+    GDZLOG(EDZLogLevel::Exit, "");
+}
+
 void GServer::SecureMode(const bool in_bSecureMode)
 {
     GDZLOG(EDZLogLevel::Entry, L"in_bSecureMode = " + GString(in_bSecureMode));
 
-    m_bSecureMode = in_bSecureMode;
+    m_mSecurity[ESecurityType::Password] = in_bSecureMode;
     SetPassword(m_sPlaintextPassword);
 
     GDZLOG(EDZLogLevel::Exit, "");
@@ -3050,6 +3066,7 @@ void GServer::InitializeDefaultHdmConfig()
     m_fOccupiedRegionPercentageForNuclear = 0.f;
     m_fResourceTaxLimit                   = 1.f;
     
+    SecureEventMode(false);
     SecureMode(true);
 
     m_fTributePercent                     = 0.08f;
@@ -3398,7 +3415,7 @@ void GServer::LoadHdmConfig()
                     else if(l_sElementName == L"secureMode")
                     {
                         SecureMode(l_sElementValue.ToINT32() != 0);
-                        g_Joshua.Log(L"secureMode: " + GString(m_bSecureMode));
+                        g_Joshua.Log(L"secureMode: " + GString(m_mSecurity[ESecurityType::Password]));
                     }
                     else if(l_sElementName == L"tributePercent")
                     {
@@ -3439,22 +3456,25 @@ void GServer::AddPlayer(const INT32 in_iId, const UINT32 in_iPassword)
         m_mPlayerData[in_iId].m_iInternalPasswordFromClient = in_iPassword;
         GDZLOG(EDZLogLevel::Info1, L"Player successfully added");
 
-        SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
-        GDZLOG(EDZLogLevel::Info1, L"l_pEvent = " + GDZDebug::FormatPtr(l_pEvent.get()));
+        if(m_mSecurity[ESecurityType::Event])
+        {
+            SDK::GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
+            GDZLOG(EDZLogLevel::Info1, L"l_pEvent = " + GDZDebug::FormatPtr(l_pEvent.get()));
 
-        l_pEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
-        l_pEvent->m_iTarget = in_iId;
+            l_pEvent->m_iSource = SDK::Event::ESpecialTargets::Server;
+            l_pEvent->m_iTarget = in_iId;
 
-        SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_pEvent.get());
+            SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_pEvent.get());
 
-        Random::GQuick l_Rand;
-        l_Rand.Seed(time(nullptr) & 0xFFFFFFFF);
-        m_mPlayerData[in_iId].m_iInternalPasswordToClient = l_Rand.Random();
-        GDZLOG(EDZLogLevel::Info1, L"Internal password to client = " + GDZDebug::FormatHex(m_mPlayerData[in_iId].m_iInternalPasswordToClient));
+            Random::GQuick l_Rand;
+            l_Rand.Seed(time(nullptr) & 0xFFFFFFFF);
+            m_mPlayerData[in_iId].m_iInternalPasswordToClient = l_Rand.Random();
+            GDZLOG(EDZLogLevel::Info1, L"Internal password to client = " + GDZDebug::FormatHex(m_mPlayerData[in_iId].m_iInternalPasswordToClient));
 
-        l_pPlayerInfo->m_iPassword = m_mPlayerData[in_iId].m_iInternalPasswordToClient;
+            l_pPlayerInfo->m_iPassword = m_mPlayerData[in_iId].m_iInternalPasswordToClient;
 
-        g_Joshua.RaiseEvent(l_pEvent);
+            g_Joshua.RaiseEvent(l_pEvent);
+        }
     }
     else
         GDZLOG(EDZLogLevel::Error, L"Player already added with password " + GDZDebug::FormatHex(m_mPlayerData[in_iId].m_iInternalPasswordFromClient));

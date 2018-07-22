@@ -313,9 +313,9 @@ bool SP2::GGeneralEventHandler::HandleGetRegionCharacteristic(SDK::GGameEventSPt
    return true;
 }
 
-void SP2::GGeneralEventHandler::HandleSetGouvernementType(GHdmSetPlayerInfo *in_pPlayerInfo)
+void SP2::GGeneralEventHandler::HandleSetGouvernementType(GSetPlayerInfo *in_pPlayerInfo)
 {
-   GHdmSetPlayerInfo * l_pSetPlayerInfo = in_pPlayerInfo;
+   GSetPlayerInfo * l_pSetPlayerInfo = in_pPlayerInfo;
    gassert(l_pSetPlayerInfo,"Invalid Player info pointer");
 
    SDK::GPlayer * l_player = g_Joshua.HumanPlayer(l_pSetPlayerInfo->m_PlayerInfo.ClientID);
@@ -413,7 +413,16 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
 {
    GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
 
-   GHdmSetPlayerInfo *l_pSetPlayerInfo = dynamic_cast<GHdmSetPlayerInfo *>(in_Event.get());
+   GSetPlayerInfo *l_pSetPlayerInfo = dynamic_cast<GSetPlayerInfo *>(in_Event.get());
+
+   const bool l_bSecureEventMode = g_SP2Server->SecureEventMode();
+   const GHdmSetPlayerInfo* const l_pHdmSetPlayerInfo = l_bSecureEventMode ? dynamic_cast<GHdmSetPlayerInfo*>(l_pSetPlayerInfo) : nullptr;
+   if(l_bSecureEventMode && l_pHdmSetPlayerInfo == nullptr)
+   {
+       GDZLOG(EDZLogLevel::Error, L"Received invalid event with source " + GDZDebug::FormatHex(l_pSetPlayerInfo->m_iSource));
+       GDZLOG(EDZLogLevel::Exit, L"Returning false");
+       return false;
+   }
 
    SDK::GPlayer * l_player = g_Joshua.HumanPlayer(l_pSetPlayerInfo->m_PlayerInfo.ClientID);
 
@@ -422,20 +431,19 @@ bool SP2::GGeneralEventHandler::HandleSetPlayerInfo(SDK::GGameEventSPtr in_Event
     // Register player
     if(!g_SP2Server->PlayerExists(l_player->Id()))
     {
+        g_SP2Server->AddPlayer(l_player->Id(), l_bSecureEventMode ? l_pHdmSetPlayerInfo->m_iPassword : 0);
+
         // If player just joined, send server message through chat
         const GString l_sMessage = g_SP2Server->Message();
         if(!l_sMessage.empty())
             g_SP2Server->SendChatMessage(SDK::Event::ESpecialTargets::Server, l_player->Id(), l_sMessage, true);
-
-        g_SP2Server->AddPlayer(l_player->Id(), l_pSetPlayerInfo->m_iPassword);
     }
-    else
+    else if(l_bSecureEventMode)
     {
         const UINT32 l_iExpectedPassword = g_SP2Server->InternalPasswordFromPlayer(l_player->Id());
-
-        if(l_iExpectedPassword != l_pSetPlayerInfo->m_iPassword)
+        if(l_iExpectedPassword != l_pHdmSetPlayerInfo->m_iPassword)
         {
-            GDZLOG(EDZLogLevel::Error, L"Expected password " + GDZDebug::FormatHex(l_iExpectedPassword) + L" doesn't match received password " + GDZDebug::FormatHex(l_pSetPlayerInfo->m_iPassword));
+            GDZLOG(EDZLogLevel::Error, L"Expected password " + GDZDebug::FormatHex(l_iExpectedPassword) + L" doesn't match received password " + GDZDebug::FormatHex(l_pHdmSetPlayerInfo->m_iPassword));
             GDZLOG(EDZLogLevel::Exit, L"Returning false");
             return false;
         }
@@ -682,7 +690,7 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
 {
    GDZLOG(EDZLogLevel::Entry, L"in_Event = " + GDZDebug::FormatPtr(in_Event.get()));
 
-   SP2::Event::GHdmEventCountryInfo* l_pUpdate = dynamic_cast<SP2::Event::GHdmEventCountryInfo*>(in_Event.get());
+   SP2::Event::GEventCountryInfo* const l_pUpdate = dynamic_cast<SP2::Event::GEventCountryInfo*>(in_Event.get());
 
    GDZLOG(EDZLogLevel::Info1, L"l_pUpdate->m_iSource = " + GString(l_pUpdate->m_iSource));
    SDK::GPlayer* l_pPlayer = g_Joshua.ActivePlayer(l_pUpdate->m_iSource);
@@ -707,9 +715,6 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
        l_pUpdate->m_fTotalArea       = l_pData->AreaTotal();
 
        l_pUpdate->m_fHumanDev               = l_pData->HumanDevelopment();
-       l_pUpdate->m_fLifeExpectancy         = l_pData->LifeExpectancy();
-       l_pUpdate->m_fMeanYearsSchooling     = l_pData->MeanYearsSchooling();
-       l_pUpdate->m_fExpectedYearsSchooling = l_pData->ExpectedYearsSchooling();
        l_pUpdate->m_fHumanDevAverage        = g_ServerDCL.AverageHumanDevelopment();
        l_pUpdate->m_iClimateStid            = l_pData->ClimateNameID();
 
@@ -717,6 +722,20 @@ void SP2::GGeneralEventHandler::HandleCountryInfo(SDK::GGameEventSPtr in_Event)
        l_pUpdate->m_fDeathRate       = l_pData->DeathRate();
        l_pUpdate->m_fInfrastructure  = l_pData->Infrastructure();
        l_pUpdate->m_fTelecommunications = l_pData->TelecomLevel();
+
+       GHdmEventCountryInfo* const l_pHdmUpdate = dynamic_cast<GHdmEventCountryInfo*>(l_pUpdate);
+       if(l_pHdmUpdate != nullptr)
+       {
+           l_pHdmUpdate->m_fLifeExpectancy         = l_pData->LifeExpectancy();
+           l_pHdmUpdate->m_fMeanYearsSchooling     = l_pData->MeanYearsSchooling();
+           l_pHdmUpdate->m_fExpectedYearsSchooling = l_pData->ExpectedYearsSchooling();
+       }
+       else if(g_SP2Server->SecureEventMode())
+       {
+           GDZLOG(EDZLogLevel::Error, L"Received invalid event with source " + GDZDebug::FormatHex(l_pUpdate->m_iSource));
+           GDZLOG(EDZLogLevel::Exit, L"Returning");
+           return;
+       }
 
        g_Joshua.RaiseEvent(in_Event);
    }

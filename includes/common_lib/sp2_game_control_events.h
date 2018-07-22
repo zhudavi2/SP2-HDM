@@ -90,6 +90,7 @@ namespace SP2
       {
          friend class GClient;
          friend class GServer;
+         friend class GHdmSetPlayerInfo;
          static SDK::GGameEventSPtr New();
          GSetPlayerInfo();
 

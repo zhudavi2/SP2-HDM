@@ -59,7 +59,7 @@ public:
    void HandleRelationHistoryFetch(SDK::GGameEventSPtr in_Event);
    void HandleGetCountryParties(SDK::GGameEventSPtr in_Event);
 
-   void HandleSetGouvernementType(Event::GHdmSetPlayerInfo *in_pPlayerInfo);
+   void HandleSetGouvernementType(Event::GSetPlayerInfo *in_pPlayerInfo);
 
    void HandleResetGame(SDK::GGameEventSPtr in_Event);
    void HandleNewGame(SDK::GGameEventSPtr in_Event);

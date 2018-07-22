@@ -15,7 +15,7 @@ namespace SP2
 {
     namespace Event
     {
-        class GHdmSetPlayerInfo : public SDK::Event::GGameEvent
+        class GHdmSetPlayerInfo : public GSetPlayerInfo
         {
             friend class GClient;
             friend class GServer;
@@ -23,7 +23,6 @@ namespace SP2
             static SDK::GGameEventSPtr New();
 
         public:
-            SP2::Event::GSetPlayerInfo::PlayerInfo m_PlayerInfo;
             UINT32 m_iPassword;
 
             virtual bool Serialize(GIBuffer& io_Buffer) const;

@@ -36,6 +36,16 @@ namespace SP2
       };
    }
 
+   namespace ESecurityType
+   {
+       enum Enum
+       {
+           Event,
+           Password,
+           ItemCount,
+       };
+   }
+
    struct GAnarchyConfig
    {
        REAL32 m_fChanceDueToStability;
@@ -198,6 +208,8 @@ namespace SP2
       REAL32 ResourceTaxLimit() const;
       void   ResourceTaxLimit(REAL32 in_fResourceTaxLimit);
 
+      bool SecureEventMode() const;
+
       inline REAL32  TributePercent() const { return m_fTributePercent; }
 
       bool UseNewExportMechanics() const;
@@ -354,7 +366,9 @@ namespace SP2
       REAL32 m_fOccupiedRegionPercentageForNuclear;
       REAL32 m_fProductionLossOnAnnex;
       REAL32 m_fResourceTaxLimit;
-      bool   m_bSecureMode;
+
+      map<ESecurityType::Enum, bool> m_mSecurity;
+
       REAL32 m_fTributePercent;
       bool   m_bUseNewExportMechanics;
 
@@ -369,6 +383,7 @@ namespace SP2
       //! Helper for changing the admin player; returns true if successful
       bool ChangeAdminPlayer(SDK::GPlayer* in_pPlayer);
 
+      void SecureEventMode(bool in_bSecureEventMode);
       void SecureMode(bool in_bSecureMode);
 
       GString m_sPlaintextPassword;
