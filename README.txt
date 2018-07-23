@@ -1,4 +1,4 @@
-Human Development Modification (HDM) V10.6
+Human Development Modification (HDM) V10.7
 
 Installation options:
 - Manual installation: Back up your existing MODS/<mod folder>/Client.dll and Server.dll, and overwrite them with the Client.dll and Server.dll included in the zip file; then copy the hdm_cfg_server.xml and hdm_cfg_client.xml to the same folder as the Client.dll and Server.dll. (You can tune various game parameters in the hdm_cfg files.)
@@ -118,6 +118,7 @@ Configurable settings:
 - (V3) Resource tax limit.
 
 Other changes:
+- (V10.7) Fix possible crashes when joining non-secured HDM servers with non-HDM clients.
 - (V10.5) Big-time Friend achievement now achievable as long as all still-existing countries are in the same alliance. For games with countryNeedsRegions option set to 1, such an alliance must include all countries that have political and/or military control of at least one region, and/or have military units. (Issue #98)
 - (V10.4) Added a console command, load_hdm_cfg, to reload the HDM config file in the middle of a game. Thanks to -Jesse- for the suggestion.
 - (V10.3) Added a console command, set_password, to set server password. Thanks to IceyVVind for the suggestion. (#127)

@@ -4,7 +4,7 @@
 
 [Setup]
 AppName=SuperPower 2 Human Development Mod
-AppVersion=10.6
+AppVersion=10.7
 DefaultDirName={pf}\Steam\steamapps\common\SuperPower 2\MODS\SP2
 OutputBaseFilename=Install {#SetupSetting("AppName")} V{#SetupSetting("AppVersion")}
 OutputDir=.

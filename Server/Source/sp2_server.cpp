@@ -67,7 +67,7 @@ SDK::GAME_MSG GServer::Initialize()
 
    // Initialize Mode
    // JMercier : This will be changed later by reading a xml file or a menu.
-   ModName(L"Human Dev Mod V10.6");
+   ModName(L"Human Dev Mod V10.7");
 
    GDALInterface::Instance = &m_DAL;
    GDCLInterface::Instance = &m_DCL;
