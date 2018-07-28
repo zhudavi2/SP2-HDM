@@ -102,7 +102,7 @@
       </Command>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(Configuration)\\$(SolutionName).dll" "C:/Program Files (x86)/Steam/steamapps/common/SuperPower 2/MODS/SP2"</Command>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "C:/Program Files (x86)/Steam/steamapps/common/SuperPower 2/MODS/HDM"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy DLL</Message>
@@ -156,7 +156,7 @@
       </Command>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(Configuration)\\$(SolutionName).dll" "C:/Program Files (x86)/Steam/steamapps/common/SuperPower 2/MODS/SP2"</Command>
+      <Command>copy "$(Configuration)\\$(SolutionName).dll" "C:/Program Files (x86)/Steam/steamapps/common/SuperPower 2/MODS/HDM"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy DLL</Message>
