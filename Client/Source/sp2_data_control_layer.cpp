@@ -1000,15 +1000,15 @@ bool GDataControlLayer::SystemSendPlayerInformationToServer(UINT32              
 
    g_ClientDAL.ControlledCountryID((INT16)in_iControlledCountryID);
 
-   SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
-   GDZLOG(EDZLogLevel::Info1, L"l_Event = " + GDZDebug::FormatPtr(l_Event));
+   SDK::GGameEventSPtr l_Event = g_SP2Client->UseHdmEvents() ? CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo) : CREATE_GAME_EVENT(SP2::Event::GSetPlayerInfo);
+   GDZLOG(EDZLogLevel::Info1, L"l_Event = " + GDZDebug::FormatPtr(l_Event.get()));
 
    GDZLOG(EDZLogLevel::Info1, L"g_Joshua.Client()->Id() = " + GString(g_Joshua.Client()->Id()));
    l_Event->m_iSource  = g_Joshua.Client()->Id();
    l_Event->m_iTarget= SDK::Event::ESpecialTargets::Server;
 
    // Get Event structure
-   SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_Event.get());
+   SP2::Event::GSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GSetPlayerInfo*>(l_Event.get());
 
    // Get Client ID
    l_pPlayerInfo->m_PlayerInfo.ClientID      = g_Joshua.Client()->Id();
@@ -1017,7 +1017,9 @@ bool GDataControlLayer::SystemSendPlayerInformationToServer(UINT32              
    l_pPlayerInfo->m_PlayerInfo.CountryID     = in_iControlledCountryID;
    l_pPlayerInfo->m_PlayerInfo.PartyID       = in_iPartyID;
    
-   l_pPlayerInfo->m_iPassword = g_SP2Client->m_iInternalPasswordToServer;
+   SP2::Event::GHdmSetPlayerInfo* const l_pHdmPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_pPlayerInfo);
+   if(l_pHdmPlayerInfo != nullptr)
+       l_pHdmPlayerInfo->m_iPassword = g_SP2Client->m_iInternalPasswordToServer;
 
    g_Joshua.RaiseEvent(l_Event);
 

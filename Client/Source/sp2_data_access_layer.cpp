@@ -111,8 +111,8 @@ bool GDataAccessLayerClient::FetchCountryInfo(INT32 in_iCountryID)
 {
    GDZLOG(EDZLogLevel::Entry, L"in_iCountryID = " + GString(in_iCountryID));
 
-   GGameEventSPtr l_pEvent = CREATE_GAME_EVENT(SP2::Event::GHdmEventCountryInfo);
-   SP2::Event::GHdmEventCountryInfo* l_pUpdateEvent = dynamic_cast<SP2::Event::GHdmEventCountryInfo*>(l_pEvent.get());
+   GGameEventSPtr l_pEvent = g_SP2Client->UseHdmEvents() ? CREATE_GAME_EVENT(SP2::Event::GHdmEventCountryInfo) : CREATE_GAME_EVENT(SP2::Event::GEventCountryInfo);
+   SP2::Event::GEventCountryInfo* l_pUpdateEvent = dynamic_cast<SP2::Event::GEventCountryInfo*>(l_pEvent.get());
 
    l_pUpdateEvent->m_iSource = g_SP2Client->Id();
    GDZLOG(EDZLogLevel::Info1, L"Client ID = " + GString(g_SP2Client->Id()));

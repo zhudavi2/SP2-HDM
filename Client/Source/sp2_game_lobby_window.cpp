@@ -236,12 +236,12 @@ void GGameLobbyWindow::SendPlayerInfo(void)
    GDZLOG(EDZLogLevel::Entry, L"");
 
    // Create event
-   SDK::GGameEventSPtr l_Event = CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo);
+   SDK::GGameEventSPtr l_Event = g_SP2Client->UseHdmEvents() ? CREATE_GAME_EVENT(SP2::Event::GHdmSetPlayerInfo) : CREATE_GAME_EVENT(SP2::Event::GSetPlayerInfo);
    l_Event->m_iSource  = g_Joshua.Client()->Id();
    l_Event->m_iTarget= SDK::Event::ESpecialTargets::Server;
 
    // Get Event structure
-   SP2::Event::GHdmSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_Event.get());
+   SP2::Event::GSetPlayerInfo* l_pPlayerInfo = dynamic_cast<SP2::Event::GSetPlayerInfo*>(l_Event.get());
 
    // Gather Player Info to be sent
    // Get Client ID
@@ -285,7 +285,9 @@ void GGameLobbyWindow::SendPlayerInfo(void)
       l_pPlayerInfo->m_PlayerInfo.PlayerStatus  = SDK::PLAYER_STATUS_ACTIVE;
    }
 
-   l_pPlayerInfo->m_iPassword = g_SP2Client->InternalPasswordToServer();
+   SP2::Event::GHdmSetPlayerInfo* const l_pHdmPlayerInfo = dynamic_cast<SP2::Event::GHdmSetPlayerInfo*>(l_pPlayerInfo);
+   if(l_pHdmPlayerInfo != nullptr)
+       l_pHdmPlayerInfo->m_iPassword = g_SP2Client->InternalPasswordToServer();
 
    // Fire event
    g_Joshua.RaiseEvent(l_Event);      

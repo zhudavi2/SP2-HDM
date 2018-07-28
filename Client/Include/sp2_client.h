@@ -145,6 +145,8 @@ namespace SP2
       UINT32 m_iInternalPasswordToServer;
       UINT32 m_iInternalPasswordFromServer;
 
+      bool m_bUseHdmEvents;
+
    protected:
    public:
       GClient();
@@ -238,6 +240,9 @@ namespace SP2
       UINT32 InternalPasswordToServer() const;
 
       void InternalPasswordFromServer(UINT32 in_iPassword);
+
+      bool UseHdmEvents() const;
+      void SetUseHdmEventsWithModName(const GString& in_sModName);
 
    }; //end of class GClient
 

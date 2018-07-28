@@ -542,6 +542,8 @@ bool GJoinMPGameWindow::JoinSelectedServer(GString in_sPassword, bool in_bConfir
    sockaddr_in* l_AdressPtr = (sockaddr_in*)&l_sServer.m_ServerAdress;
    GString l_sServerAdress = GString(inet_ntoa(l_AdressPtr->sin_addr));
 
+   g_SP2Client->SetUseHdmEventsWithModName(l_sServer.m_sModName);
+
    if(l_sServer.m_bOfficial || in_bConfirmed)
    {   
       //If the server is public connect to it else popup the password window

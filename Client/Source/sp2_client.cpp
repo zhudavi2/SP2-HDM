@@ -54,7 +54,8 @@ m_bLimitFPS(false),
 m_bPlayCredits(false),
 m_iSavedFSMEvent(0),
 m_iInternalPasswordToServer(0),
-m_iInternalPasswordFromServer(0)
+m_iInternalPasswordFromServer(0),
+m_bUseHdmEvents(true)
 {
 }
 
@@ -761,4 +762,18 @@ UINT32 GClient::InternalPasswordToServer() const
 void GClient::InternalPasswordFromServer(const UINT32 in_iPassword)
 {
     m_iInternalPasswordFromServer = in_iPassword;
+}
+
+bool GClient::UseHdmEvents() const
+{
+    return m_bUseHdmEvents;
+}
+
+void GClient::SetUseHdmEventsWithModName(const GString& in_sModName)
+{
+    GDZLOG(EDZLogLevel::Entry, L"in_sModName = " + in_sModName);
+
+    m_bUseHdmEvents = false;
+
+    GDZLOG(EDZLogLevel::Exit, L"");
 }
